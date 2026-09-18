@@ -1,6 +1,6 @@
 # Agent Skills
 
-A pack of 16 agent skills for the software development lifecycle: from an
+A pack of 17 agent skills for the software development lifecycle: from an
 unfamiliar repository and a vague feature intent to a merged, traceable pull
 request. Each skill is a
 structured workflow an AI coding agent follows — with templates, gates, and
@@ -17,7 +17,7 @@ did.
 ```bash
 npx skills add eniga/agent-skills --list     # browse before installing
 npx skills add eniga/agent-skills            # pick skills and agents interactively
-npx skills add eniga/agent-skills --all      # install all 16, to every detected agent
+npx skills add eniga/agent-skills --all      # install all 17, to every detected agent
 npx skills add eniga/agent-skills --skill spec   # install one skill
 ```
 
@@ -58,7 +58,7 @@ named after its directory (`/spec`, `/build`, ...).
 ## The lifecycle
 
 ```
-ORIENT    /context-prism   (verified map of the repo: facts vs inferences)
+ORIENT    /context-prime   (verified map of the repo: facts vs inferences)
 INTAKE    /story-author ──▶ /story-triage
 REFINE    /refine          (spec sketch + task breakdown + pointing)
 DESIGN    /design          (settle how to build it, before what gets built)
@@ -70,15 +70,16 @@ BUILD     /build  ◀── /code-simplify (cross-cutting)
 VERIFY    /test   ◀── /diagnose (cause before fix, whenever something breaks)
 REVIEW    /review  ┊  /ai-code-review (fresh-context conformance check)
 SHIP      /pr-prepare
+RELEASE   /release         (observability + rollback proven, then watched)
 ```
 
-## All 16 skills
+## All 17 skills
 
 ### Orient — learn the repository before trusting it
 
 | Skill | What it does | Output |
 |---|---|---|
-| [`context-prism`](skills/context-prism) | Refracts a repo into facts that cite files, with inferences labelled separately, so later stages stop guessing at existing behavior | `.specs/context.md` |
+| [`context-prime`](skills/context-prime) | Maps a repo into facts that cite files, with inferences labelled separately, so later stages stop guessing at existing behavior | `.specs/context.md` |
 
 ### Intake — turn intent into a story
 
@@ -130,6 +131,12 @@ SHIP      /pr-prepare
 | [`ai-code-review`](skills/ai-code-review) | PR diff + spec → conformance verdict (does the diff implement what was specified, no more and no less?) + comments mapped to IDs | conformance report |
 | [`pr-prepare`](skills/pr-prepare) | Branch diff + spec → PR description with a traceability table (`R → T → commit → TC → evidence`) | `.specs/<slug>/pr.md` |
 
+### Release — prove it is safe to ship and safe to undo
+
+| Skill | What it does | Output |
+|---|---|---|
+| [`release`](skills/release) | Checks the spec's promised logs, metrics, and alerts actually fire; **rehearses the rollback** and times it; defines the watch thresholds before deploy | `.specs/<slug>/evidence/release-<date>.md` |
+
 ## How the skills chain
 
 Skills chain through **artifacts, not through each other**. Each stage reads
@@ -139,7 +146,7 @@ human or another tool produced:
 
 ```
 context.md ──▶ story.md ──▶ sketch.md + tasks.md ──▶ design.md ──▶ spec.md
-(context-prism)  (story-*)        (refine)            (design)     (spec)
+(context-prime)  (story-*)        (refine)            (design)     (spec)
                                                                      │
                      spec.md change log ◀── amendments ◀─────────────┤
                          (spec-amend)                                ▼
@@ -151,6 +158,10 @@ context.md ──▶ story.md ──▶ sketch.md + tasks.md ──▶ design.md
                                                       ▼
    pr.md ◀── review + ai-code-review ◀── evidence/ ◀── test
  (pr-prepare)                             (test)
+      │
+      ▼
+  release-<date>.md   (observability verified, rollback rehearsed, then watched)
+    (release)
 ```
 
 No skill requires another to be installed. Each declares its inputs and what
@@ -169,10 +180,11 @@ The IDs that flow through:
 | `T-<n>` | Task with story points | `refine` |
 | `SL-<n>` | Build slice | `plan` |
 | `C-<n>` | Constraint (quality-bar rule) | `constraints` |
-| `CX-<n>` | Verified context fact (cites a file) | `context-prism` |
+| `CX-<n>` | Verified context fact (cites a file) | `context-prime` |
 | `AD-<n>` | Architecture decision | `design` |
 | `AM-<n>` | Spec amendment | `spec-amend` |
 | `D-<n>` | Defect (with proven cause) | `diagnose` |
+| `RL-<n>` | Release check | `release` |
 
 The full convention — including the rule that tests are written from `TC-*`
 before code exists, and that dropped requirements are marked, not deleted —
@@ -200,7 +212,7 @@ is in [CONTRIBUTING.md](CONTRIBUTING.md).
 ## Repository structure
 
 ```
-skills/                  # the 16 skills (one directory each, SKILL.md inside)
+skills/                  # the 17 skills (one directory each, SKILL.md inside)
 docs/skill-anatomy.md    # the per-skill file format spec
 CONTRIBUTING.md          # pack conventions: traceability spine, artifact home
 .github/workflows/       # CI: frontmatter, self-containment, real install

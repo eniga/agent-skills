@@ -1,13 +1,13 @@
 ---
-name: context-prism
+name: context-prime
 description: Builds a verified map of how a repository actually works before any work is planned against it, separating what was read in the code from what was inferred. Use when starting work in an unfamiliar codebase. Use when a story, spec, or plan would otherwise rest on assumptions about existing behavior. Use when onboarding to a project or picking up a system nobody remembers.
 ---
 
-# Context Prism
+# Context Prime
 
 ## Overview
 
-Refract a repository into the facts a downstream decision needs: what it
+Prime yourself on a repository before deciding anything against it: what it
 does, how it is structured, where the work will land, and what will get in
 the way. Every fact carries a citation to the file that proves it, and every
 inference is labelled as an inference.

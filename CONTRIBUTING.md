@@ -26,7 +26,7 @@ the previous stage and writes its own — but no skill requires another to be
 installed:
 
 ```
-ORIENT    /context-prism   (verified repo map: facts cite files)
+ORIENT    /context-prime   (verified repo map: facts cite files)
 INTAKE    /story-author ──▶ /story-triage
 REFINE    /refine          (spec sketch + task breakdown + pointing)
 DESIGN    /design          (how to build it, before what gets built)
@@ -36,6 +36,7 @@ BUILD     /build  ◀── /code-simplify (cross-cutting)
 VERIFY    /test   ◀── /diagnose (cause before fix)
 REVIEW    /review  ┊  /ai-code-review (fresh-context conformance check)
 SHIP      /pr-prepare
+RELEASE   /release         (observability + rollback proven, then watched)
 ```
 
 The pipeline is a reading order for humans, **not a dependency graph**. Each
@@ -56,10 +57,11 @@ Skills must reuse these ID shapes — never invent new ones:
 | `T-<n>` | Task with story points | `refine` | `plan`, `build`, `pr-prepare` |
 | `SL-<n>` | Build slice (distinct from story `S-<n>`) | `plan` | `build`, `test`, `pr-prepare` |
 | `C-<n>` | Constraint (quality-bar rule) | `constraints` | `build`, `test`, `review`, `code-simplify` |
-| `CX-<n>` | Verified context fact, citing a file | `context-prism` | `story-author`, `refine`, `design`, `spec`, `plan` |
+| `CX-<n>` | Verified context fact, citing a file | `context-prime` | `story-author`, `refine`, `design`, `spec`, `plan` |
 | `AD-<n>` | Architecture decision | `design` | `spec`, `plan`, `review` |
 | `AM-<n>` | Spec amendment | `spec-amend` | `plan`, `build`, `test`, `pr-prepare` |
 | `D-<n>` | Defect with a proven cause | `diagnose` | `build`, `test`, `spec-amend`, `pr-prepare` |
+| `RL-<n>` | Release check (observability, rollback, watch) | `release` | `pr-prepare`, `diagnose` |
 
 Rules:
 
@@ -93,6 +95,10 @@ where the work happens), never into this skills repo:
     plan.md                 # /plan
     pr.md                   # /pr-prepare
     evidence/               # /test (command output, screenshots, traces)
+                            # /release (release-<date>.md)
+    defects/                # /diagnose (D-<n>.md)
+    design.md               # /design
+    context.md              # /context-prime (or .specs/context.md, repo-wide)
 ```
 
 `<slug>` is a kebab-case name for the feature, chosen once by `story-author`
