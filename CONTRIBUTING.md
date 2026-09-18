@@ -46,6 +46,7 @@ Skills must reuse these ID shapes — never invent new ones:
 | `R-<n>` | Spec requirement | `spec` | `refine`, `plan`, `build`, `test`, `review`, `ai-code-review`, `pr-prepare` |
 | `TC-U<n>` / `TC-I<n>` / `TC-E<n>` | Test criterion: unit / integration / e2e, each mapped to an `R-<n>` | `spec` | `build` (tests are written from these, not from finished code), `test` |
 | `T-<n>` | Task with story points | `refine` | `plan`, `build`, `pr-prepare` |
+| `SL-<n>` | Build slice (distinct from story `S-<n>`) | `plan` | `build`, `test`, `pr-prepare` |
 | `C-<n>` | Constraint (quality-bar rule) | `constraints` | `build`, `test`, `review` |
 
 Rules:
