@@ -20,16 +20,29 @@ regressions.
 ## When to Use
 
 - A build (or any code change) is complete and needs proof before review.
-- A change is about to go to `review` or `pr-prepare` and has no test
-  evidence yet.
+- A change is about to be reviewed or turned into a pull request and has no
+  test evidence yet.
 - You need to know whether a change broke anything, with per-criterion
   results.
 
-**When NOT to use:** You are writing the tests as part of the build (that is
-`build` — tests are written from the spec's `TC-*` before the code). The
-change is a documentation-only edit (no tests to run; say so). You are
-debugging a specific failure (reproduce and localize first; this skill
-reports, it does not fix).
+**When NOT to use:** You are writing the tests as part of implementing a
+slice (those are written from the spec's `TC-*` before the code, as part of
+the build, not here). The change is a documentation-only edit (no tests to
+run; say so). You are chasing a specific failure to its cause (diagnose it
+separately — reproduce and localize first; this skill reports results, it
+does not find or fix causes).
+
+## Inputs
+
+| Input | Where | If it is missing |
+|---|---|---|
+| Test criteria (`TC-*`, each mapped to an `R-*`) | `.specs/<slug>/spec.md` | Proceed. Derive the criteria from the change's acceptance criteria, or from the observable behaviors the diff introduces, and label them `TC-U/I/E<n>` yourself. Say in the report that the criteria were derived, not specified. |
+| The change under test | git diff, branch, or commit range | Stop. Ask which change is being verified. A whole-suite run with no named change is a CI job, not a verification pass. |
+| Quality bar (coverage and gate rules `C-*`) | `CONSTRAINTS.md` at repo root | Proceed. Report the numbers without a pass/fail judgement against a threshold, and say no bar was set. |
+| Slice records (`SL-*`) | `.specs/<slug>/plan.md` | Proceed. Slices help scope the focused run; without them, scope it from the diff. |
+
+This skill needs the criteria and the change, not the tools that produced
+them.
 
 ## Process
 
@@ -65,7 +78,8 @@ reports, it does not fix).
    it in chat. Every criterion row has a result and evidence.
 7. **Return the report** in chat, leading with failures and unverified
    criteria — never bury them below the passes. Stop. Do not fix failures;
-   report them. Fixing is `build`'s job (or a new task).
+   report them. Diagnosing and fixing a failure is separate work with its own
+   evidence, and doing it here would invalidate the report you just wrote.
 
 ## Writing rules
 
@@ -133,7 +147,7 @@ environment details.>
 | "The tests passed last time, the change is small" | "Small" is exactly when the untested interaction hides. The suite does not get a discount for small diffs. |
 | "I'll mark it pass, the code clearly does that" | Reading code is not running it. The report is evidence, and the only evidence that a behavior happens is a test or a check that observed it happen. |
 | "The failure is pre-existing, so it doesn't count" | A pre-existing failure that your change made visible is still on your report. Say it is pre-existing (with evidence: it fails on the base branch too) — but do not delete it from the record. |
-| "I'll fix the failure while I'm here" | Testing reports; it does not fix. A fix changes the change, which invalidates the report you are writing. Report, then let `build` (or a task) fix, then re-test. |
+| "I'll fix the failure while I'm here" | Testing reports; it does not fix. A fix changes the change, which invalidates the report you are writing. Report, then diagnose and fix as separate work, then re-test and write a new report. |
 | "One more test run after the fix can share this report" | Each run is a record. Editing the old results to match the new run destroys the history that says what was true when. New run, new file. |
 
 ## Red Flags

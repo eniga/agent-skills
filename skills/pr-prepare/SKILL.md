@@ -23,21 +23,31 @@ read the table and know exactly what is claimed and what proves it.
 - A PR was updated after review and its description no longer matches the
   diff.
 
-**When NOT to use:** The change is not tested (run `test` first — a PR
-description with no evidence is a claim, not a proof). The change is not
-reviewed (run `review` / `ai-code-review` first — the PR carries the verdicts,
-it does not replace them). You are preparing a technical proposal with no
-code (that is a design doc, not a PR).
+**When NOT to use:** The change has no current test evidence (get it
+verified first — a PR description with no evidence is a claim, not a proof).
+The change has not been reviewed (the PR carries review verdicts, it does not
+replace them). You are preparing a technical proposal with no code (that is a
+design document, not a PR).
+
+## Inputs
+
+| Input | Where | If it is missing |
+|---|---|---|
+| The branch diff | git, relative to the base branch | Stop. There is no PR to describe. |
+| Spec (`R-*`, `TC-*`, rollback plan) | `.specs/<slug>/spec.md` | Proceed with a reduced table: map commits to the change's stated intent instead of to `R-*`, and say the PR has no spec to trace to. |
+| Current test evidence | `.specs/<slug>/evidence/` | Stop if absent or older than the latest commit. Evidence is the one input this skill cannot substitute — a traceability table with an empty evidence column is a claim wearing a table's clothes. |
+| Review and conformance verdicts | review reports, wherever they live | Proceed, and record "not reviewed" as an open item rather than omitting the section. |
+| Task list (`T-*`) and slices (`SL-*`) | `.specs/<slug>/tasks.md`, `plan.md` | Proceed. Trace `R-* → commit → TC-* → evidence` and leave the task column out. |
 
 ## Process
 
 1. **Read the inputs.** Read the branch diff (every commit and changed file
    relative to the base branch), the spec (`.specs/<slug>/spec.md`), the task
    list (`.specs/<slug>/tasks.md`) if it exists, the test report
-   (`.specs/<slug>/evidence/`), and the review verdicts (`review`,
-   `ai-code-review`) if they exist. If the test report is missing or older
-   than the latest commit, stop and run `test` first — the PR must carry
-   current evidence.
+   (`.specs/<slug>/evidence/`), and any review and conformance verdicts that
+   exist. If the test report is missing or older than the latest commit,
+   stop and get the change re-verified — the PR must carry current
+   evidence.
 2. **Collect the traceability data.** For every requirement `R-*` the PR
    delivers, gather:
    - the task `T-*` that planned it (from `tasks.md`),
@@ -52,7 +62,7 @@ code (that is a design doc, not a PR).
    - the test report is current (newer than the latest commit) and its
      verdict is Proven or the gaps are named,
    - the review verdict is present and its Blockers are resolved,
-   - the conformance verdict (if `ai-code-review` ran) is present and any
+   - the spec-conformance verdict, if one was produced, is present and any
      non-conformances are resolved or accepted,
    - the `CONSTRAINTS.md` CI gates are expected to pass (lint, type check,
      coverage per the bar).
@@ -147,7 +157,7 @@ first.>
 |---|---|
 | "The table is overkill, a summary is enough" | A summary is a claim; the table is the mapping from claim to proof. The reviewer's job is to check the mapping — without the table, they re-derive it from the diff, which is the hour you just took back from them. |
 | "I'll fill in the evidence column later, after merge" | Evidence after merge is a post-hoc story. The PR is the record of what was proven when it was proven. A missing evidence cell is an open item, not a TODO. |
-| "The test report is from before the last fix, but the fix was tiny" | The report is older than the latest commit, so it does not cover the latest commit. "Tiny" is the word that ships regressions. Re-run `test`, then write the PR. |
+| "The test report is from before the last fix, but the fix was tiny" | The report is older than the latest commit, so it does not cover the latest commit. "Tiny" is the word that ships regressions. Re-run the tests, write a fresh report, then write the PR. |
 | "I'll leave the deferred requirement out, it's obvious" | "Obvious" to you is invisible to the reviewer and the next person who reads the spec. The Deferred section is where scope goes when it is not shipped — named, with a pointer, not deleted. |
 | "The review had notes, but they're minor, I'll skip the Review section" | The Review section is the record that the notes were seen and dispositioned. Skipping it means the reviewer's time produced no record — and the next reviewer re-asks the same questions. |
 | "I'll merge right after opening, no need for a clean description" | The description is read after merge too — by the person debugging this change in six months. The traceability table is the onboarding doc for the future incident. |

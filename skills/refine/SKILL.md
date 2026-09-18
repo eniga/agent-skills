@@ -12,7 +12,8 @@ for the spec author — proposed requirements, interfaces, and risks, not a
 finished spec) and a **task breakdown with pointing** (tasks `T-<n>` with
 story points and the rationale for each point). Refinement decides *how big*
 the work is and *what the spec should cover*; it does not decide *how to
-build it* (that is `plan`) and it does not write the spec (that is `spec`).
+build it* (that is planning) and it does not write the spec (that is
+specification) — it sizes the work and gives the spec author a head start.
 
 ## When to Use
 
@@ -20,10 +21,22 @@ build it* (that is `plan`) and it does not write the spec (that is `spec`).
 - Sprint planning needs a task breakdown and points for a story.
 - A story is too big to spec in one pass and needs to be split.
 
-**When NOT to use:** The story is not ready (run `story-triage` first —
-refining a broken story wastes the refinement). The spec already exists (run
-`plan` against it). The work is a single task (no breakdown needed — go
-straight to `build`).
+**When NOT to use:** The story is not ready — it has no clear outcome, no
+acceptance criteria, or unresolved product questions (get those fixed first;
+refining a broken story wastes the refinement). The spec already exists (the
+next step is planning the build order, not re-sizing). The work is a single
+task (no breakdown needed — build it).
+
+## Inputs
+
+| Input | Where | If it is missing |
+|---|---|---|
+| A ready story with `AC-*` and `NG-*` | `.specs/<slug>/story.md` | Stop if there is no story at all. If the story exists but is thin, say which readiness gaps you found, size only what is sizeable, and list the rest as unknowns rather than inventing points. |
+| Repository context (where the work lands, what exists) | the codebase | Proceed, but mark every estimate that rests on an unverified assumption. Points on guessed context are guesses. |
+| Team pointing scale | team convention | Proceed with the Fibonacci scale in this skill and say which scale you used. |
+
+This skill needs a story. The sketch it writes is a head start for whoever
+specifies the work, not a dependency on any particular tool.
 
 ## Process
 

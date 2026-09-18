@@ -31,12 +31,23 @@ document; update it before the code, not after). You are specifying a
 technical design with open product decisions (settle those first, or record
 them as open questions with owners).
 
+## Inputs
+
+| Input | Where | If it is missing |
+|---|---|---|
+| A story with `AC-*` and `NG-*` | `.specs/<slug>/story.md` | Stop. Write the outcome, the user, and the acceptance criteria first, even as a paragraph. A spec with no stated outcome specifies nothing. |
+| Refinement sketch and tasks (`T-*`) | `.specs/<slug>/sketch.md`, `tasks.md` | Proceed. These are a head start, never a prerequisite. |
+| Quality bar (`C-*`) | `CONSTRAINTS.md` at repo root | Proceed. Set test-criteria expectations from the repository's existing configuration and note that no written bar existed. |
+| Existing contracts the change touches | the codebase, API schemas, migrations | Proceed, and record every unverified contract as an open question with an owner. Guessing a contract is how integration breaks. |
+| A human approver | a person | Stop before marking the spec approved. The approval gate is the point of this skill; self-approval defeats it. |
+
 ## Process
 
 1. **Read the inputs.** Read `.specs/<slug>/story.md` (story, ACs, non-goals),
-   `.specs/<slug>/sketch.md` if `refine` ran, `CONSTRAINTS.md` if it exists,
+   `.specs/<slug>/sketch.md` if a refinement sketch exists, `CONSTRAINTS.md` if
+   it exists,
    and the relevant existing code. If the story is missing, stop and run
-   `story-author` first.
+   write the story first — a spec with no stated outcome specifies nothing.
 2. **Surface assumptions.** Before writing, list every assumption you are
    making (platform, auth model, data store, scale, compatibility) and ask
    the user to correct them. Do not silently fill gaps — the spec's whole
@@ -47,7 +58,7 @@ them as open questions with owners).
 4. **Derive test criteria from requirements.** For each `R-<n>`, write the
    test criteria that prove it: `TC-U<n>` (unit), `TC-I<n>` (integration),
    `TC-E<n>` (e2e). Every `TC-*` cites the `R-*` it proves. Every `R-*` has
-   at least one `TC-*`. This section is the input to `build` — tests are
+   at least one `TC-*`. This section is the input to implementation — tests are
    written from it, not from finished code.
 5. **Check the constraints.** If `CONSTRAINTS.md` exists, confirm the spec's
    test criteria and error handling satisfy its rules. Note any conflict as
@@ -56,7 +67,8 @@ them as open questions with owners).
    corrections, update the file, and repeat until the user explicitly
    approves. Set `Status: Approved` with the approver and date. **Do not
    proceed to planning or implementation until approval is explicit.**
-7. **Stop.** Do not plan, do not build. The next step is `plan`.
+7. **Stop.** Do not plan, do not build. The next step is deciding the build
+   order against this approved spec.
 
 ## Writing rules
 

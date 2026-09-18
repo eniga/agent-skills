@@ -10,7 +10,7 @@ description: Sets the project quality bar once and writes it to CONSTRAINTS.md s
 Decide the quality bar once, write it down, and make it enforceable. The
 output is `CONSTRAINTS.md` at the repository root: a set of named rules
 (`C-<n>`) with thresholds, the command that checks each one, and when it
-runs. Every later skill (`build`, `test`, `review`) enforces these rules
+runs. Every later stage — implementation, verification, review — enforces these rules
 instead of re-deciding them.
 
 ## When to Use
@@ -25,8 +25,16 @@ instead of re-deciding them.
 **When NOT to use:** The project already has a `CONSTRAINTS.md` and only one
 rule needs changing (edit that rule, bump its note, done). You are deciding a
 one-off exception for a single change (record the exception in the PR, not in
-the bar). You are reviewing code (use `review` — it enforces the bar, it does
-not set it).
+the bar). You are reviewing a specific change against the bar (that applies
+the rules; this skill writes them).
+
+## Inputs
+
+| Input | Where | If it is missing |
+|---|---|---|
+| The repository and its existing checks | lint, type, test, and CI configuration | Stop. The bar is written from what the project can actually enforce; inventing thresholds no command checks produces a document, not a gate. |
+| Existing written conventions | `AGENTS.md`, `CLAUDE.md`, `CONTRIBUTING.md` | Proceed. Their absence means you are setting the bar for the first time. |
+| Team agreement on thresholds | a person | Proceed with proposed values clearly marked as proposals, and get them confirmed before the gates block anyone. |
 
 ## Process
 

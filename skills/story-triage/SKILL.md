@@ -18,9 +18,20 @@ a rewrite. Triage diagnoses; it does not treat.
 - A story has been sitting in review and nobody can say why it is blocked.
 - You inherited a story and need to know what you are getting into.
 
-**When NOT to use:** The story does not exist yet (use `story-author`). The
-story is ready and you want to fix its gaps (fix them, or use `story-author`
-to rewrite). The story is ready and you want to move on (use `refine`).
+**When NOT to use:** The story does not exist yet (write it first — there is
+nothing to judge). The story is ready and you want to fix its gaps (fix them,
+or rewrite the story; this skill judges, it does not repair). The story is
+ready and you want to move on (size and break down the work instead).
+
+## Inputs
+
+| Input | Where | If it is missing |
+|---|---|---|
+| The story to judge | `.specs/<slug>/story.md`, a ticket, or pasted text | Stop. There is nothing to triage. |
+| Acceptance criteria (`AC-*`) and non-goals (`NG-*`) | inside the story | Proceed — their absence is the finding. A story with no testable criteria is Not ready, and that is the verdict. |
+| Repository context | the codebase | Proceed. Context sharpens the feasibility gaps but the readiness checklist stands without it. |
+
+This skill needs a story. Nothing else.
 
 ## Process
 

@@ -56,6 +56,11 @@ One or two sentences: what this skill does and why it matters.
 - Positive triggers (task types, symptoms)
 - When NOT to use (exclusions)
 
+## Inputs
+Table: what this skill reads, where it lives, and what to do when it is
+absent. Every row's third column says `Stop` (with the reason) or `Proceed`
+(with the fallback). This is what makes the skill independently usable.
+
 ## Process
 Numbered, specific, actionable steps. "Run `npm test` and verify all tests
 pass" beats "make sure the tests work".
@@ -79,8 +84,9 @@ Observable signs the skill is being violated.
 
 Equivalent headings are acceptable when they serve the same purpose clearly
 (`Workflow` for `Process`, `Output shape` for `Templates`) — except for the
-five that CI requires verbatim: `## Overview`, `## When to Use`,
-`## Common Rationalizations`, `## Red Flags`, `## Verification`. Headings
+six that CI requires verbatim: `## Overview`, `## When to Use`,
+`## Inputs`, `## Common Rationalizations`, `## Red Flags`,
+`## Verification`. Headings
 inside fenced code blocks are template content and are not counted.
 
 `node .github/scripts/check-skills.mjs` enforces this, along with the
@@ -90,6 +96,9 @@ frontmatter rules and the 500-line limit below.
 
 - **Overview** — the elevator pitch. Why should an agent follow this skill?
 - **When to Use** — routing. Positive triggers and negative exclusions.
+- **Inputs** — independence. Names each input, where it lives, and the
+  fallback when it is missing, so the skill degrades gracefully instead of
+  depending on a sibling having run.
 - **Process** — the heart. Steps, not facts. Every step must be something the
   agent can do and check.
 - **Templates** — the contract for the artifact. Downstream skills parse these
@@ -131,14 +140,38 @@ the full `SKILL.md` loads when the agent decides the skill is relevant.
 
 ## Cross-skill references
 
-Reference other skills by name:
+**There are none.** A skill never names another skill.
+
+The skills CLI installs skills individually and resolves no dependencies, so
+`npx skills add <pack> --skill diagnose` gives the user exactly one directory.
+Any sentence in it that says "run `build` first" points at something that may
+not exist, and the agent cannot act on it.
+
+Refer to the **artifact** or the **activity** instead, and let `## Inputs`
+handle absence:
 
 ```markdown
+<!-- no -->
 Follow the `test` skill to prove the slice works.
-If the build breaks, stop and fix it before continuing.
+Route complexity findings to `code-simplify`.
+Run `spec` first.
+
+<!-- yes -->
+Hand off for verification: focused tests, then the full suite, then a
+per-`TC-*` report.
+Record complexity as a finding with a suggested shape; do not rewrite inline.
+This skill reads the approved spec at `.specs/<slug>/spec.md`. If there is
+none, stop — see Inputs.
 ```
 
-Never duplicate another skill's content — reference it instead.
+This keeps the lifecycle legible (the pipeline lives in `README.md`, where a
+human reads it) while keeping each `SKILL.md` independently installable. CI
+fails on any backticked sibling skill name.
+
+Never duplicate another skill's content either. If two skills genuinely need
+the same reference material, each keeps its own copy inside its own
+`references/` directory — duplication is the price of independence, and it is
+cheaper than a broken install.
 
 ## Naming conventions
 

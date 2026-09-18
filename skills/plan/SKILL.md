@@ -9,8 +9,8 @@ description: Plans how to build an approved spec into ordered, verifiable build 
 
 Turn an approved spec into a build plan: the components to create, the order
 they must be built in, what can run in parallel, and the verification
-checkpoint after each slice. The plan is the input to `build` — it decides
-*in what order and how to check*, while `build` decides *how to write each
+checkpoint after each slice. The plan is the input to implementation — it decides
+*in what order and how to check*, while implementation decides *how to write each
 slice*.
 
 ## When to Use
@@ -21,10 +21,19 @@ slice*.
 - A multi-slice feature is about to start and you need to know what "done
   with evidence" looks like at each step.
 
-**When NOT to use:** The spec does not exist or is not approved (run `spec`
-first — planning an unapproved spec is planning a draft). The work is a
-single slice (no plan needed — `build` it directly). You are planning a
+**When NOT to use:** The spec does not exist or is not approved (planning an
+unapproved spec is planning a draft — get it approved first). The work is a
+single slice (no plan needed — build it directly). You are planning a
 technical design that has open decisions (settle them in the spec first).
+
+## Inputs
+
+| Input | Where | If it is missing |
+|---|---|---|
+| Approved spec (`R-*`, `TC-*`, contracts) | `.specs/<slug>/spec.md` | Stop. Planning an unapproved or absent spec is planning a draft. |
+| Task breakdown (`T-*`) | `.specs/<slug>/tasks.md` | Proceed. Derive slices from the requirements directly; tasks are a convenience, not an input this skill needs. |
+| Quality bar (`C-*` gates) | `CONSTRAINTS.md` at repo root | Proceed. Set each slice's checkpoint from the repository's existing test and lint commands. |
+| Repository structure | the codebase | Proceed, but a slice ordering built on a guessed structure is a guess. Verify where the code actually lives before fixing the order. |
 
 ## Process
 
@@ -70,7 +79,8 @@ technical design that has open decisions (settle them in the spec first).
 - **The plan is reviewable in five minutes.** A reader should be able to say
   "yes, that order is right" or "no, the migration must come after the flag"
   without reading the code. If the plan needs the codebase to be
-  understandable, it is too detailed — that is `build`'s job.
+  understandable, it is too detailed — how to write the code is the
+  implementer's job, not the plan's.
 - **Every slice traces to requirements.** Each slice names the `R-*` it
   delivers and the `TC-*` its checkpoint runs. A slice that traces to nothing
   is scope creep with a checkpoint.
@@ -81,7 +91,7 @@ technical design that has open decisions (settle them in the spec first).
    its own checkpoint (up, down, and the data check), never folded into a
    feature slice.
 - **The plan names the first slice explicitly.** "Start with S-1: ..." — the
-  plan's last job is to tell `build` exactly where to begin.
+  plan's last job is to tell the implementer exactly where to begin.
 
 ## Template
 

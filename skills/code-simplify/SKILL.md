@@ -15,25 +15,37 @@ unchanged. Clarity over cleverness, every time.
 ## When to Use
 
 - Code works but is harder to read or maintain than it should be.
-- A review (`review` or `ai-code-review`) flagged complexity as a finding.
+- A code review flagged complexity, duplication, or naming as a finding.
 - You are about to modify code and it is too tangled to change safely —
   simplify first, then change.
 - Dead code, duplication, or an abstraction that earns its keep no longer
   is present.
 
-**When NOT to use:** The code is buggy (fix the bug first — simplifying a
-broken function preserves the bug with better formatting). The behavior is
+**When NOT to use:** The code is buggy (diagnose and fix the bug first —
+simplifying a broken function preserves the bug with better formatting, and
+"no behavior change" then means "the bug survived"). The behavior is
 unspecified or untested (add the tests that pin the behavior first; you
 cannot prove "no behavior change" against nothing). The code is clear and you
 simply prefer a different style (taste is not a finding — do not churn).
+
+## Inputs
+
+| Input | Where | If it is missing |
+|---|---|---|
+| The code to simplify | named file, function, module, or diff | Stop. Ask what to simplify. Scanning a repository for anything improvable is churn looking for a target. |
+| Tests that pin current behavior | the repository's test suite | Stop and write them first (Process step 1). They are the whole basis for claiming behavior did not change. |
+| Quality bar (complexity, length, duplication thresholds `C-*`) | `CONSTRAINTS.md` at repo root | Proceed. Use the thresholds in this skill's checklist and say which you applied. |
+
+This skill needs code and a passing test for it. Nothing else.
 
 ## Process
 
 1. **Pin the behavior first.** Before touching anything, confirm there are
    tests that exercise the code you will simplify — the unit tests for the
    function, the integration tests for the flow. If there are none, **stop
-   and write them now** (or hand back to `build`/`test`). Simplification
-   without a behavioral net is a behavior change with extra steps.
+   and write them now**, against the code's current observable behavior, and
+   watch them pass before you change anything. Simplification without a
+   behavioral net is a behavior change with extra steps.
 2. **Run the tests and record the baseline.** Run the focused tests for the
    target code and confirm they pass. This is the "before" evidence.
 3. **Identify the complexity.** Name what is actually hard, using the

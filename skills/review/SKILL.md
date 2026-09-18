@@ -18,11 +18,25 @@ taste. A review is a verdict with evidence, not a list of preferences.
 - You want a second opinion on a diff you wrote or received.
 - A change is about to ship and has not been reviewed.
 
-**When NOT to use:** The change is a technical proposal with no code yet
-(review the design, not a diff). You want a conformance check against a spec
-specifically (use `ai-code-review` — it is the spec-mapping pass; this skill
-is the general quality pass). The change is not written yet (reviewing
-intent is `architecture-review` territory).
+**When NOT to use:** There is no code — the subject is a proposal, a design,
+or an intent. Reviewing a plan is a different activity with different
+questions (is this the right shape?) from reviewing a diff (does this code do
+what it claims, safely?); do not substitute one for the other. If you need a
+strict line-by-line mapping of the diff onto a spec's requirement IDs, that
+is a narrower conformance pass than this one — this skill judges quality,
+including things no spec mentions.
+
+## Inputs
+
+| Input | Where | If it is missing |
+|---|---|---|
+| The change under review | diff, branch, commit range, or PR | Stop. A review needs a named change; a whole-repository audit is different work. |
+| Requirements and non-goals (`R-*`, `AC-*`, `NG-*`) | `.specs/<slug>/spec.md` or `story.md` | Proceed. Review against the change's own stated intent (PR description, commit messages, issue) and say in the report that no spec existed, so conformance was judged against intent. Findings then cite `—` instead of an ID. |
+| Test evidence (a report with per-`TC-*` results) | `.specs/<slug>/evidence/` | Proceed, and record "no test report" as a finding — an unproven change is a reviewable defect, not a missing prerequisite. |
+| Quality bar (`C-*` rules and gates) | `CONSTRAINTS.md` at repo root | Proceed. Judge against the repository's existing lint, type, and test configuration, and say no written bar existed. |
+
+This skill reviews code. Every input above except the change itself is
+optional; each one absent costs precision, not the review.
 
 ## Process
 
@@ -60,15 +74,17 @@ intent is `architecture-review` territory).
    - Do they cover the changed behavior and the affected failure paths?
    - Do they assert observable behavior, not implementation details?
    - Were any assertions weakened, skipped, or mocked around to get green?
-   - Is there a test report (`test` skill output) and does it match the
-     claims? Name the `TC-*` criteria still reported Fail or Unverified.
+   - Is there a test report, and does it match the claims? Name the `TC-*`
+     criteria still reported Fail or Unverified. If no report exists, that is
+     itself a finding: the change is unproven.
 6. **Check the constraints.** If `CONSTRAINTS.md` exists, confirm the change
    meets its rules, citing each one by its `C-<n>` ID. A violated block-rule
    is a finding; a violated warn-rule is a note.
 7. **Suggest code-health improvements.** For the new code only, note
    complexity, duplication, naming, and dead code that would be cheap to fix
-   now and expensive later. Route "this is too complex" findings to
-   `code-simplify` rather than rewriting inline.
+   now and expensive later. Record "this is too complex" as a finding with a
+   suggested shape, rather than rewriting the code inline — a review that
+   edits the code stops being an independent read of it.
 8. **Assign severity and a verdict.** Label every finding (below) and reach
    a verdict: **Approve**, **Approve with notes**, or **Request changes**.
 9. **Return the review** using the template below. Lead with the verdict and
@@ -149,7 +165,8 @@ in.>
 |---|---|---|
 | C-1 | <rule, per CONSTRAINTS.md> | <met / violated — block or warn> |
 
-<Or: "no CONSTRAINTS.md — quality bar not set; run `constraints`.">
+<Or: "no CONSTRAINTS.md — no written quality bar; judged against the
+repository's existing lint, type, and test configuration.">
 
 ## Notes
 

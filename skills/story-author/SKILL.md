@@ -19,10 +19,21 @@ writes to Jira itself.
 - You are about to run `/refine` or `/spec` and there is no story yet.
 
 **When NOT to use:** The story already exists and just needs a readiness
-check (use `story-triage`). The work is a bug fix with a known reproduction
-(no story needed — go straight to `spec` or `build`). The request bundles
+check (triage it instead of rewriting it). The work is a bug fix with a
+known reproduction (diagnose and fix it, recording the defect and its
+regression test rather than authoring a feature story). The request bundles
 several independently shippable features (split it into multiple stories
 first; one story, one outcome).
+
+## Inputs
+
+| Input | Where | If it is missing |
+|---|---|---|
+| The feature intent | a request, voice note, ticket, or conversation | Stop. Ask what outcome is wanted and for whom. A story invented without intent is fiction. |
+| Repository context (what exists, what it is called) | the codebase | Proceed, and mark any assumption about existing behavior as an open question rather than stating it as fact. |
+| Existing conventions for stories | the tracker or `.specs/` | Proceed with this skill's template, and adapt field names to the tracker afterwards. |
+
+This skill needs an intent and somewhere to write. Nothing else.
 
 ## Process
 
@@ -40,11 +51,32 @@ first; one story, one outcome).
    instead of asking.
 4. **Write the story** using the template below. Save it to
    `.specs/<slug>/story.md` in the current repository.
-5. **Self-triage once.** Run the `story-triage` checklist mentally against
-   what you just wrote. Fix gaps you can fix from the answers you already
-   have; list the rest under Open questions.
+5. **Self-triage once.** Run the readiness checklist below against what you
+   just wrote. Fix gaps you can fix from the answers you already have; list
+   the rest under Open questions.
 6. **Return the story** in chat with the file path, and stop. Do not refine,
    spec, or plan.
+
+## Readiness checklist
+
+Run this against the story you just wrote. A story that fails any of the
+first five is not ready to be sized or specified — fix it now, or record the
+gap under Open questions with an owner.
+
+- [ ] **One outcome.** The story delivers one independently shippable change.
+      Two outcomes means two stories.
+- [ ] **A user and a value.** The story names who gets the benefit and what
+      the benefit is, not just what to build.
+- [ ] **Testable acceptance criteria.** Every `AC-<n>` is Given/When/Then and
+      describes observable behavior. "Works correctly" is not testable.
+- [ ] **Failure paths covered.** At least one `AC-<n>` describes what happens
+      when the thing goes wrong, not only the happy path.
+- [ ] **Explicit non-goals.** At least one `NG-<n>`, naming what this story
+      deliberately does not do. A story with no non-goals has undefined edges.
+- [ ] **Open questions have owners.** Each one names who answers it, and
+      whether it blocks.
+- [ ] **No solution smuggled in.** The story says what and why; it does not
+      dictate the implementation unless the constraint is real and stated.
 
 ## Writing rules
 

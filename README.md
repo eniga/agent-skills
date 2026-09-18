@@ -1,7 +1,8 @@
 # Agent Skills
 
-A pack of agent skills for the software development lifecycle: from a vague
-feature intent to a merged, traceable pull request. Each skill is a
+A pack of 16 agent skills for the software development lifecycle: from an
+unfamiliar repository and a vague feature intent to a merged, traceable pull
+request. Each skill is a
 structured workflow an AI coding agent follows — with templates, gates, and
 exit criteria — so the same discipline applies whether a human or an agent is
 driving.
@@ -16,7 +17,7 @@ did.
 ```bash
 npx skills add eniga/agent-skills --list     # browse before installing
 npx skills add eniga/agent-skills            # pick skills and agents interactively
-npx skills add eniga/agent-skills --all      # install all 12, to every detected agent
+npx skills add eniga/agent-skills --all      # install all 16, to every detected agent
 npx skills add eniga/agent-skills --skill spec   # install one skill
 ```
 
@@ -57,17 +58,27 @@ named after its directory (`/spec`, `/build`, ...).
 ## The lifecycle
 
 ```
+ORIENT    /context-prism   (verified map of the repo: facts vs inferences)
 INTAKE    /story-author ──▶ /story-triage
 REFINE    /refine          (spec sketch + task breakdown + pointing)
+DESIGN    /design          (settle how to build it, before what gets built)
 DEFINE    /spec  ◀── /constraints (quality bar, set once, enforced everywhere)
+            ▲
+            └─ /spec-amend (change control once the spec is approved)
 PLAN      /plan
 BUILD     /build  ◀── /code-simplify (cross-cutting)
-VERIFY    /test
+VERIFY    /test   ◀── /diagnose (cause before fix, whenever something breaks)
 REVIEW    /review  ┊  /ai-code-review (fresh-context conformance check)
 SHIP      /pr-prepare
 ```
 
-## All 12 skills
+## All 16 skills
+
+### Orient — learn the repository before trusting it
+
+| Skill | What it does | Output |
+|---|---|---|
+| [`context-prism`](skills/context-prism) | Refracts a repo into facts that cite files, with inferences labelled separately, so later stages stop guessing at existing behavior | `.specs/context.md` |
 
 ### Intake — turn intent into a story
 
@@ -82,12 +93,19 @@ SHIP      /pr-prepare
 |---|---|---|
 | [`refine`](skills/refine) | Task breakdown with story points **and rationale**, plus a spec sketch that gives the spec author a head start | `.specs/<slug>/sketch.md`, `tasks.md` |
 
+### Design — settle how to build it
+
+| Skill | What it does | Output |
+|---|---|---|
+| [`design`](skills/design) | Real options compared against criteria written *before* the comparison; records the decision, what it gives up, and what would reverse it | `.specs/<slug>/design.md` or `docs/decisions/AD-<n>-*.md` |
+
 ### Define — fix what to build
 
 | Skill | What it does | Output |
 |---|---|---|
 | [`spec`](skills/spec) | Full spec on a fixed template — context, scope/non-scope, interface & data contracts, behaviour, error/edge cases, test criteria split unit/integration/e2e, observability, rollback plan — gated on human approval before any code | `.specs/<slug>/spec.md` |
 | [`constraints`](skills/constraints) | Sets the quality bar once: named rules with thresholds, the checking command, and the gate (editor / pre-commit / CI / nightly) | `CONSTRAINTS.md` (repo root) |
+| [`spec-amend`](skills/spec-amend) | Changes an approved spec under control: the delta, re-approval, and the downstream slices, tests, and evidence it invalidates | change log in `spec.md` |
 
 ### Plan — decide the build order
 
@@ -102,6 +120,7 @@ SHIP      /pr-prepare
 | [`build`](skills/build) | One vertical slice at a time; **tests generated from the spec's test criteria before the code**, not from finished code | code + tests, one commit per slice |
 | [`test`](skills/test) | Focused tests for the change first, then the full suite; per-criterion pass/fail/unverified report with evidence | `.specs/<slug>/evidence/test-<date>.md` |
 | [`code-simplify`](skills/code-simplify) | Clarity over cleverness; behavior-preserving simplification with Chesterton's Fence | simplified code + before/after note |
+| [`diagnose`](skills/diagnose) | Cause before fix: reproduce, localize, one falsifiable hypothesis at a time, and a failing regression test as the deliverable | `.specs/<slug>/defects/D-<n>.md` |
 
 ### Review & ship — gate the merge
 
@@ -113,17 +132,30 @@ SHIP      /pr-prepare
 
 ## How the skills chain
 
-Each stage reads the previous stage's artifacts and writes its own, all under
-`.specs/<slug>/` in the repository where the work happens:
+Skills chain through **artifacts, not through each other**. Each stage reads
+files the previous stage wrote, all under `.specs/<slug>/` in the repository
+where the work happens — so any stage runs on its own, against artifacts a
+human or another tool produced:
 
 ```
-story.md ──▶ sketch.md + tasks.md ──▶ spec.md ──▶ plan.md ──▶ code + tests
-   │              (refine)             (spec)      (plan)        (build)
-   │                                                        │
-   └────────────────────────────────────────────────────────┤
-                                                            ▼
-              evidence/ ◀── test ◀── review + ai-code-review ◀── pr.md
+context.md ──▶ story.md ──▶ sketch.md + tasks.md ──▶ design.md ──▶ spec.md
+(context-prism)  (story-*)        (refine)            (design)     (spec)
+                                                                     │
+                     spec.md change log ◀── amendments ◀─────────────┤
+                         (spec-amend)                                ▼
+                                             code + tests ◀──── plan.md
+                                                (build)          (plan)
+                                                   │
+                        defects/D-<n>.md ◀── when something breaks
+                            (diagnose)                │
+                                                      ▼
+   pr.md ◀── review + ai-code-review ◀── evidence/ ◀── test
+ (pr-prepare)                             (test)
 ```
+
+No skill requires another to be installed. Each declares its inputs and what
+to do when one is absent, so `--skill diagnose` on its own is a complete,
+working skill.
 
 The IDs that flow through:
 
@@ -137,6 +169,10 @@ The IDs that flow through:
 | `T-<n>` | Task with story points | `refine` |
 | `SL-<n>` | Build slice | `plan` |
 | `C-<n>` | Constraint (quality-bar rule) | `constraints` |
+| `CX-<n>` | Verified context fact (cites a file) | `context-prism` |
+| `AD-<n>` | Architecture decision | `design` |
+| `AM-<n>` | Spec amendment | `spec-amend` |
+| `D-<n>` | Defect (with proven cause) | `diagnose` |
 
 The full convention — including the rule that tests are written from `TC-*`
 before code exists, and that dropped requirements are marked, not deleted —
@@ -153,18 +189,21 @@ is in [CONTRIBUTING.md](CONTRIBUTING.md).
   the output, or the check that proves it. "Seems right" is never sufficient.
 - **Anti-rationalization.** Each skill carries a table of the excuses agents
   use to skip its steps, with the rebuttal.
-- **Self-contained.** Every skill carries its own templates, so a per-skill
-  install (`--skill <name>`) works with nothing else from this repo.
+- **Self-contained, with no dependencies.** No skill names or requires
+  another. Each carries its own templates and declares its inputs and its
+  fallbacks, so `--skill <name>` installs something complete — the skills CLI
+  does not resolve dependencies, so a skill that needed a sibling would be a
+  skill that silently half-works. CI enforces this.
 - **Model-neutral.** Skills state the procedure, not workarounds for one
   model's quirks.
 
 ## Repository structure
 
 ```
-skills/                  # the 12 skills (one directory each, SKILL.md inside)
+skills/                  # the 16 skills (one directory each, SKILL.md inside)
 docs/skill-anatomy.md    # the per-skill file format spec
 CONTRIBUTING.md          # pack conventions: traceability spine, artifact home
-.github/workflows/       # CI: frontmatter check + a real install of all 12
+.github/workflows/       # CI: frontmatter, self-containment, real install
 .github/scripts/         # check-skills.mjs, the anatomy validator
 LICENSE                  # MIT
 ```

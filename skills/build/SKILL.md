@@ -24,10 +24,25 @@ it, not the other way around.
 - You are resuming an interrupted build and need to pick up at the next
   slice.
 
-**When NOT to use:** The spec is not approved or the plan does not exist
-(run `spec` / `plan` first). The change is a one-line fix with an obvious
-test (just do it — the slice machinery is overhead for that). You are
-debugging a failure (stop, fix the failure, then resume the slice).
+**When NOT to use:** There is no approved spec or no plan (both are inputs
+this skill reads; get them written and approved first — see Inputs). The
+change is a one-line fix with an obvious test (just do it — the slice
+machinery is overhead for that). A test is failing for a reason you do not
+yet understand (diagnose it first: reproduce, localize, and name the cause,
+then resume the slice — guessing at a fix mid-slice is how symptoms get
+patched and causes survive).
+
+## Inputs
+
+| Input | Where | If it is missing |
+|---|---|---|
+| Approved spec (requirements `R-*`, test criteria `TC-*`, contracts) | `.specs/<slug>/spec.md` | Stop. Building against an unapproved or absent spec means the tests have no fixed expectation to come from. Get the requirements and test criteria written and approved first. |
+| Build plan (slices `SL-*`, order, checkpoints) | `.specs/<slug>/plan.md` | If the work is genuinely one slice, proceed and treat the whole change as `SL-1`. Otherwise stop and get the slice order decided — building without an order is how half-finished vertical cuts pile up. |
+| Quality bar (`C-*` rules and their gates) | `CONSTRAINTS.md` at repo root | Proceed. Apply the repository's existing lint, type, and test configuration as the bar, and say in the slice record that no written bar existed. |
+| Task breakdown (`T-*`) | `.specs/<slug>/tasks.md` | Proceed. Tasks are useful for tracking but the slices in the plan are what this skill builds. |
+
+This skill needs these artifacts, not the tools that produced them. Any spec
+carrying numbered requirements and test criteria works.
 
 ## Process
 
@@ -65,9 +80,11 @@ debugging a failure (stop, fix the failure, then resume the slice).
    the traceability: which slice, which requirements. Then append the slice
    record (see Templates) to `.specs/<slug>/plan.md`.
 7. **Repeat** from step 2 until every slice in the plan is complete.
-8. **Hand off to `test`.** When the last slice is committed, the full
-   verification pass (focused + full suite + per-`TC-*` report) is the
-   `test` skill's job. Do not declare the feature done from inside `build`.
+8. **Hand off for verification.** When the last slice is committed, stop.
+   The full verification pass — focused tests, then the whole suite, then a
+   per-`TC-*` pass/fail/unverified report — is a separate activity with its
+   own evidence. Do not declare the feature done from inside this skill: a
+   green checkpoint proves a slice, not a release.
 
 ## Writing rules
 
@@ -151,9 +168,9 @@ For each slice, before moving on, confirm:
 - [ ] The slice is committed alone, with `SL-<n>` and `R-<n>` in the message.
 - [ ] The slice record is appended to `plan.md` with its commit sha, so an interrupted build can resume.
 
-For the whole build, before handing off to `test`, confirm:
+For the whole build, before handing off for verification, confirm:
 
 - [ ] Every slice in the plan is complete and committed.
 - [ ] The full regression suite passes.
 - [ ] Any spec changes made during the build are committed with the code.
-- [ ] The hand-off to `test` is explicit — the feature is not declared done here.
+- [ ] The hand-off for full verification is explicit — the feature is not declared done here.

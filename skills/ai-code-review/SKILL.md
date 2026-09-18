@@ -10,9 +10,10 @@ description: Checks a PR diff against its spec and returns a conformance verdict
 Check whether a PR diff conforms to its spec. This is the spec-mapping pass:
 it answers one question — **does the diff implement what was specified, no
 more and no less?** — and returns a conformance verdict with comments mapped
-to requirement and test-criterion IDs. It is complementary to `review`
-(general quality): `review` asks "is this code good?", `ai-code-review` asks
-"does this code do what the spec says?".
+to requirement and test-criterion IDs. It is deliberately narrow: a general
+quality review asks "is this code good?", and this pass asks only "does this
+code do what the spec says?". Run it alongside a quality review, not instead
+of one — a fully conformant diff can still be badly written.
 
 ## When to Use
 
@@ -22,10 +23,20 @@ to requirement and test-criterion IDs. It is complementary to `review`
   whether it implements anything that was not specified.
 - A spec changed after the build started and you need to know what drifted.
 
-**When NOT to use:** There is no spec (conformance has nothing to conform
-to — use `review` for a general quality pass). You want a general quality
-review, not a spec check (use `review`). The spec is not approved (conforming
-to a draft spec is not a meaningful verdict — get the spec approved first).
+**When NOT to use:** There is no spec — conformance has nothing to conform
+to, and a general quality review is the right pass instead. You want
+judgement on clarity, complexity, security, or style; this pass deliberately
+does not give it. The spec is not approved (conforming to a draft is not a
+meaningful verdict — get the spec approved first).
+
+## Inputs
+
+| Input | Where | If it is missing |
+|---|---|---|
+| An approved spec (`R-*`, `NG-*`, `TC-*`, contracts) | `.specs/<slug>/spec.md` | Stop. This skill measures a diff against a spec; with no spec there is no measurement to make, and a general quality review is the right pass instead. |
+| The PR diff | PR, branch, or commit range | Stop. Ask which diff is being checked. |
+| The story's acceptance criteria (`AC-*`) | `.specs/<slug>/story.md` | Proceed. `R-*` carries the requirement; `AC-*` adds the user-facing phrasing when it exists. |
+| Test evidence | `.specs/<slug>/evidence/` | Proceed. This skill checks that a test matching each `TC-*` exists in the diff, which is a different question from whether it passed. |
 
 ## Process
 
@@ -64,8 +75,10 @@ to a draft spec is not a meaningful verdict — get the spec approved first).
    such).
 6. **Write the comments.** Each finding becomes a review comment mapped to
    its ID: which `R-*`, `NG-*`, or `TC-*` it concerns, where in the diff,
-   what is wrong, and what conformance would require. Comments without an ID
-   are out of scope for this skill — route them to `review`.
+   what is wrong, and what conformance would require. A comment that cannot
+   name an ID is a quality observation, not a conformance finding — put it
+   under Notes for the quality review to pick up, and keep it out of the
+   verdict.
 7. **Reach the conformance verdict.**
    - **Conformant** — every `R-*` is Implemented (or Cannot verify with a
      named verification), every contract matches, every `TC-*` has a matching
@@ -94,10 +107,10 @@ to a draft spec is not a meaningful verdict — get the spec approved first).
 - **Extra tests are good; extra behavior is not.** A test beyond the `TC-*`
   list is coverage. A behavior beyond the `R-*` list is scope creep. Tell
   the two apart.
-- **This skill does not judge quality.** Clarity, complexity, and style are
-  `review`'s findings. If the only problems you find are quality problems,
-  the conformance verdict may still be Conformant — say so and route the
-  quality findings to `review`.
+- **This skill does not judge quality.** Clarity, complexity, and style
+  belong to a quality review. If the only problems you find are quality
+  problems, the conformance verdict is still Conformant — say so plainly,
+  and record the quality observations under Notes so they are not lost.
 
 ## Template
 
@@ -148,8 +161,8 @@ to a draft spec is not a meaningful verdict — get the spec approved first).
 
 ## Notes
 
-<Quality findings routed to `review`, extra-coverage tests noted, context
-for the human reviewer.>
+<Quality observations for a separate quality review, extra-coverage tests
+noted, context for the human reviewer.>
 ```
 
 ## Common Rationalizations
@@ -160,7 +173,7 @@ for the human reviewer.>
 | "I'll skip requirements that are obviously implemented" | "Obviously" is the fast read again. The matrix is one row per requirement, pointed at lines. Skipping rows is how a missing requirement ships with a green verdict. |
 | "The contract difference is an improvement, I'll note it as a nit" | A contract difference is a non-conformance until the spec changes. Calling it a nit lets the diff and the spec drift apart silently — the next consumer of the spec gets the wrong contract. |
 | "The extra feature is useful, so it's not scope creep" | Useful or not, it was not specified, and the spec's non-scope may explicitly exclude it. Scope creep is defined by the spec, not by usefulness. The finding stands; the team can add it to the spec deliberately. |
-| "There's no spec, so I'll review against the PR description" | The PR description is the author's summary of their own diff — conforming to it proves nothing. Conformance needs an independent, approved spec. Without one, this skill has no input; use `review`. |
+| "There's no spec, so I'll check against the PR description" | The PR description is the author's summary of their own diff — conforming to it proves nothing. Conformance needs an independent, approved spec. Without one, this skill has no input; do a general quality review instead. |
 | "I'll fix the non-conformance inline" | This skill reports conformance; it does not change the diff. A fix changes what is being measured. Report, and let the author fix or the spec change. |
 
 ## Red Flags

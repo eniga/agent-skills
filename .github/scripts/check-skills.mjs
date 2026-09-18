@@ -5,6 +5,7 @@ import { join } from "node:path";
 const REQUIRED_SECTIONS = [
   "## Overview",
   "## When to Use",
+  "## Inputs",
   "## Common Rationalizations",
   "## Red Flags",
   "## Verification",
@@ -46,6 +47,17 @@ for (const dir of dirs) {
     fail(`description is ${description.length} chars (max ${MAX_DESCRIPTION})`);
   else if (!/\bUse when\b/.test(description))
     fail("description states no `Use when` trigger");
+
+  // Self-containment: a skill must never name another skill. Each one is
+  // installable on its own, and the CLI does not resolve dependencies, so a
+  // reference to a skill the user did not install points at nothing.
+  for (const other of dirs) {
+    if (other === dir) continue;
+    const mention = new RegExp("`" + other.replace(/[-]/g, "\\$&") + "`");
+    if (mention.test(text)) {
+      fail(`references another skill (\`${other}\`) — skills must be self-contained`);
+    }
+  }
 
   const lines = text.split("\n");
   if (lines.length > MAX_LINES) fail(`${lines.length} lines (max ${MAX_LINES})`);
