@@ -5,6 +5,8 @@ description: Breaks a ready story into tasks with story points and rationale, an
 
 # Refine
 
+## Overview
+
 Take a ready story and produce two artifacts: a **spec sketch** (a head start
 for the spec author — proposed requirements, interfaces, and risks, not a
 finished spec) and a **task breakdown with pointing** (tasks `T-<n>` with

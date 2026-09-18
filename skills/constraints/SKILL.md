@@ -5,6 +5,8 @@ description: Sets the project quality bar once and writes it to CONSTRAINTS.md s
 
 # Constraints
 
+## Overview
+
 Decide the quality bar once, write it down, and make it enforceable. The
 output is `CONSTRAINTS.md` at the repository root: a set of named rules
 (`C-<n>`) with thresholds, the command that checks each one, and when it

@@ -5,6 +5,8 @@ description: Turns a feature intent into a Jira-ready story with Given/When/Then
 
 # Story Author
 
+## Overview
+
 Turn a feature intent into a story a team can actually work from: one user
 story, testable Given/When/Then acceptance criteria, and explicit non-goals.
 The output is a markdown file the team pastes into Jira — this skill never

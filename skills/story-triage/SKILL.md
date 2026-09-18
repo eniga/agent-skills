@@ -5,6 +5,8 @@ description: Judges whether a Jira story is ready for refinement and specificati
 
 # Story Triage
 
+## Overview
+
 Decide whether a story is ready to be refined and specified, and if not, list
 exactly what is missing. The output is a verdict plus a ranked gap list — not
 a rewrite. Triage diagnoses; it does not treat.

@@ -14,20 +14,45 @@ did.
 ## Quick start
 
 ```bash
-npx skills add eniga/agent-skills            # install all 12 skills
 npx skills add eniga/agent-skills --list     # browse before installing
+npx skills add eniga/agent-skills            # pick skills and agents interactively
+npx skills add eniga/agent-skills --all      # install all 12, to every detected agent
 npx skills add eniga/agent-skills --skill spec   # install one skill
 ```
 
-The [skills CLI](https://github.com/vercel-labs/skills) installs into 70+
-agents (Claude Code, Cursor, Codex, Copilot, Cline, and more). In VS Code,
-Claude Code, and Codex, each installed skill also appears as a slash command
-named after its directory.
+Run bare, `skills add` prompts for which skills and which agents; `--all` is
+the shorthand for "everything, no prompts" (`--skill '*' --agent '*' -y`).
+
+The [skills CLI](https://github.com/vercel-labs/skills) knows 79 agents and
+installs to any of them by id:
 
 ```bash
 npx skills add eniga/agent-skills -g         # install globally (all projects)
-npx skills add eniga/agent-skills -a claude-code -a cursor   # target agents
+npx skills add eniga/agent-skills -a claude-code -a cursor    # target agents
+npx skills add eniga/agent-skills -a pi -a opencode -a github-copilot
 ```
+
+| You use | Agent id | Skills land in |
+|---|---|---|
+| Claude Code | `claude-code` | `.claude/skills/` |
+| VS Code (Copilot) | `github-copilot` | `.agents/skills/` |
+| Pi | `pi` | `.pi/skills/` |
+| OpenCode | `opencode` | `.agents/skills/` |
+| Cursor, Codex, Zed, Windsurf, Gemini CLI, Cline, Amp, Droid, Warp, Replit, Kilo, … | `cursor`, `codex`, `zed`, … | `.agents/skills/` |
+
+There is no `vscode` id — VS Code is covered by `github-copilot`. Agents that
+share the universal `.agents/skills/` directory get one copy of each skill;
+`claude-code` and `pi` are symlinked to it, so an update reaches every agent
+at once.
+
+In Claude Code and Codex, each installed skill also appears as a slash command
+named after its directory (`/spec`, `/build`, ...).
+
+> **Skill names are generic on purpose** — `plan`, `review`, `test`, `build`,
+> `spec` read naturally as slash commands, but they can collide with a
+> same-named skill from another pack, especially with `-g`. Check
+> `npx skills list` before a global install, and prefer a project-level
+> install when you already run another pack.
 
 ## The lifecycle
 
@@ -104,6 +129,7 @@ The IDs that flow through:
 
 | ID | Meaning | Created by |
 |---|---|---|
+| `S-<n>` | Story | `story-author` |
 | `AC-<n>` | Acceptance criterion (Given/When/Then) | `story-author` |
 | `NG-<n>` | Non-goal | `story-author` |
 | `R-<n>` | Spec requirement | `spec` |
@@ -138,6 +164,8 @@ is in [CONTRIBUTING.md](CONTRIBUTING.md).
 skills/                  # the 12 skills (one directory each, SKILL.md inside)
 docs/skill-anatomy.md    # the per-skill file format spec
 CONTRIBUTING.md          # pack conventions: traceability spine, artifact home
+.github/workflows/       # CI: frontmatter check + a real install of all 12
+.github/scripts/         # check-skills.mjs, the anatomy validator
 LICENSE                  # MIT
 ```
 
@@ -146,7 +174,8 @@ LICENSE                  # MIT
 See [CONTRIBUTING.md](CONTRIBUTING.md) — the short version: create
 `skills/<name>/SKILL.md` with valid frontmatter (`name` must match the
 directory), follow the anatomy in `docs/skill-anatomy.md`, reuse the
-traceability IDs, and confirm it appears in `npx skills add . --list`.
+traceability IDs, and run `node .github/scripts/check-skills.mjs` — the same
+check CI runs.
 
 ## License
 

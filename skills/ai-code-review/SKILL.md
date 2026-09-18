@@ -5,6 +5,8 @@ description: Checks a PR diff against its spec and returns a conformance verdict
 
 # AI Code Review
 
+## Overview
+
 Check whether a PR diff conforms to its spec. This is the spec-mapping pass:
 it answers one question — **does the diff implement what was specified, no
 more and no less?** — and returns a conformance verdict with comments mapped

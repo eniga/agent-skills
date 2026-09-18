@@ -5,6 +5,8 @@ description: Reviews code changes before merge, checking correctness, security, 
 
 # Review
 
+## Overview
+
 Review a change before it merges. The goal is to find the defects that would
 ship — correctness bugs, security holes, regressions, missing proof — and to
 suggest the improvements that make the new code healthier, not to relitigate
@@ -38,7 +40,8 @@ intent is `architecture-review` territory).
 3. **Review the main behavior.** Read the files and flows that deliver the
    outcome. Check, in this order:
    - **Correctness:** does it do what the spec/story says, including the
-     failure paths?
+     failure paths? Cite the `R-<n>` (or `AC-<n>` when there is no spec) the
+     behavior belongs to.
    - **Security:** input validation, authn/authz, secrets, injection, unsafe
      deserialization, dependency risk.
    - **Regressions:** does it break existing behavior, contracts, or
@@ -50,16 +53,18 @@ intent is `architecture-review` territory).
 4. **Review every changed line in context.** Read enough surrounding code to
    judge correctness, complexity, naming, comments, and style. For generated
    files or large data, inspect the source and spot-check the output. Keep
-   findings within the change's scope — do not audit untouched code.
+   findings within the change's scope — do not audit untouched code. If the
+   change implements something the story marked `NG-<n>`, that is a
+   scope finding, cited by its non-goal ID.
 5. **Review the proof.** Check the tests:
    - Do they cover the changed behavior and the affected failure paths?
    - Do they assert observable behavior, not implementation details?
    - Were any assertions weakened, skipped, or mocked around to get green?
    - Is there a test report (`test` skill output) and does it match the
-     claims?
+     claims? Name the `TC-*` criteria still reported Fail or Unverified.
 6. **Check the constraints.** If `CONSTRAINTS.md` exists, confirm the change
-   meets its rules. A violated block-rule is a finding; a violated warn-rule
-   is a note.
+   meets its rules, citing each one by its `C-<n>` ID. A violated block-rule
+   is a finding; a violated warn-rule is a note.
 7. **Suggest code-health improvements.** For the new code only, note
    complexity, duplication, naming, and dead code that would be cheap to fix
    now and expensive later. Route "this is too complex" findings to
@@ -82,6 +87,11 @@ intent is `architecture-review` territory).
 
 A finding without a severity is a comment. A Blocker must cite technical
 evidence (a line, a scenario, a rule) — not taste.
+
+Every finding also carries the ID it traces to: `R-<n>` or `AC-<n>` for
+behavior, `NG-<n>` for scope, `TC-*` for missing proof, `C-<n>` for a
+constraint. A finding with no ID is a style note, not a finding — record it
+under Notes. Use `—` only when the change has no spec or story at all.
 
 ## Verdict rules
 
@@ -114,9 +124,10 @@ in.>
 
 ## Blocking findings
 
-| # | Severity | Location | Finding | Evidence | Suggested fix |
-|---|---|---|---|---|---|
-| 1 | Blocker | <file:line> | <what is wrong> | <scenario / rule / line> | <concrete fix> |
+| # | Severity | ID | Location | Finding | Evidence | Suggested fix |
+|---|---|---|---|---|---|---|
+| 1 | Blocker | R-4 | <file:line> | <what is wrong> | <scenario / rule / line> | <concrete fix> |
+| 2 | Major | NG-2 | <file:line> | <in-scope creep: builds a non-goal> | <spec reference> | <remove / defer> |
 
 ## Code-health suggestions (new code only)
 
@@ -130,10 +141,15 @@ in.>
 - Failure paths tested: <yes/no, detail>
 - Assertions weakened or skipped: <none / detail>
 - Test report present and consistent: <yes/no>
+- Criteria still Fail or Unverified: <TC-* list, or "none">
 
 ## Constraints check
 
-- <rule met / violated, per CONSTRAINTS.md — or "no CONSTRAINTS.md">
+| ID | Rule | Met? |
+|---|---|---|
+| C-1 | <rule, per CONSTRAINTS.md> | <met / violated — block or warn> |
+
+<Or: "no CONSTRAINTS.md — quality bar not set; run `constraints`.">
 
 ## Notes
 
@@ -170,7 +186,7 @@ Before returning, confirm:
 - [ ] Correctness, security, regressions, data, and concurrency/operations were each checked for the changed flows.
 - [ ] Every changed line was read in context; generated files were spot-checked.
 - [ ] The proof check covers changed behavior, failure paths, weakened assertions, and the test report.
-- [ ] `CONSTRAINTS.md` rules were checked if the file exists.
-- [ ] Every finding has a severity, a location, and (for Blockers) technical evidence.
+- [ ] `CONSTRAINTS.md` rules were checked by `C-<n>` if the file exists.
+- [ ] Every finding has a severity, a location, a traceability ID (`R-`/`AC-`/`NG-`/`TC-`/`C-`), and (for Blockers) technical evidence.
 - [ ] The verdict follows the verdict rules and leads the report.
 - [ ] No code was edited — the review is a report, not a fix.

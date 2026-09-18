@@ -78,7 +78,13 @@ Observable signs the skill is being violated.
 ```
 
 Equivalent headings are acceptable when they serve the same purpose clearly
-(`Workflow` for `Process`, `Output shape` for `Templates`).
+(`Workflow` for `Process`, `Output shape` for `Templates`) — except for the
+five that CI requires verbatim: `## Overview`, `## When to Use`,
+`## Common Rationalizations`, `## Red Flags`, `## Verification`. Headings
+inside fenced code blocks are template content and are not counted.
+
+`node .github/scripts/check-skills.mjs` enforces this, along with the
+frontmatter rules and the 500-line limit below.
 
 ## Section purposes
 

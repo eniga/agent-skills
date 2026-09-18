@@ -1,0 +1,48 @@
+name: validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  skills:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # Frontmatter must parse, `name` must equal the directory name, and the
+      # description must fit the 1024-char budget the agent sees at startup.
+      - name: Check skill frontmatter
+        run: node .github/scripts/check-skills.mjs
+
+      # The install path the README advertises must actually install every
+      # skill. A skill with broken frontmatter silently disappears here.
+      - name: Check every skill installs
+        run: |
+          mkdir -p /tmp/install-check
+          cd /tmp/install-check
+          npx -y skills@latest add "$GITHUB_WORKSPACE" \
+            --skill '*' --agent claude-code -y --copy --json > result.json
+          node -e '
+            const fs = require("fs");
+            const results = JSON.parse(fs.readFileSync("/tmp/install-check/result.json", "utf8"));
+            const installed = results
+              .filter(r => r.status === "installed")
+              .map(r => r.name);
+            const onDisk = fs
+              .readdirSync(process.env.GITHUB_WORKSPACE + "/skills", { withFileTypes: true })
+              .filter(d => d.isDirectory())
+              .map(d => d.name);
+            const missing = onDisk.filter(n => !installed.includes(n));
+            if (missing.length) {
+              console.error("Did not install: " + missing.join(", "));
+              console.error(JSON.stringify(results, null, 2));
+              process.exit(1);
+            }
+            console.log("All " + onDisk.length + " skills installed.");
+          '

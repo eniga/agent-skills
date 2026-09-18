@@ -5,6 +5,8 @@ description: Writes the full specification for a feature on a fixed template and
 
 # Spec
 
+## Overview
+
 Define what to build, completely, before any code is written. The spec is the
 contract between the team and the implementation: it fixes the interfaces,
 the data, the behavior, the failure modes, and the test criteria. Nothing is

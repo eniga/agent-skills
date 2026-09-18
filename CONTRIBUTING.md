@@ -7,15 +7,17 @@ with a `SKILL.md` that an AI coding agent follows as a workflow.
 ## Quick start
 
 ```bash
-npx skills add eniga/agent-skills            # install all skills
 npx skills add eniga/agent-skills --list     # browse before installing
+npx skills add eniga/agent-skills --all      # install all skills, no prompts
 npx skills add eniga/agent-skills --skill spec   # install one skill
 ```
 
-Skills install to 70+ agents (Claude Code, Cursor, Codex, Copilot, Cline, and
-more) via the [skills CLI](https://github.com/vercel-labs/skills). In VS Code,
-Claude Code, and Codex, each installed skill also appears as a slash command
-named after its directory (`/spec`, `/build`, ...).
+Skills install to any of the 79 agents the
+[skills CLI](https://github.com/vercel-labs/skills) knows, by id: `claude-code`,
+`github-copilot` (this is how VS Code is covered — there is no `vscode` id),
+`pi`, `opencode`, `cursor`, `codex`, and the rest. In Claude Code and Codex,
+each installed skill also appears as a slash command named after its directory
+(`/spec`, `/build`, ...). See `README.md` for the agent-id table.
 
 ## The lifecycle
 
@@ -40,11 +42,11 @@ Skills must reuse these ID shapes — never invent new ones:
 
 | ID shape | Meaning | Created by | Consumed by |
 |---|---|---|---|
-| `S-<n>` | Story | `story-author` | `story-triage`, `refine` |
-| `AC-<n>` | Acceptance criterion (Given/When/Then) | `story-author` | `story-triage`, `spec`, `ai-code-review` |
+| `S-<n>` | Story | `story-author` | `story-triage`, `refine`, `spec`, `plan` |
+| `AC-<n>` | Acceptance criterion (Given/When/Then) | `story-author` | `story-triage`, `spec`, `review`, `ai-code-review` |
 | `NG-<n>` | Non-goal | `story-author` | `spec` (scope section), `review` |
 | `R-<n>` | Spec requirement | `spec` | `refine`, `plan`, `build`, `test`, `review`, `ai-code-review`, `pr-prepare` |
-| `TC-U<n>` / `TC-I<n>` / `TC-E<n>` | Test criterion: unit / integration / e2e, each mapped to an `R-<n>` | `spec` | `build` (tests are written from these, not from finished code), `test` |
+| `TC-U<n>` / `TC-I<n>` / `TC-E<n>` | Test criterion: unit / integration / e2e, each mapped to an `R-<n>` | `spec` | `build` (tests are written from these, not from finished code), `test`, `review`, `ai-code-review`, `pr-prepare` |
 | `T-<n>` | Task with story points | `refine` | `plan`, `build`, `pr-prepare` |
 | `SL-<n>` | Build slice (distinct from story `S-<n>`) | `plan` | `build`, `test`, `pr-prepare` |
 | `C-<n>` | Constraint (quality-bar rule) | `constraints` | `build`, `test`, `review` |
@@ -125,17 +127,29 @@ Hard rules:
 2. Decide which traceability IDs it creates and consumes; update the table in
    this file if it introduces a new ID shape.
 3. Add it to the lifecycle table in `README.md`.
-4. Validate: `npx skills add . --list` must show the new skill with a clean
-   name and description.
+4. Validate: `node .github/scripts/check-skills.mjs` must pass, and
+   `npx skills add . --list` must show the new skill with a clean name and
+   description.
 5. Commit.
 
 ## Validation
 
-Before publishing, run:
+CI (`.github/workflows/validate.yml`) runs on every push and pull request and
+enforces two things:
+
+1. `node .github/scripts/check-skills.mjs` — frontmatter parses, `name`
+   matches the directory, the description is under 1024 chars and states a
+   `Use when` trigger, `SKILL.md` is under 500 lines, code fences are closed,
+   and the required sections are present.
+2. A real install (`npx skills add . --skill '*' --agent claude-code -y
+   --copy --json`) reports every skill directory as `installed`.
+
+Run both locally before pushing:
 
 ```bash
-npx skills add . --list
+node .github/scripts/check-skills.mjs
+npx skills add . --list          # eyeball the names and descriptions
 ```
 
-Every skill must appear. If one is missing, its frontmatter is invalid or its
+If a skill is missing from the list, its frontmatter is invalid or its
 directory name does not match its `name` field.

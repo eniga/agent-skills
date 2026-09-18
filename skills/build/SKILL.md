@@ -5,6 +5,8 @@ description: Implements an approved spec incrementally, one vertical slice at a 
 
 # Build
 
+## Overview
+
 Implement the plan, one slice at a time. Each slice is a thin vertical cut
 through the system: code plus the tests that prove it, verified and committed
 before the next slice starts.
@@ -60,7 +62,8 @@ debugging a failure (stop, fix the failure, then resume the slice).
    - Do the manual check the checkpoint names, if any.
 6. **Commit the slice.** One commit per slice, message shaped like
    `feat(<slug>): <slice name> (SL-<n>, R-<n>)`. The commit message carries
-   the traceability: which slice, which requirements.
+   the traceability: which slice, which requirements. Then append the slice
+   record (see Templates) to `.specs/<slug>/plan.md`.
 7. **Repeat** from step 2 until every slice in the plan is complete.
 8. **Hand off to `test`.** When the last slice is committed, the full
    verification pass (focused + full suite + per-`TC-*` report) is the
@@ -85,6 +88,33 @@ debugging a failure (stop, fix the failure, then resume the slice).
 - **Stop on a red checkpoint.** A failing checkpoint stops the build. Fix
   the failure (code or spec, in that order of suspicion), re-run, and only
   then continue. Continuing over a red checkpoint compounds the debt.
+
+## Templates
+
+The artifact `build` produces is the slice itself: a commit whose message
+carries the traceability, plus a short slice record appended to the plan so a
+resumed build knows where it stopped.
+
+Commit message:
+
+```
+feat(<slug>): <slice name> (SL-<n>, R-<n>[, R-<m>])
+
+<What this slice makes work, in one or two lines.>
+
+Tests: <TC-* covered by this slice>
+Checkpoint: <command> — <result>
+```
+
+Slice record (appended under the slice in `.specs/<slug>/plan.md`):
+
+```markdown
+- [x] **SL-<n> — <slice name>** — `<commit sha>`
+      Requirements: R-<n>, R-<m>
+      Tests written from: TC-U1, TC-I2
+      Checkpoint: `<command>` — <pass / fail detail>
+      Spec deviations: <none / R-<n> amended: reason>
+```
 
 ## Common Rationalizations
 
@@ -119,6 +149,7 @@ For each slice, before moving on, confirm:
 - [ ] The implementation matches the spec's interface and data contracts.
 - [ ] The slice's checkpoint passed: new tests, regression set, applicable `CONSTRAINTS.md` gates, and the manual check if named.
 - [ ] The slice is committed alone, with `SL-<n>` and `R-<n>` in the message.
+- [ ] The slice record is appended to `plan.md` with its commit sha, so an interrupted build can resume.
 
 For the whole build, before handing off to `test`, confirm:
 

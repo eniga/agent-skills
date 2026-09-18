@@ -5,6 +5,8 @@ description: Plans how to build an approved spec into ordered, verifiable build 
 
 # Plan
 
+## Overview
+
 Turn an approved spec into a build plan: the components to create, the order
 they must be built in, what can run in parallel, and the verification
 checkpoint after each slice. The plan is the input to `build` — it decides

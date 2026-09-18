@@ -5,6 +5,8 @@ description: Simplifies code for clarity without changing its behavior, applying
 
 # Code Simplify
 
+## Overview
+
 Make code easier to read and maintain without changing what it does.
 Simplification is a behavior-preserving refactor: the observable behavior
 before and after must be identical, and the tests that prove it must pass

@@ -5,6 +5,8 @@ description: Turns a branch diff and its spec into a pull request description wi
 
 # PR Prepare
 
+## Overview
+
 Turn a finished, tested, reviewed change into a pull request description a
 reviewer can trust without re-deriving it. The center of the description is
 the **traceability table**: every requirement the PR delivers, mapped to the
