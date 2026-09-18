@@ -1,0 +1,17 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+# Skill install artifacts (never commit agent-local installs)
+.claude/skills/
+.agents/skills/
+.cursor/skills/
