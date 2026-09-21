@@ -27,6 +27,7 @@ installed:
 
 ```
 ORIENT    /context-prime   (verified repo map: facts cite files)
+          /project         (the project docs set: init, list, summary)
 INTAKE    /story-author ──▶ /story-triage
 REFINE    /refine          (spec sketch + task breakdown + pointing)
 DESIGN    /design          (how to build it, before what gets built)
@@ -51,14 +52,15 @@ Skills must reuse these ID shapes — never invent new ones:
 |---|---|---|---|
 | `S-<n>` | Story | `story-author` | `story-triage`, `refine`, `spec`, `plan` |
 | `AC-<n>` | Acceptance criterion (Given/When/Then) | `story-author` | `story-triage`, `spec`, `review`, `ai-code-review` |
-| `NG-<n>` | Non-goal | `story-author` | `spec` (scope section), `review` |
+| `NG-<n>` | Non-goal | `story-author`, `project` | `spec` (scope section), `review` |
 | `R-<n>` | Spec requirement | `spec` | `refine`, `plan`, `build`, `test`, `review`, `ai-code-review`, `pr-prepare` |
 | `TC-U<n>` / `TC-I<n>` / `TC-E<n>` | Test criterion: unit / integration / e2e, each mapped to an `R-<n>` | `spec` | `build` (tests are written from these, not from finished code), `test`, `review`, `ai-code-review`, `pr-prepare` |
 | `T-<n>` | Task with story points | `refine` | `plan`, `build`, `pr-prepare` |
 | `SL-<n>` | Build slice (distinct from story `S-<n>`) | `plan` | `build`, `test`, `pr-prepare` |
-| `C-<n>` | Constraint (quality-bar rule) | `constraints` | `build`, `test`, `review`, `code-simplify` |
-| `CX-<n>` | Verified context fact, citing a file | `context-prime` | `story-author`, `refine`, `design`, `spec`, `plan` |
-| `AD-<n>` | Architecture decision | `design` | `spec`, `plan`, `review` |
+| `C-<n>` | Constraint (quality-bar rule) | `constraints`, `project` | `build`, `test`, `review`, `code-simplify` |
+| `CX-<n>` | Verified context fact, citing a file | `context-prime`, `project` | `story-author`, `refine`, `design`, `spec`, `plan` |
+| `AD-<n>` | Architecture decision | `design`, `project` | `spec`, `plan`, `review` |
+| `PD-<n>` | Project document (architecture, PRD, plan, roadmap, …) | `project` | `project` (drift checks), reviewers |
 | `AM-<n>` | Spec amendment | `spec-amend` | `plan`, `build`, `test`, `pr-prepare` |
 | `D-<n>` | Defect with a proven cause | `diagnose` | `build`, `test`, `spec-amend`, `pr-prepare` |
 | `RL-<n>` | Release check (observability, rollback, watch) | `release` | `pr-prepare`, `diagnose` |
@@ -78,6 +80,10 @@ Rules:
   dropped with a reason. Amendments never renumber and never delete.
 - A `CX-<n>` cites the file that proves it. An uncited claim belongs under
   Inferences, not Facts.
+- A `PD-<n>` names one document in the project documentation set, and is
+  recorded in that document's header. A refresh keeps its id and updates its
+  **Last verified** stamp; it never renumbers. A removed document is marked
+  `Superseded by PD-<n>` rather than deleted.
 
 ## Artifact home
 
@@ -86,7 +92,18 @@ where the work happens), never into this skills repo:
 
 ```
 <workplace-repo>/
+  README.md                 # /project (front door: what it is, quick start)
   CONSTRAINTS.md            # written by /constraints (repo root)
+  docs/                     # /project — PD-1 .. PD-10, the project docs set
+    README.md               #   the index: what exists, ownership, freshness
+    PRD.md                  #   product requirements
+    ARCHITECTURE.md         #   system shape, structure, data, seams
+    DESIGN.md               #   conventions and settled decisions
+    CONSTRAINTS.md          #   the quality bar (pointer if root file exists)
+    PLAN.md                 #   delivery plan and current state
+    ROADMAP.md              #   technical now / next / later
+    DEVELOPMENT.md          #   setup, run, test, debug
+    DEPLOYMENT.md           #   build, environments, release, rollback
   .specs/<slug>/
     story.md                # /story-author
     sketch.md               # /refine (spec head-start)
@@ -100,6 +117,12 @@ where the work happens), never into this skills repo:
     design.md               # /design
     context.md              # /context-prime (or .specs/context.md, repo-wide)
 ```
+
+Two homes, two audiences. `docs/` is the project's documentation set — what the
+system **is** — and `.specs/<slug>/` is the work record — what one change
+**does**. A `docs/PLAN.md` is the project delivery plan; `.specs/<slug>/plan.md`
+is the build order for one feature. They are different documents and never
+replace one another.
 
 `<slug>` is a kebab-case name for the feature, chosen once by `story-author`
 and reused by every later stage. If the workplace repo already uses a spec

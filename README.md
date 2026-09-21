@@ -1,6 +1,6 @@
 # Agent Skills
 
-A pack of 17 agent skills for the software development lifecycle: from an
+A pack of 18 agent skills for the software development lifecycle: from an
 unfamiliar repository and a vague feature intent to a merged, traceable pull
 request. Each skill is a
 structured workflow an AI coding agent follows — with templates, gates, and
@@ -17,7 +17,7 @@ did.
 ```bash
 npx skills add eniga/agent-skills --list     # browse before installing
 npx skills add eniga/agent-skills            # pick skills and agents interactively
-npx skills add eniga/agent-skills --all      # install all 17, to every detected agent
+npx skills add eniga/agent-skills --all      # install all 18, to every detected agent
 npx skills add eniga/agent-skills --skill spec   # install one skill
 ```
 
@@ -59,6 +59,7 @@ named after its directory (`/spec`, `/build`, ...).
 
 ```
 ORIENT    /context-prime   (verified map of the repo: facts vs inferences)
+          /project         (the project docs set: init, list, summary)
 INTAKE    /story-author ──▶ /story-triage
 REFINE    /refine          (spec sketch + task breakdown + pointing)
 DESIGN    /design          (settle how to build it, before what gets built)
@@ -73,13 +74,14 @@ SHIP      /pr-prepare
 RELEASE   /release         (observability + rollback proven, then watched)
 ```
 
-## All 17 skills
+## All 18 skills
 
 ### Orient — learn the repository before trusting it
 
 | Skill | What it does | Output |
 |---|---|---|
 | [`context-prime`](skills/context-prime) | Maps a repo into facts that cite files, with inferences labelled separately, so later stages stop guessing at existing behavior | `.specs/context.md` |
+| [`project`](skills/project) | Reviews the whole project and writes or refreshes its documentation set — architecture, design, constraints, product requirements, development, deployment, plan, roadmap, and both READMEs — every claim citing a file. `list` reports the set and its drift from the code; `summary` gives the one-page brief | `README.md` + `docs/` (`PD-1` … `PD-10`) |
 
 ### Intake — turn intent into a story
 
@@ -140,13 +142,13 @@ RELEASE   /release         (observability + rollback proven, then watched)
 ## How the skills chain
 
 Skills chain through **artifacts, not through each other**. Each stage reads
-files the previous stage wrote, all under `.specs/<slug>/` in the repository
-where the work happens — so any stage runs on its own, against artifacts a
-human or another tool produced:
+files an earlier stage wrote — under `.specs/<slug>/` for one piece of work, or
+in the project's `docs/` set for the system as a whole — so any stage runs on
+its own, against artifacts a human or another tool produced:
 
 ```
-context.md ──▶ story.md ──▶ sketch.md + tasks.md ──▶ design.md ──▶ spec.md
-(context-prime)  (story-*)        (refine)            (design)     (spec)
+README.md + docs/ ──▶ context.md ──▶ story.md ──▶ sketch.md + tasks.md ──▶ design.md ──▶ spec.md
+   (project)        (context-prime)  (story-*)        (refine)            (design)     (spec)
                                                                      │
                      spec.md change log ◀── amendments ◀─────────────┤
                          (spec-amend)                                ▼
@@ -174,14 +176,15 @@ The IDs that flow through:
 |---|---|---|
 | `S-<n>` | Story | `story-author` |
 | `AC-<n>` | Acceptance criterion (Given/When/Then) | `story-author` |
-| `NG-<n>` | Non-goal | `story-author` |
+| `NG-<n>` | Non-goal | `story-author`, `project` |
 | `R-<n>` | Spec requirement | `spec` |
 | `TC-U/I/E<n>` | Test criterion (unit / integration / e2e), each mapped to an `R-<n>` | `spec` |
 | `T-<n>` | Task with story points | `refine` |
 | `SL-<n>` | Build slice | `plan` |
-| `C-<n>` | Constraint (quality-bar rule) | `constraints` |
-| `CX-<n>` | Verified context fact (cites a file) | `context-prime` |
-| `AD-<n>` | Architecture decision | `design` |
+| `C-<n>` | Constraint (quality-bar rule) | `constraints`, `project` |
+| `CX-<n>` | Verified context fact (cites a file) | `context-prime`, `project` |
+| `AD-<n>` | Architecture decision | `design`, `project` |
+| `PD-<n>` | Project document in the `docs/` set | `project` |
 | `AM-<n>` | Spec amendment | `spec-amend` |
 | `D-<n>` | Defect (with proven cause) | `diagnose` |
 | `RL-<n>` | Release check | `release` |
@@ -212,7 +215,7 @@ is in [CONTRIBUTING.md](CONTRIBUTING.md).
 ## Repository structure
 
 ```
-skills/                  # the 17 skills (one directory each, SKILL.md inside)
+skills/                  # the 18 skills (one directory each, SKILL.md inside)
 docs/skill-anatomy.md    # the per-skill file format spec
 CONTRIBUTING.md          # pack conventions: traceability spine, artifact home
 .github/workflows/       # CI: frontmatter, self-containment, real install
