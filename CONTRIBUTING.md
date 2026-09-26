@@ -84,6 +84,15 @@ Rules:
   recorded in that document's header. A refresh keeps its id and updates its
   **Last verified** stamp; it never renumbers. A removed document is marked
   `Superseded by PD-<n>` rather than deleted.
+- **Every skill ends by presenting its result, and offers the spec file.**
+  When a skill finishes, it shows the full result — the artifact, the
+  verdict, the evidence — and, if no spec file (`.specs/<slug>/spec.md`)
+  exists for the work, it asks whether to create one from what the pass
+  established. It writes the file only on agreement. Conversely, a missing
+  spec file is not a blanket stop: a skill proceeds with details pulled from
+  the available context (the story, the sketch, the context map, documented
+  contracts, the code), marks them as context-sourced, and stops only when
+  the detail it needs exists nowhere.
 
 ## Artifact home
 

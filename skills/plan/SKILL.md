@@ -21,16 +21,19 @@ slice*.
 - A multi-slice feature is about to start and you need to know what "done
   with evidence" looks like at each step.
 
-**When NOT to use:** The spec does not exist or is not approved (planning an
-unapproved spec is planning a draft — get it approved first). The work is a
-single slice (no plan needed — build it directly). You are planning a
-technical design that has open decisions (settle them in the spec first).
+**When NOT to use:** The requirements and test criteria cannot be found
+anywhere in the context (no story, no spec sketch, no documented behavior) —
+a plan with nothing to plan from is a guess. The work is a single slice (no
+plan needed — build it directly). You are planning a technical design that
+has open decisions (settle them in the spec first). A missing or unapproved
+spec alone is not a stop: plan in reduced mode from the context, and the
+spec still must be approved before building.
 
 ## Inputs
 
 | Input | Where | If it is missing |
 |---|---|---|
-| Approved spec (`R-*`, `TC-*`, contracts) | `.specs/<slug>/spec.md` | Stop. Planning an unapproved or absent spec is planning a draft. |
+| Approved spec (`R-*`, `TC-*`, contracts) | `.specs/<slug>/spec.md` | Proceed in reduced mode, not as a stop. Pull the requirements and test criteria from the available context — the story's `AC-*`, the spec sketch's `R-*`, documented contracts, and the code itself — and mark each as context-sourced in the plan. The plan is then a draft, not an approved one: before any slice is built, a spec file must exist and be approved, and if no spec file exists, propose creating one at the end of the process. If the requirements and test criteria exist nowhere in the context, stop and say what is missing. |
 | Task breakdown (`T-*`) | `.specs/<slug>/tasks.md` | Proceed. Derive slices from the requirements directly; tasks are a convenience, not an input this skill needs. |
 | Quality bar (`C-*` gates) | `CONSTRAINTS.md` at repo root | Proceed. Set each slice's checkpoint from the repository's existing test and lint commands. |
 | Repository structure | the codebase | Proceed, but a slice ordering built on a guessed structure is a guess. Verify where the code actually lives before fixing the order. |
@@ -73,6 +76,17 @@ technical design that has open decisions (settle them in the spec first).
    harder than the previous one, say so explicitly.
 8. **Write the plan** to `.specs/<slug>/plan.md` using the template below.
 9. **Return the plan** in chat with the file path, and stop. Do not build.
+10. **Present the result, then propose the spec.** Show the full result —
+   the plan, its file path, the slice order, the checkpoints, the rollback
+   position — in one place, and wait for the user's reaction. Then, if no
+   spec file exists for this work (`.specs/<slug>/spec.md`), ask whether to
+   create one that captures what this pass established: the scope, the
+   requirements (`R-<n>`) the slices deliver, the test criteria (`TC-*`) the
+   checkpoints run, and the decisions behind the order. Write it only if the
+   user agrees, and only from what was actually established — anything still
+   open goes into its open-questions section, not invented. If a spec file
+   already exists, there is nothing to propose — it is the record, and a
+   second spec for the same slug would be a second source of truth.
 
 ## Writing rules
 

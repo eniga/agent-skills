@@ -67,8 +67,12 @@ them as open questions with owners).
    corrections, update the file, and repeat until the user explicitly
    approves. Set `Status: Approved` with the approver and date. **Do not
    proceed to planning or implementation until approval is explicit.**
-7. **Stop.** Do not plan, do not build. The next step is deciding the build
-   order against this approved spec.
+7. **Present the result, then stop.** The spec file is this skill's output:
+   presenting it in full (step 6) and collecting the user's explicit
+   approval is how it comes into existence — the file is written only with
+   that approval, and a declined approval leaves it `Draft`. Do not plan, do
+   not build. Once approved, the next step is deciding the build order
+   against this spec.
 
 ## Writing rules
 

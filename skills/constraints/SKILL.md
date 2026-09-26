@@ -74,6 +74,17 @@ the rules; this skill writes them).
    not an agent decision. Do not mark it approved until the user says so.
 6. **Stop.** Do not start enforcing it on existing code. The bar applies to
    new changes from now on; retrofitting is a separate, explicit decision.
+7. **Present the result, then propose the spec.** Show the full result —
+   the bar, its gates, the approval status, the exceptions — in one place,
+   and wait for the user's reaction. Then, if the work that motivated this
+   pass has no spec file (`.specs/<slug>/spec.md`), ask whether to create
+   one that captures what this pass established: the scope, the requirements
+   (`R-<n>`) the work commits to, the test criteria (`TC-*`) that would
+   prove them, and the rules that bound it. Write it only if the user
+   agrees, and only from what was actually established — anything still open
+   goes into its open-questions section, not invented. If a spec file
+   already exists, there is nothing to propose — it is the record, and a
+   second spec for the same slug would be a second source of truth.
 
 ## Writing rules
 

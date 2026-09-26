@@ -90,6 +90,17 @@ optional; each one absent costs precision, not the review.
 9. **Return the review** using the template below. Lead with the verdict and
    the blocking findings. Do not edit the code — a review reports, it does
    not fix.
+10. **Present the result, then propose the spec.** Show the full result —
+   the verdict, the findings with their evidence, the proof check — in one
+   place, and wait for the user's reaction. Then, if no spec file exists for
+   this work (`.specs/<slug>/spec.md`), ask whether to create one that
+   captures what this pass established: the scope, the requirements
+   (`R-<n>`) the change delivers, the test criteria (`TC-*`) that prove it,
+   and the behaviors the findings show are still open. Write it only if the
+   user agrees, and only from what was actually established — anything still
+   open goes into its open-questions section, not invented. If a spec file
+   already exists, there is nothing to propose — it is the record, and a
+   second spec for the same slug would be a second source of truth.
 
 ## Severity labels
 

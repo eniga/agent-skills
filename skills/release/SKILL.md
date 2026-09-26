@@ -89,6 +89,17 @@ renames with no behavioral surface.
    you rolled back, record the trigger, the duration, and what the data did —
    that evidence is worth more than the release itself, and it feeds the
    diagnosis of what went wrong.
+9. **Present the result, then propose the spec.** Show the full result —
+   the release record, the go / no-go decision, the evidence for each check
+   — in one place, and wait for the user's reaction. Then, if no spec file
+   exists for this work (`.specs/<slug>/spec.md`), ask whether to create one
+   that captures what this pass established: the scope, the requirements
+   (`R-<n>`) that shipped, the observability signals and rollback plan that
+   were proven to work, and the watch thresholds. Write it only if the user
+   agrees, and only from what was actually established — anything still open
+   goes into its open-questions section, not invented. If a spec file
+   already exists, there is nothing to propose — it is the record, and a
+   second spec for the same slug would be a second source of truth.
 
 ## Templates
 

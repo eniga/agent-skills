@@ -87,8 +87,11 @@ to write).
    the current requirements from a pile of diffs — and append the amendment
    record to its change log. The body is the current truth; the log is how it
    got there.
-8. **Return the amendment record** with the invalidation list, and stop. Do
-   not re-plan, re-build, or re-test inside this skill: those are separate
+8. **Present the result, then stop.** The amendment record and the updated
+   spec are this skill's output: present them in full, and make sure the
+   re-approval from step 6 is recorded, before ending — an amendment the
+   user has not seen and approved is an edit, not an amendment. Do not
+   re-plan, re-build, or re-test inside this skill: those are separate
    activities that now have a changed input.
 
 ## Templates

@@ -87,6 +87,17 @@ a design; record it as a decision with its actual reasoning, however thin).
    the approach; the spec then fixes the behavior, contracts, and test
    criteria within it. Do not write the spec here, and do not implement —
    a design proven only by building it is expensive to disprove.
+10. **Present the result, then propose the spec.** Show the full result —
+   the design record, the decision, what it gives up, the open questions —
+   in one place, and wait for the user's reaction. Then, if no spec file
+   exists for this work (`.specs/<slug>/spec.md`), ask whether to create one
+   that captures what this pass established: the scope, the requirements
+   (`R-<n>`) the decision commits to, the test criteria (`TC-*`) that would
+   prove them, and the decision itself with its rationale. Write it only if
+   the user agrees, and only from what was actually established — anything
+   still open goes into its open-questions section, not invented. If a spec
+   file already exists, there is nothing to propose — it is the record, and
+   a second spec for the same slug would be a second source of truth.
 
 ## Templates
 

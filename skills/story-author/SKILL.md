@@ -56,6 +56,17 @@ This skill needs an intent and somewhere to write. Nothing else.
    the rest under Open questions.
 6. **Return the story** in chat with the file path, and stop. Do not refine,
    spec, or plan.
+7. **Present the result, then propose the spec.** Show the full result —
+   the story, the file path, the open questions — in one place, and wait
+   for the user's reaction. Then, if no spec file exists for this work
+   (`.specs/<slug>/spec.md`), ask whether to create one that captures what
+   this pass established: the scope, the requirements (`R-<n>`) and test
+   criteria (`TC-*`) the acceptance criteria imply, and the decisions behind
+   them. Write it only if the user agrees, and only from what was actually
+   established — anything still open goes into its open-questions section,
+   not invented. If a spec file already exists, there is nothing to propose
+   — it is the record, and a second spec for the same slug would be a second
+   source of truth.
 
 ## Readiness checklist
 

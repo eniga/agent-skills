@@ -211,6 +211,13 @@ is in [CONTRIBUTING.md](CONTRIBUTING.md).
   skill that silently half-works. CI enforces this.
 - **Model-neutral.** Skills state the procedure, not workarounds for one
   model's quirks.
+- **Ends with the result and an offer.** Every skill presents its full
+  result — artifact, verdict, evidence — before it stops, and, when the work
+  has no spec file yet, it proposes creating one from what the pass
+  established. A missing spec file is not a blanket stop: skills proceed
+  from the context (story, sketch, context map, documented contracts, code),
+  mark what they pulled, and stop only when the detail they need exists
+  nowhere.
 
 ## Repository structure
 

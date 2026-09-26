@@ -114,9 +114,15 @@ them: `list` and `summary` write nothing.
     restating them. Where a document does not apply to this project (a
     60-line script needs no deployment runbook), say so in the index rather
     than shipping an empty template.
-12. **Show the set and stop.** Status is `Draft` until a human accepts it.
-    Report what was run, what failed, what is an open question, and which
-    existing files were changed.
+12. **Present the result, then propose the spec.** Show the full set in one
+    place: the documents written, what was run, what failed, what is an open
+    question, and which existing files were changed. Status is `Draft` until
+    a human accepts it. Then, if the plan or roadmap names a concrete next
+    piece of work and no spec file exists for it (`.specs/<slug>/spec.md`),
+    ask whether to create one that captures that work's scope, requirements
+    (`R-<n>`), and test criteria (`TC-*`). Write it only if the user agrees,
+    and only from what the set actually established — anything still open
+    goes into its open-questions section, not invented.
 
 ### Mode: `list`
 

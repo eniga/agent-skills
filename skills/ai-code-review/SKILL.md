@@ -23,8 +23,10 @@ of one — a fully conformant diff can still be badly written.
   whether it implements anything that was not specified.
 - A spec changed after the build started and you need to know what drifted.
 
-**When NOT to use:** There is no spec — conformance has nothing to conform
-to, and a general quality review is the right pass instead. You want
+**When NOT to use:** There is no spec and no written expectations anywhere
+in the context (no story acceptance criteria, no documented contract, no
+stated intent) — conformance has nothing to measure against, and a general
+quality review is the right pass instead. You want
 judgement on clarity, complexity, security, or style; this pass deliberately
 does not give it. The spec is not approved (conforming to a draft is not a
 meaningful verdict — get the spec approved first).
@@ -33,7 +35,7 @@ meaningful verdict — get the spec approved first).
 
 | Input | Where | If it is missing |
 |---|---|---|
-| An approved spec (`R-*`, `NG-*`, `TC-*`, contracts) | `.specs/<slug>/spec.md` | Stop. This skill measures a diff against a spec; with no spec there is no measurement to make, and a general quality review is the right pass instead. |
+| An approved spec (`R-*`, `NG-*`, `TC-*`, contracts) | `.specs/<slug>/spec.md` | If the spec file is absent, proceed in reduced mode: measure the diff against the closest written expectations available — the story's `AC-*`, documented contracts, the PR's stated intent — and label the verdict as measured against intent, not against a spec. A conformance check without a spec is weaker, and if no spec file exists, propose creating one at the end of the process so the next pass is a full check. If the spec file exists but is not approved, stop and say so (conforming to a draft is not a meaningful verdict). If no expectations exist anywhere in the context, stop: there is nothing to measure. |
 | The PR diff | PR, branch, or commit range | Stop. Ask which diff is being checked. |
 | The story's acceptance criteria (`AC-*`) | `.specs/<slug>/story.md` | Proceed. `R-*` carries the requirement; `AC-*` adds the user-facing phrasing when it exists. |
 | Test evidence | `.specs/<slug>/evidence/` | Proceed. This skill checks that a test matching each `TC-*` exists in the diff, which is a different question from whether it passed. |
@@ -92,6 +94,17 @@ meaningful verdict — get the spec approved first).
      wrong, and one of them must change before merge.
 8. **Return the report** using the template below. Lead with the verdict and
    the non-conformances. Do not edit the diff — report, do not fix.
+9. **Present the result, then propose the spec.** Show the full result —
+   the conformance verdict, the matrix, the non-conformances — in one place,
+   and wait for the user's reaction. Then, if no spec file exists for this
+   work (`.specs/<slug>/spec.md`), ask whether to create one that captures
+   what this pass established: the scope, the requirements (`R-<n>`) the
+   diff implements, the test criteria (`TC-*`) that prove them, and the
+   contract shapes the diff follows. Write it only if the user agrees, and
+   only from what was actually established — anything still open goes into
+   its open-questions section, not invented. If a spec file already exists,
+   there is nothing to propose — it is the record, and a second spec for the
+   same slug would be a second source of truth.
 
 ## Writing rules
 

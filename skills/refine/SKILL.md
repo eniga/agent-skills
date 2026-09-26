@@ -81,6 +81,18 @@ specifies the work, not a dependency on any particular tool.
    the `NG-*` or AC they would drop). Do not silently shrink the story.
 7. **Return both artifacts** in chat with their file paths, and stop. Do not
    write the spec, do not plan the build, do not implement.
+8. **Present the result, then propose the spec.** Show the full result —
+   both artifacts, the file paths, the total points, the unknowns — in one
+   place, and wait for the user's reaction. Then, if no spec file exists for
+   this work (`.specs/<slug>/spec.md`), ask whether to create one that
+   captures what this pass established: the scope, the requirements
+   (`R-<n>`) from the sketch (marked confirmed or assumed as they are), the
+   test criteria (`TC-*`) the acceptance criteria imply, and the risks.
+   Write it only if the user agrees, and only from what was actually
+   established — anything still open goes into its open-questions section,
+   not invented. If a spec file already exists, there is nothing to propose
+   — it is the record, and a second spec for the same slug would be a second
+   source of truth.
 
 ## Writing rules
 

@@ -49,6 +49,17 @@ This skill needs a story. Nothing else.
    absent), and return it in chat.
 5. **Stop.** Do not fix the gaps, do not refine, do not spec. The verdict
    tells the next person what to do.
+6. **Present the result, then propose the spec.** Show the full result —
+   the verdict, the ranked gaps, the checklist — in one place, and wait for
+   the user's reaction. Then, if no spec file exists for this work
+   (`.specs/<slug>/spec.md`) and the verdict is Ready, ask whether to create
+   one that captures what the story establishes: the scope, the requirements
+   (`R-<n>`) and test criteria (`TC-*`) the acceptance criteria imply. Write
+   it only if the user agrees, and only from what the story actually states
+   — anything still open goes into its open-questions section, not invented.
+   If a spec file already exists, there is nothing to propose — it is the
+   record, and a second spec for the same slug would be a second source of
+   truth.
 
 ## Readiness checklist
 
