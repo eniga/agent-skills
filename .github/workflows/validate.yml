@@ -20,6 +20,11 @@ jobs:
       - name: Check skill frontmatter
         run: node .github/scripts/check-skills.mjs
 
+      # The checker's own behavior is pinned by tests — a broken validator
+      # silently passes malformed skills.
+      - name: Run checker tests
+        run: node --test .github/scripts/*.test.mjs
+
       # The install path the README advertises must actually install every
       # skill. A skill with broken frontmatter silently disappears here.
       - name: Check every skill installs
