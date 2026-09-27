@@ -76,10 +76,7 @@ This skill needs code and a passing test for it. Nothing else.
 7. **Record the before/after.** Note what was complex, what you changed, and
    the test evidence that behavior is preserved. If this is part of a review
    finding, reference the finding.
-8. **Stop.** Do not change behavior, do not add features, do not "improve"
-   beyond clarity. If simplification reveals a bug or a missing requirement,
-   stop and report it — do not fix it inside a simplification.
-9. **Present the result, then propose the spec.** Show the full result —
+8. **Present the result, then propose the spec.** Show the full result —
    the simplified code, the before/after note, the test evidence that
    behavior is preserved — in one place, and wait for the user's reaction.
    Then, if the behavior that was just pinned has no spec file
@@ -90,7 +87,10 @@ This skill needs code and a passing test for it. Nothing else.
    what was actually established — anything still open goes into its
    open-questions section, not invented. If a spec file already exists,
    there is nothing to propose — it is the record, and a second spec for the
-   same slug would be a second source of truth.
+   same slug would be a second source of truth. Do not change behavior, do
+   not add features, do not "improve" beyond clarity: if simplification
+   reveals a bug or a missing requirement, report it — do not fix it inside
+   a simplification.
 
 ## The Rule of 500
 

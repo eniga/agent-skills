@@ -75,10 +75,7 @@ design document, not a PR).
 5. **Summarize the risk and the rollback.** Carry the spec's rollback plan
    into the PR: the mechanism, the trigger, and the data consequences. A
    reviewer deciding whether to merge needs to know what "undo" looks like.
-6. **Return the description** in chat with the file path, and stop. Do not
-   merge — opening the PR is the hand-off; merging is a separate, explicit
-   decision.
-7. **Present the result, then propose the spec.** Show the full result —
+6. **Present the result, then propose the spec.** Show the full result —
    the PR description, the traceability table, the open items — in one
    place, and wait for the user's reaction. Then, if no spec file exists for
    this work (`.specs/<slug>/spec.md`), ask whether to create one that
@@ -88,7 +85,9 @@ design document, not a PR).
    user agrees, and only from what was actually established — anything still
    open goes into its open-questions section, not invented. If a spec file
    already exists, there is nothing to propose — it is the record, and a
-   second spec for the same slug would be a second source of truth.
+   second spec for the same slug would be a second source of truth. Do not
+   merge — opening the PR is the hand-off; merging is a separate, explicit
+   decision.
 
 ## Writing rules
 

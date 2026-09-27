@@ -76,13 +76,11 @@ them.
 6. **Write the report** using the template below. Save it to
    `.specs/<slug>/evidence/test-<date>.md` if a slug exists, otherwise return
    it in chat. Every criterion row has a result and evidence.
-7. **Return the report** in chat, leading with failures and unverified
-   criteria — never bury them below the passes. Stop. Do not fix failures;
-   report them. Diagnosing and fixing a failure is separate work with its own
-   evidence, and doing it here would invalidate the report you just wrote.
-8. **Present the result, then propose the spec.** Show the full result —
-   the report, the verdict, the per-criterion evidence — in one place, and
-   wait for the user's reaction. Then, if no spec file exists for this work
+7. **Present the result, then propose the spec.** Show the full result —
+   the report, the verdict, the per-criterion evidence — in one place,
+   leading with failures and unverified criteria — never bury them below the
+   passes — and wait for the user's reaction. Then, if no spec file exists
+   for this work
    (`.specs/<slug>/spec.md`), ask whether to create one that captures what
    this pass established: the scope, the requirements (`R-<n>`) the change
    delivers, the test criteria (`TC-*`) that were checked and how they were
@@ -90,7 +88,10 @@ them.
    and only from what was actually established — anything still open goes
    into its open-questions section, not invented. If a spec file already
    exists, there is nothing to propose — it is the record, and a second spec
-   for the same slug would be a second source of truth.
+   for the same slug would be a second source of truth. Do not fix failures;
+   report them. Diagnosing and fixing a failure is separate work with its
+   own evidence, and doing it here would invalidate the report you just
+   wrote.
 
 ## Writing rules
 

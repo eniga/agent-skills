@@ -46,8 +46,8 @@ them as open questions with owners).
 1. **Read the inputs.** Read `.specs/<slug>/story.md` (story, ACs, non-goals),
    `.specs/<slug>/sketch.md` if a refinement sketch exists, `CONSTRAINTS.md` if
    it exists,
-   and the relevant existing code. If the story is missing, stop and run
-   write the story first — a spec with no stated outcome specifies nothing.
+   and the relevant existing code. If the story is missing, stop and write
+   the story first — a spec with no stated outcome specifies nothing.
 2. **Surface assumptions.** Before writing, list every assumption you are
    making (platform, auth model, data store, scale, compatibility) and ask
    the user to correct them. Do not silently fill gaps — the spec's whole
@@ -162,7 +162,8 @@ permission, empty data, partial failure. Each gets an R-<n>.>
 ## 8. Test criteria
 
 <Derived from requirements. Every TC cites the R it proves. Every R has at
-least one TC. build writes tests from this section — not from finished code.>
+least one TC. The implementation writes tests from this section — not from
+finished code.>
 
 ### Unit (TC-U)
 - **TC-U1** (proves R-1): <what is set up, what is called, what is asserted>

@@ -93,10 +93,10 @@ per-criterion report; this skill finds causes).
    - **Test defect** — the behavior is correct and the test asserts something
      wrong. Fix the test, and record why it was wrong, because a test that
      asserted the wrong thing may have been hiding a real defect.
-8. **Write the defect record** using the template below, and stop. The fix
-   itself is separate work: it changes the system, and it must be verified
-   against the failing test this skill produced. Do not fix and diagnose in
-   the same motion — the moment you start editing, you stop observing.
+8. **Write the defect record** using the template below. The fix itself is
+   separate work: it changes the system, and it must be verified against the
+   failing test this skill produced. Do not fix and diagnose in the same
+   motion — the moment you start editing, you stop observing.
 9. **Present the result, then propose the spec.** Show the full result —
    the defect record, the proven cause, the failing regression test, the
    classification — in one place, and wait for the user's reaction. Then, if

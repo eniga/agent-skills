@@ -92,11 +92,10 @@ meaningful verdict — get the spec approved first).
      implemented differently than specified, a contract differs, or
      non-scoped behavior was built. This is a stop: the spec or the diff is
      wrong, and one of them must change before merge.
-8. **Return the report** using the template below. Lead with the verdict and
-   the non-conformances. Do not edit the diff — report, do not fix.
-9. **Present the result, then propose the spec.** Show the full result —
-   the conformance verdict, the matrix, the non-conformances — in one place,
-   and wait for the user's reaction. Then, if no spec file exists for this
+8. **Present the result, then propose the spec.** Show the full result —
+   the conformance report written with the template below, leading with the
+   verdict and the non-conformances, the matrix — in one place, and wait for
+   the user's reaction. Then, if no spec file exists for this
    work (`.specs/<slug>/spec.md`), ask whether to create one that captures
    what this pass established: the scope, the requirements (`R-<n>`) the
    diff implements, the test criteria (`TC-*`) that prove them, and the
@@ -104,7 +103,8 @@ meaningful verdict — get the spec approved first).
    only from what was actually established — anything still open goes into
    its open-questions section, not invented. If a spec file already exists,
    there is nothing to propose — it is the record, and a second spec for the
-   same slug would be a second source of truth.
+   same slug would be a second source of truth. Do not edit the diff —
+   report, do not fix.
 
 ## Writing rules
 

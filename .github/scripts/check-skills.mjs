@@ -53,8 +53,7 @@ for (const dir of dirs) {
   // reference to a skill the user did not install points at nothing.
   for (const other of dirs) {
     if (other === dir) continue;
-    const mention = new RegExp("`" + other.replace(/[-]/g, "\\$&") + "`");
-    if (mention.test(text)) {
+    if (text.includes(`\`${other}\``)) {
       fail(`references another skill (\`${other}\`) — skills must be self-contained`);
     }
   }

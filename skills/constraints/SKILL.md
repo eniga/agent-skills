@@ -72,9 +72,7 @@ the rules; this skill writes them).
    (editor / pre-commit / CI / nightly).
 5. **Show the user the file and get approval.** The bar is a team decision,
    not an agent decision. Do not mark it approved until the user says so.
-6. **Stop.** Do not start enforcing it on existing code. The bar applies to
-   new changes from now on; retrofitting is a separate, explicit decision.
-7. **Present the result, then propose the spec.** Show the full result —
+6. **Present the result, then propose the spec.** Show the full result —
    the bar, its gates, the approval status, the exceptions — in one place,
    and wait for the user's reaction. Then, if the work that motivated this
    pass has no spec file (`.specs/<slug>/spec.md`), ask whether to create
@@ -84,7 +82,9 @@ the rules; this skill writes them).
    agrees, and only from what was actually established — anything still open
    goes into its open-questions section, not invented. If a spec file
    already exists, there is nothing to propose — it is the record, and a
-   second spec for the same slug would be a second source of truth.
+   second spec for the same slug would be a second source of truth. Do not
+   start enforcing it on existing code: the bar applies to new changes from
+   now on; retrofitting is a separate, explicit decision.
 
 ## Writing rules
 

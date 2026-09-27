@@ -1,6 +1,6 @@
 ---
 name: story-triage
-description: Judges whether a Jira story is ready for refinement and specification, returning a ready or not-ready verdict with a ranked gap list. Use when a story needs a readiness check before /refine or /spec. Use when a story keeps stalling in review and you need to know why.
+description: Judges whether a Jira story is ready for refinement and specification, returning a ready or not-ready verdict with a ranked gap list. Use when a story needs a readiness check before refinement or specification. Use when a story keeps stalling in review and you need to know why.
 ---
 
 # Story Triage
@@ -13,8 +13,8 @@ a rewrite. Triage diagnoses; it does not treat.
 
 ## When to Use
 
-- A story exists (in `.specs/<slug>/story.md` or pasted in) and the next step
-  is `/refine` or `/spec`.
+- A story exists (in `.specs/<slug>/story.md` or pasted in) and the next
+  step is refinement or specification.
 - A story has been sitting in review and nobody can say why it is blocked.
 - You inherited a story and need to know what you are getting into.
 
@@ -35,9 +35,9 @@ This skill needs a story. Nothing else.
 
 ## Process
 
-1. **Locate the story.** Read `.specs/<slug>/story.md` if it exists; otherwise
-   use the story the user pasted or linked. If neither exists, stop and say
-   the story is missing — that is the verdict.
+1. **Locate the story.** Read `.specs/<slug>/story.md` if it exists, or the
+   story the user pasted or linked; if neither exists, stop and say the
+   story is missing — that is the verdict.
 2. **Run the readiness checklist** below. For each check, record pass, fail,
    or n/a with a one-line reason.
 3. **Rank the gaps.** Order failures by how much they block downstream work:
@@ -47,9 +47,7 @@ This skill needs a story. Nothing else.
 4. **Write the verdict** using the template below. Append it to
    `.specs/<slug>/story.md` under a `## Triage` heading (create the section if
    absent), and return it in chat.
-5. **Stop.** Do not fix the gaps, do not refine, do not spec. The verdict
-   tells the next person what to do.
-6. **Present the result, then propose the spec.** Show the full result —
+5. **Present the result, then propose the spec.** Show the full result —
    the verdict, the ranked gaps, the checklist — in one place, and wait for
    the user's reaction. Then, if no spec file exists for this work
    (`.specs/<slug>/spec.md`) and the verdict is Ready, ask whether to create
@@ -59,7 +57,8 @@ This skill needs a story. Nothing else.
    — anything still open goes into its open-questions section, not invented.
    If a spec file already exists, there is nothing to propose — it is the
    record, and a second spec for the same slug would be a second source of
-   truth.
+   truth. Do not fix the gaps, do not refine, do not spec — the verdict
+   tells the next person what to do.
 
 ## Readiness checklist
 

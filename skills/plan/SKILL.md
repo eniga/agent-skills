@@ -25,9 +25,10 @@ slice*.
 anywhere in the context (no story, no spec sketch, no documented behavior) —
 a plan with nothing to plan from is a guess. The work is a single slice (no
 plan needed — build it directly). You are planning a technical design that
-has open decisions (settle them in the spec first). A missing or unapproved
-spec alone is not a stop: plan in reduced mode from the context, and the
-spec still must be approved before building.
+has open decisions (settle them in the spec first). A missing spec alone is
+not a stop: plan in reduced mode from the context (see Inputs), and the spec
+still must exist and be approved before any slice is built. An existing spec
+that is not approved is a stop — get it approved first (Process step 1).
 
 ## Inputs
 
@@ -75,8 +76,7 @@ spec still must be approved before building.
    and what the rollback looks like at that point. If a slice makes rollback
    harder than the previous one, say so explicitly.
 8. **Write the plan** to `.specs/<slug>/plan.md` using the template below.
-9. **Return the plan** in chat with the file path, and stop. Do not build.
-10. **Present the result, then propose the spec.** Show the full result —
+9. **Present the result, then propose the spec.** Show the full result —
    the plan, its file path, the slice order, the checkpoints, the rollback
    position — in one place, and wait for the user's reaction. Then, if no
    spec file exists for this work (`.specs/<slug>/spec.md`), ask whether to
@@ -86,7 +86,8 @@ spec still must be approved before building.
    user agrees, and only from what was actually established — anything still
    open goes into its open-questions section, not invented. If a spec file
    already exists, there is nothing to propose — it is the record, and a
-   second spec for the same slug would be a second source of truth.
+   second spec for the same slug would be a second source of truth. Do not
+   build.
 
 ## Writing rules
 

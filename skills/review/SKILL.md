@@ -87,12 +87,11 @@ optional; each one absent costs precision, not the review.
    edits the code stops being an independent read of it.
 8. **Assign severity and a verdict.** Label every finding (below) and reach
    a verdict: **Approve**, **Approve with notes**, or **Request changes**.
-9. **Return the review** using the template below. Lead with the verdict and
-   the blocking findings. Do not edit the code — a review reports, it does
-   not fix.
-10. **Present the result, then propose the spec.** Show the full result —
-   the verdict, the findings with their evidence, the proof check — in one
-   place, and wait for the user's reaction. Then, if no spec file exists for
+9. **Present the result, then propose the spec.** Show the full result —
+   the review written with the template below, leading with the verdict and
+   the blocking findings, the findings with their evidence, the proof check
+   — in one place, and wait for the user's reaction. Then, if no spec file
+   exists for
    this work (`.specs/<slug>/spec.md`), ask whether to create one that
    captures what this pass established: the scope, the requirements
    (`R-<n>`) the change delivers, the test criteria (`TC-*`) that prove it,
@@ -100,7 +99,8 @@ optional; each one absent costs precision, not the review.
    user agrees, and only from what was actually established — anything still
    open goes into its open-questions section, not invented. If a spec file
    already exists, there is nothing to propose — it is the record, and a
-   second spec for the same slug would be a second source of truth.
+   second spec for the same slug would be a second source of truth. Do not
+   edit the code — a review reports, it does not fix.
 
 ## Severity labels
 
@@ -160,7 +160,7 @@ in.>
 
 | # | Severity | Location | Suggestion | Routes to |
 |---|---|---|---|---|
-| 1 | Minor | <file:line> | <clarity / complexity / duplication> | code-simplify |
+| 1 | Minor | <file:line> | <clarity / complexity / duplication> | a simplification pass |
 
 ## Proof check
 

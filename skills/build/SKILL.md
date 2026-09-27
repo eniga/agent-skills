@@ -86,12 +86,7 @@ carrying numbered requirements and test criteria works.
    the traceability: which slice, which requirements. Then append the slice
    record (see Templates) to `.specs/<slug>/plan.md`.
 7. **Repeat** from step 2 until every slice in the plan is complete.
-8. **Hand off for verification.** When the last slice is committed, stop.
-   The full verification pass — focused tests, then the whole suite, then a
-   per-`TC-*` pass/fail/unverified report — is a separate activity with its
-   own evidence. Do not declare the feature done from inside this skill: a
-   green checkpoint proves a slice, not a release.
-9. **Present the result, then propose the spec.** Show the full result —
+8. **Present the result, then propose the spec.** Show the full result —
    the slices committed, the checkpoints passed, any spec deviations, the
    hand-off state — in one place, and wait for the user's reaction. Then, if
    no spec file exists for this work (`.specs/<slug>/spec.md`), ask whether
@@ -102,7 +97,10 @@ carrying numbered requirements and test criteria works.
    anything still open goes into its open-questions section, not invented.
    If a spec file already exists, there is nothing to propose — it is the
    record, and a second spec for the same slug would be a second source of
-   truth.
+   truth. The full verification pass — focused tests, then the whole suite,
+   then a per-`TC-*` pass/fail/unverified report — is a separate activity
+   with its own evidence; do not declare the feature done from inside this
+   skill: a green checkpoint proves a slice, not a release.
 
 ## Writing rules
 

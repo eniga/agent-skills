@@ -86,7 +86,7 @@ touches).
    wrote. Anything you did not read directly is an inference — label it, and
    say what would confirm it. **This step is the skill.** Everything before it
    is reading; this is what makes the map safe to build on.
-10. **Write the map and stop.** Do not design, specify, or fix anything you
+10. **Write the map.** Do not design, specify, or fix anything you
     found. Record hazards as hazards; acting on them is separate work with
     its own gates.
 11. **Present the result, then propose the spec.** Show the full result —

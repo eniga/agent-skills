@@ -17,7 +17,7 @@ specification) — it sizes the work and gives the spec author a head start.
 
 ## When to Use
 
-- A story is triaged Ready and the next step is `/spec`.
+- A story is triaged Ready and the next step is to specify it.
 - Sprint planning needs a task breakdown and points for a story.
 - A story is too big to spec in one pass and needs to be split.
 
@@ -79,9 +79,7 @@ specifies the work, not a dependency on any particular tool.
 6. **Sanity-check the total.** If the story's points exceed the team's
    iteration capacity, say so and propose which tasks to cut or defer (cite
    the `NG-*` or AC they would drop). Do not silently shrink the story.
-7. **Return both artifacts** in chat with their file paths, and stop. Do not
-   write the spec, do not plan the build, do not implement.
-8. **Present the result, then propose the spec.** Show the full result —
+7. **Present the result, then propose the spec.** Show the full result —
    both artifacts, the file paths, the total points, the unknowns — in one
    place, and wait for the user's reaction. Then, if no spec file exists for
    this work (`.specs/<slug>/spec.md`), ask whether to create one that
@@ -92,7 +90,8 @@ specifies the work, not a dependency on any particular tool.
    established — anything still open goes into its open-questions section,
    not invented. If a spec file already exists, there is nothing to propose
    — it is the record, and a second spec for the same slug would be a second
-   source of truth.
+   source of truth. Do not write the spec, do not plan the build, do not
+   implement.
 
 ## Writing rules
 
@@ -121,7 +120,7 @@ specifies the work, not a dependency on any particular tool.
 
 > **Slug:** <slug>
 > **Story:** S-<n> — <title>
-> **Status:** Head start for /spec (not a spec)
+> **Status:** Head start for the spec (not a spec)
 > **Date:** <YYYY-MM-DD>
 
 ## Proposed requirements

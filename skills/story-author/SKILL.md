@@ -16,7 +16,7 @@ writes to Jira itself.
 
 - A feature exists only as a sentence, a voice note, or a product request.
 - A story in the tracker is too vague to refine or spec.
-- You are about to run `/refine` or `/spec` and there is no story yet.
+- You are about to refine or specify a feature and there is no story yet.
 
 **When NOT to use:** The story already exists and just needs a readiness
 check (triage it instead of rewriting it). The work is a bug fix with a
@@ -54,9 +54,7 @@ This skill needs an intent and somewhere to write. Nothing else.
 5. **Self-triage once.** Run the readiness checklist below against what you
    just wrote. Fix gaps you can fix from the answers you already have; list
    the rest under Open questions.
-6. **Return the story** in chat with the file path, and stop. Do not refine,
-   spec, or plan.
-7. **Present the result, then propose the spec.** Show the full result —
+6. **Present the result, then propose the spec.** Show the full result —
    the story, the file path, the open questions — in one place, and wait
    for the user's reaction. Then, if no spec file exists for this work
    (`.specs/<slug>/spec.md`), ask whether to create one that captures what
@@ -66,7 +64,7 @@ This skill needs an intent and somewhere to write. Nothing else.
    established — anything still open goes into its open-questions section,
    not invented. If a spec file already exists, there is nothing to propose
    — it is the record, and a second spec for the same slug would be a second
-   source of truth.
+   source of truth. Do not refine, spec, or plan.
 
 ## Readiness checklist
 
@@ -158,7 +156,7 @@ touched, known constraints, links to prior art.>
 | "Non-goals are negative and add nothing" | Non-goals are how scope creep gets caught. Every `NG-*` is a future "can we also..." that already has its answer. |
 | "I'll put the tech stack in the story so the spec is faster" | The story is the *what*; the spec is the *how*. Baking implementation in locks the spec into your first guess and makes the story unreviewable by product. |
 | "One big story is fine, we'll split it during refinement" | Refinement splits tasks, not stories. If two outcomes could ship separately, they are two stories, and the second one is invisible until you name it. |
-| "I'll write it straight into Jira" | The markdown file is the source of truth and the input to `/refine` and `/spec`. Jira is a copy destination, not a workflow. |
+| "I'll write it straight into Jira" | The markdown file is the source of truth and the input to refinement and specification. Jira is a copy destination, not a workflow. |
 
 ## Red Flags
 
