@@ -31,22 +31,31 @@ task (no breakdown needed — build it).
 
 | Input | Where | If it is missing |
 |---|---|---|
-| A ready story with `AC-*` and `NG-*` | `.specs/<slug>/story.md` | Stop if there is no story at all. If the story exists but is thin, say which readiness gaps you found, size only what is sizeable, and list the rest as unknowns rather than inventing points. |
+| A ready story with `AC-*` and `NG-*` | `.specs/<slug>/story.md`, a ticket, or the conversation | Proceed from a story in the conversation (a pasted ticket, or the request with its acceptance criteria) when there is no file. Stop only if no outcome or acceptance criteria are stated anywhere. If the story exists but is thin, say which readiness gaps you found, size only what is sizeable, and list the rest as unknowns rather than inventing points. |
 | Repository context (where the work lands, what exists) | the codebase | Proceed, but mark every estimate that rests on an unverified assumption. Points on guessed context are guesses. |
 | Team pointing scale | team convention | Proceed with the Fibonacci scale in this skill and say which scale you used. |
 
 This skill needs a story. The sketch it writes is a head start for whoever
 specifies the work, not a dependency on any particular tool.
 
+**Where output goes.** Spec documents are optional. Write
+`.specs/<slug>/sketch.md` and `tasks.md` only when the project already keeps
+spec documents (a `.specs/` directory, or its own spec tool's format — then
+use that format) or the user asks for files. Otherwise return both artifacts
+in the conversation: the IDs it assigns are still used, marked
+context-sourced, and carried into the plan, the commit messages, and the PR
+body.
+
 ## Process
 
-1. **Read the inputs.** Read `.specs/<slug>/story.md` (story, ACs, non-goals,
-   triage verdict) and the relevant existing code. If the triage verdict is
-   Not ready or Blocked, stop and say so — do not refine over known gaps.
+1. **Read the inputs.** Read the story, ACs, non-goals, and any triage
+   verdict (`.specs/<slug>/story.md`, or the conversation) and the relevant
+   existing code. If a triage verdict is Not ready or Blocked, stop and say
+   so — do not refine over known gaps.
 2. **Check the size.** If the story contains two independently shippable
    outcomes, stop and split it into stories first (one story, one outcome).
    Refinement splits tasks within a story, not stories.
-3. **Write the spec sketch** to `.specs/<slug>/sketch.md` using the template
+3. **Write the spec sketch** (see Where output goes) using the template
    below. The sketch is a head start for the spec author:
    - **Proposed requirements:** draft `R-<n>` entries, one per behavior you
      can already see. Mark each `confirmed` (stated in the story) or
@@ -79,19 +88,23 @@ specifies the work, not a dependency on any particular tool.
 6. **Sanity-check the total.** If the story's points exceed the team's
    iteration capacity, say so and propose which tasks to cut or defer (cite
    the `NG-*` or AC they would drop). Do not silently shrink the story.
-7. **Present the result, then propose the spec.** Show the full result —
-   both artifacts, the file paths, the total points, the unknowns — in one
-   place, and wait for the user's reaction. Then, if no spec file exists for
-   this work (`.specs/<slug>/spec.md`), ask whether to create one that
-   captures what this pass established: the scope, the requirements
-   (`R-<n>`) from the sketch (marked confirmed or assumed as they are), the
-   test criteria (`TC-*`) the acceptance criteria imply, and the risks.
-   Write it only if the user agrees, and only from what was actually
-   established — anything still open goes into its open-questions section,
-   not invented. If a spec file already exists, there is nothing to propose
-   — it is the record, and a second spec for the same slug would be a second
-   source of truth. Do not write the spec, do not plan the build, do not
-   implement.
+7. **Present the result, then offer a spec only where specs are in use.** Show
+   the full result — both artifacts, where they were saved (or that they live
+   in the conversation), the total points, the unknowns — in one place, and
+   wait for the user's reaction. If nobody is there to respond (an automated
+   or chained run), end here with the result reported and create nothing
+   optional. Offer a spec file only if the project already keeps spec
+   documents (`.specs/` or its own spec tool) or the user asked for one, and
+   this work has none — and offer it at most once per session: a declined
+   offer is not repeated, and the work stays context-driven. If the user
+   agrees, write `.specs/<slug>/spec.md` from what this pass established — the
+   scope, the sketch's requirements (`R-<n>`, marked confirmed or assumed),
+   the test criteria (`TC-*`) the acceptance criteria imply, and the risks —
+   with `Status: Draft` and the standard spec sections (context, scope,
+   non-scope, interface and data contracts, behaviour, error and edge cases,
+   test criteria, observability, rollback plan, open questions). Only a human
+   approves it, later. Anything still open goes into its open questions, not
+   invented. Do not write the spec, do not plan the build, do not implement.
 
 ## Writing rules
 
@@ -202,10 +215,10 @@ contracts.>
 
 Before returning, confirm:
 
-- [ ] `.specs/<slug>/sketch.md` exists and is marked as a head start, not a spec.
+- [ ] The sketch is saved or returned (per Where output goes) and marked as a head start, not a spec.
 - [ ] Every sketch requirement is marked `confirmed` or `assumed`.
 - [ ] The sketch has risks (3-5) and open questions with recommended defaults.
-- [ ] `.specs/<slug>/tasks.md` exists with the task table.
+- [ ] The task table is saved or returned (per Where output goes).
 - [ ] Every task maps to at least one `AC-<n>` or sketch `R-<n>`.
 - [ ] Every task has points on the Fibonacci scale and a one-line rationale.
 - [ ] Every task names its dependencies explicitly.

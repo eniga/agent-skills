@@ -33,6 +33,13 @@ ready and you want to move on (size and break down the work instead).
 
 This skill needs a story. Nothing else.
 
+**Where output goes.** Spec documents are optional. Write the `## Triage`
+section into `.specs/<slug>/story.md` only when the project already keeps spec
+documents (a `.specs/` directory, or its own spec tool's format — then use
+that format) or the user asks for files. Otherwise return the verdict in the
+conversation: the IDs it assigns are still used, marked context-sourced, and
+carried into whatever tracker or conversation holds the story.
+
 ## Process
 
 1. **Locate the story.** Read `.specs/<slug>/story.md` if it exists, or the
@@ -44,21 +51,28 @@ This skill needs a story. Nothing else.
    missing or untestable acceptance criteria first, then unclear scope or
    non-goals, then missing context (data, contracts, dependencies), then
    sizing risk.
-4. **Write the verdict** using the template below. Append it to
-   `.specs/<slug>/story.md` under a `## Triage` heading (create the section if
-   absent), and return it in chat.
-5. **Present the result, then propose the spec.** Show the full result —
-   the verdict, the ranked gaps, the checklist — in one place, and wait for
-   the user's reaction. Then, if no spec file exists for this work
-   (`.specs/<slug>/spec.md`) and the verdict is Ready, ask whether to create
-   one that captures what the story establishes: the scope, the requirements
-   (`R-<n>`) and test criteria (`TC-*`) the acceptance criteria imply. Write
-   it only if the user agrees, and only from what the story actually states
-   — anything still open goes into its open-questions section, not invented.
-   If a spec file already exists, there is nothing to propose — it is the
-   record, and a second spec for the same slug would be a second source of
-   truth. Do not fix the gaps, do not refine, do not spec — the verdict
-   tells the next person what to do.
+4. **Write the verdict** using the template below, and return it in chat.
+   When the story lives in a file (see Where output goes), put it under a
+   single `## Triage` heading. If a Triage section already exists from an
+   earlier run, replace its body with the new verdict and move the old
+   verdict line into a `### History` list (date, verdict) at the end of the
+   section — one current verdict, never two.
+5. **Present the result, then offer a spec only where specs are in use.** Show
+   the full result — the verdict, the ranked gaps, the checklist — in one
+   place, and wait for the user's reaction. If nobody is there to respond (an
+   automated or chained run), end here with the result reported and create
+   nothing optional. Offer a spec file only if the project already keeps spec
+   documents (`.specs/` or its own spec tool) or the user asked for one, and
+   this work has none and the verdict is Ready — and offer it at most once per
+   session: a declined offer is not repeated, and the work stays
+   context-driven. If the user agrees, write `.specs/<slug>/spec.md` from what
+   this pass established — the scope, and the requirements (`R-<n>`) and test
+   criteria (`TC-*`) the acceptance criteria imply — with `Status: Draft` and
+   the standard spec sections (context, scope, non-scope, interface and data
+   contracts, behaviour, error and edge cases, test criteria, observability,
+   rollback plan, open questions). Only a human approves it, later. Anything
+   still open goes into its open questions, not invented. Do not fix the gaps,
+   do not refine, do not spec — the verdict tells the next person what to do.
 
 ## Readiness checklist
 
@@ -114,6 +128,10 @@ A story is **Ready** only when every applicable check passes.
 
 <Anything a refiner should know that is not a gap: known risks, related
 stories, prior art.>
+
+### History
+
+- <YYYY-MM-DD> — <earlier verdict> (only when re-triaged)
 ```
 
 ## Common Rationalizations
@@ -143,5 +161,5 @@ Before returning, confirm:
 - [ ] Every checklist row has pass/fail/n/a and a one-line reason.
 - [ ] Every gap has a rank, a description, what it blocks, and a fix.
 - [ ] Gaps are ordered by downstream impact (ACs first, then scope, then context, then sizing).
-- [ ] The verdict was appended to `.specs/<slug>/story.md` under `## Triage`.
-- [ ] No story content was changed — only the Triage section was added.
+- [ ] The verdict was returned in chat and, when the story is a file, recorded under one `## Triage` section (earlier verdicts moved to History, not duplicated).
+- [ ] No story content was changed — only the Triage section was added or updated.

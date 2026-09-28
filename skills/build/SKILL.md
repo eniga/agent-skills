@@ -1,6 +1,6 @@
 ---
 name: build
-description: Implements an approved spec incrementally, one vertical slice at a time, with tests generated from the spec's test criteria before the code that satisfies them. Use when a plan exists and implementation should start. Use when a slice is ready to build and its tests do not exist yet.
+description: Implements agreed requirements — from an approved spec or from the conversation — incrementally, one vertical slice at a time, with tests written from the test criteria before the code that satisfies them, and a diff limited to the requested task. Use when a feature, fix, or change is ready to implement. Use when a slice is ready to build and its tests do not exist yet. Not for diagnosing an unexplained failure.
 ---
 
 # Build
@@ -19,16 +19,21 @@ the tests after, the tests assert whatever the code does — including the
 bugs. The spec's `TC-*` section is the fixed expectation; the code must meet
 it, not the other way around.
 
+"The spec" in this skill means the agreed expectations wherever they live: a
+spec file when the project keeps one, or the numbered requirements and test
+criteria the user confirmed in the conversation when it does not.
+
 ## When to Use
 
-- A plan (`.specs/<slug>/plan.md`) exists and implementation should start.
+- Requirements are agreed and a slice order exists (a plan file, or an order
+  agreed in the conversation), or the change is a single slice.
 - A slice is ready to build and its tests do not exist yet.
 - You are resuming an interrupted build and need to pick up at the next
   slice.
 
-**When NOT to use:** There is no approved spec and no written expectations
-anywhere in the context (see Inputs — this skill proceeds from context when
-it exists, but not from nothing). The
+**When NOT to use:** There are no written expectations anywhere — no spec,
+no acceptance criteria, no stated request in the conversation (see Inputs —
+this skill proceeds from context when it exists, but not from nothing). The
 change is a one-line fix with an obvious test (just do it — the slice
 machinery is overhead for that). A test is failing for a reason you do not
 yet understand (diagnose it first: reproduce, localize, and name the cause,
@@ -39,24 +44,41 @@ patched and causes survive).
 
 | Input | Where | If it is missing |
 |---|---|---|
-| Approved spec (requirements `R-*`, test criteria `TC-*`, contracts) | `.specs/<slug>/spec.md` | Proceed with fixed expectations pulled from the available context — the story's `AC-*`, the spec sketch's `R-*`, documented contracts — labelled `TC-*` and marked context-derived in the slice record. The defining rule still applies: tests are written from written expectations, not from finished code. If no expectations exist anywhere in the context, stop — writing tests from the code you are about to write is exactly what the rule forbids. If no spec file exists, propose creating one at the end of the process. |
-| Build plan (slices `SL-*`, order, checkpoints) | `.specs/<slug>/plan.md` | If the work is genuinely one slice, proceed and treat the whole change as `SL-1`. Otherwise stop and get the slice order decided — building without an order is how half-finished vertical cuts pile up. |
+| Approved spec (requirements `R-*`, test criteria `TC-*`, contracts) | `.specs/<slug>/spec.md` | Proceed with fixed expectations pulled from the conversation — the user's request, the story's `AC-*`, the spec sketch's `R-*`, documented contracts — restated as numbered `R-*` and `TC-*`, marked context-sourced, and confirmed by the user before any test is written (see Agreed expectations). The defining rule still applies: tests are written from written expectations, not from finished code. If no expectations exist anywhere in the context, stop — writing tests from the code you are about to write is exactly what the rule forbids. |
+| Build plan (slices `SL-*`, order, checkpoints) | `.specs/<slug>/plan.md`, or an order agreed in the conversation | If the work is genuinely one slice, proceed and treat the whole change as `SL-1`. Otherwise stop and get the slice order decided — building without an order is how half-finished vertical cuts pile up. |
 | Quality bar (`C-*` rules and their gates) | `CONSTRAINTS.md` at repo root | Proceed. Apply the repository's existing lint, type, and test configuration as the bar, and say in the slice record that no written bar existed. |
 | Task breakdown (`T-*`) | `.specs/<slug>/tasks.md` | Proceed. Tasks are useful for tracking but the slices in the plan are what this skill builds. |
 
 This skill needs these artifacts, not the tools that produced them. Any spec
 carrying numbered requirements and test criteria works.
 
+**Where output goes.** Spec documents are optional. Write slice records into
+`.specs/<slug>/plan.md` only when the project already keeps spec documents (a
+`.specs/` directory, or its own spec tool's format — then use that format) or
+the user asks for files. Otherwise return each slice record in the
+conversation: the IDs it assigns are still used, marked context-sourced, and
+carried into the slice's commit message, which is then the record.
+
+**Agreed expectations.** Requirements count as agreed when a spec file says
+`Status: Approved` with an approver, or — in context-driven work, with no spec
+file — when the user has explicitly confirmed a restated list of the
+requirements or acceptance criteria in the conversation. A spec file that is
+still `Draft` is not agreed, and neither is a list the user never confirmed.
+
 ## Process
 
-1. **Read the inputs.** Read `.specs/<slug>/spec.md` (requirements, test
-   criteria, contracts), `.specs/<slug>/plan.md` (slices, order,
-   checkpoints), and `CONSTRAINTS.md` if it exists. If resuming, read the
-   git log to find the last completed slice and start at the next one.
+1. **Read the inputs.** Read the requirements, test criteria, and contracts
+   and the slice order — from `.specs/<slug>/spec.md` and `plan.md` when they
+   exist, otherwise from the conversation — and `CONSTRAINTS.md` if it
+   exists. Confirm the requirements are agreed (see Agreed expectations); if
+   they are not, restate them and ask. Fix the task's scope: the request as
+   the user stated it, and nothing beyond it. If resuming, read the git log
+   (slice commits carry `SL-<n>`) to find the last completed slice and start
+   at the next one.
 2. **Pick the next slice.** Take the first slice in the plan that is not yet
    complete. Confirm its dependencies are done (their checkpoints passed and
    committed). If a dependency is missing, stop and say which.
-3. **Write the tests first, from the spec.** For every `TC-*` in the slice's
+3. **Write the tests first, from the expectations.** For every `TC-*` in the slice's
    checkpoint, write the test now — before any implementation code. The test
    is a direct translation of the `TC-*` entry: its setup, call, and
    assertion come from the spec's wording, not from your implementation
@@ -71,9 +93,13 @@ carrying numbered requirements and test criteria works.
    the change minimal and targeted at the slice: every changed line must
    trace to one of the slice's `R-*` requirements or to plumbing the
    requirement needs (imports, wiring, test scaffolding) — see Writing
-   rules. If the implementation reveals the spec is wrong or incomplete,
-   **stop and update the spec first** (it is a living document), then
-   continue. Never silently diverge from the spec.
+   rules. Do not touch code the task does not need, even when it
+   looks wrong — record it as a follow-up instead. If the implementation
+   reveals the requirements are wrong or incomplete, **stop**. Still-draft
+   requirements can be corrected directly. Agreed ones (an approved spec, or
+   a list the user confirmed) change only as a recorded amendment: state the
+   change, why, and what it invalidates, and get the user's re-approval
+   before continuing. Never silently diverge from the agreed expectations.
 5. **Verify the slice at its checkpoint.**
    - Run the slice's new tests: all must pass.
    - Run the regression set: the previous slices' tests must still pass. A
@@ -83,24 +109,33 @@ carrying numbered requirements and test criteria works.
    - Do the manual check the checkpoint names, if any.
 6. **Commit the slice.** One commit per slice, message shaped like
    `feat(<slug>): <slice name> (SL-<n>, R-<n>)`. The commit message carries
-   the traceability: which slice, which requirements. Then append the slice
-   record (see Templates) to `.specs/<slug>/plan.md`.
+   the traceability: which slice, which requirements. When a plan file is
+   kept, append the slice record (see Templates) to it before committing, so
+   the record ships in the slice's own commit; the commit is found by its
+   `SL-<n>`, so the record carries no sha. Without a plan file, the commit
+   message is the record.
 7. **Repeat** from step 2 until every slice in the plan is complete.
-8. **Present the result, then propose the spec.** Show the full result —
-   the slices committed, the checkpoints passed, any spec deviations, the
-   hand-off state — in one place, and wait for the user's reaction. Then, if
-   no spec file exists for this work (`.specs/<slug>/spec.md`), ask whether
-   to create one that captures what this pass established: the scope, the
-   requirements (`R-<n>`) the slices delivered, the test criteria (`TC-*`)
-   the checkpoints proved, and the decisions made along the way. Write it
-   only if the user agrees, and only from what was actually established —
-   anything still open goes into its open-questions section, not invented.
-   If a spec file already exists, there is nothing to propose — it is the
-   record, and a second spec for the same slug would be a second source of
-   truth. The full verification pass — focused tests, then the whole suite,
-   then a per-`TC-*` pass/fail/unverified report — is a separate activity
-   with its own evidence; do not declare the feature done from inside this
-   skill: a green checkpoint proves a slice, not a release.
+8. **Present the result, then offer a spec only where specs are in use.** Show
+   the full result — the slices committed, the checkpoints passed, any
+   deviations from the agreed expectations, the follow-ups noticed outside the
+   task's scope, the hand-off state — in one place, and wait for the user's
+   reaction. If nobody is there to respond (an automated or chained run), end
+   here with the result reported and create nothing optional. Offer a spec
+   file only if the project already keeps spec documents (`.specs/` or its own
+   spec tool) or the user asked for one, and this work has none — and offer it
+   at most once per session: a declined offer is not repeated, and the work
+   stays context-driven. If the user agrees, write `.specs/<slug>/spec.md`
+   from what this pass established — the requirements (`R-<n>`) the slices
+   delivered, the test criteria (`TC-*`) the checkpoints proved, and the
+   decisions made along the way — with `Status: Draft` and the standard spec
+   sections (context, scope, non-scope, interface and data contracts,
+   behaviour, error and edge cases, test criteria, observability, rollback
+   plan, open questions). Only a human approves it, later. Anything still open
+   goes into its open questions, not invented. The full verification pass —
+   focused tests, then the whole suite, then a per-`TC-*` pass/fail/unverified
+   report — is a separate activity with its own evidence; do not declare the
+   feature done from inside this skill: a green checkpoint proves a slice, not
+   a release.
 
 ## Writing rules
 
@@ -115,11 +150,13 @@ carrying numbered requirements and test criteria works.
   test, or mock the thing under test to make a failing test pass. If the
   code cannot meet the spec, the code is wrong (or the spec is — see step
   4). Weakening the test is how bugs get certified.
-- **The diff is targeted at the task.** Every hunk in the slice's commit
-  must trace to an `R-*` the slice delivers, or to required plumbing.
+- **The scope is the user's request.** Build what the task or request
+  asked for — not what it could also have asked for. Every hunk in the
+  slice's commit must trace to an `R-*` the slice delivers, or to required
+  plumbing.
   Minimal changes, as far as the task allows: no drive-by refactors,
   renames, or reformatting of adjacent code; no abstractions, helpers,
-  configuration, or dependencies the spec does not ask for. A small diff is
+  configuration, or dependencies the task does not ask for. A small diff is
   easier to review, easier to revert, and hides fewer unintended behavior
   changes. A problem noticed in adjacent code is recorded in the slice
   record as a follow-up — it is not fixed in this change.
@@ -150,11 +187,12 @@ Checkpoint: <command> — <result>
 Slice record (appended under the slice in `.specs/<slug>/plan.md`):
 
 ```markdown
-- [x] **SL-<n> — <slice name>** — `<commit sha>`
+- [x] **SL-<n> — <slice name>**
       Requirements: R-<n>, R-<m>
       Tests written from: TC-U1, TC-I2
       Checkpoint: `<command>` — <pass / fail detail>
-      Spec deviations: <none / R-<n> amended: reason>
+      Deviations: <none / R-<n> amended: reason, re-approved by <name>>
+      Follow-ups (outside scope): <none / what was noticed, where>
 ```
 
 ## Common Rationalizations
@@ -166,7 +204,8 @@ Slice record (appended under the slice in `.specs/<slug>/plan.md`):
 | "I'll loosen this assertion, it's too strict" | The assertion came from the spec. Loosening it means the code no longer meets the spec — which is a spec question or a code bug, never a test edit. Weakened tests are how bugs get certified. |
 | "I'll batch two slices into one commit to save time" | One checkpoint per slice is what tells you which slice broke when the suite goes red. Batching trades a minute of discipline for an hour of bisecting. |
 | "While I'm here I'll also clean up this adjacent function" | The drive-by cleanup is a second change wearing the first change's commit. It buries the slice's behavior in unrelated lines, makes the review about the cleanup, and when it regresses something the bisect blames the whole commit. Note it as a follow-up; the cleanup becomes its own task with its own tests. |
-| "The spec is wrong, I'll just build what makes sense" | "What makes sense" is your second guess at the requirement. Update the spec first — it is a living document and the change takes two minutes — then build from the updated spec. Silent divergence is how the PR review finds out the spec lied. |
+| "The spec is wrong, I'll just build what makes sense" | "What makes sense" is your second guess at the requirement. Stop, state the change and why, and get it re-approved — then build from the amended requirement. Silent divergence is how the PR review finds out the spec lied. |
+| "The request didn't mention it, but this is obviously needed too" | Then say so and ask. An unrequested addition is scope nobody agreed to, reviewed as if it were the task. The user decides the scope; you record the follow-up. |
 | "The suite is red but my slice is green, I'll continue" | Your slice is green in a vacuum. The feature is what ships, and the feature is red. Stop, fix, continue. |
 | "I'll skip the manual check, the tests cover it" | The checkpoint names the manual check because the tests cannot cover it — a browser flow, a permission state, a timing. Skipping it means the slice is verified by everything except the thing that needed a human. |
 
@@ -195,11 +234,12 @@ For each slice, before moving on, confirm:
 - [ ] Every changed file and hunk traces to the slice's `R-*` (or required plumbing) — no drive-by changes, no unrequested additions.
 - [ ] The slice's checkpoint passed: new tests, regression set, applicable `CONSTRAINTS.md` gates, and the manual check if named.
 - [ ] The slice is committed alone, with `SL-<n>` and `R-<n>` in the message.
-- [ ] The slice record is appended to `plan.md` with its commit sha, so an interrupted build can resume.
+- [ ] The slice is traceable for resumption: its record ships in the slice commit (plan file kept), or its commit message carries `SL-<n>` and `R-<n>` (no plan file).
+- [ ] Nothing outside the requested task changed; anything noticed there is listed as a follow-up.
 
 For the whole build, before handing off for verification, confirm:
 
 - [ ] Every slice in the plan is complete and committed.
 - [ ] The full regression suite passes.
-- [ ] Any spec changes made during the build are committed with the code.
+- [ ] Any amendment made during the build is recorded (spec change log, or the conversation and PR) and was re-approved by the user.
 - [ ] The hand-off for full verification is explicit — the feature is not declared done here.

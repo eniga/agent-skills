@@ -1,6 +1,6 @@
 ---
 name: ai-code-review
-description: Checks a PR diff against its spec and returns a conformance verdict with review comments mapped to requirement and test-criterion IDs. Use when a PR needs a spec-conformance check before or alongside human review. Use when you need to know whether the diff actually implements what was specified.
+description: Checks a PR diff against its spec — or the requirements agreed in the conversation when the project keeps no specs — and returns a conformance verdict with review comments mapped to requirement and test-criterion IDs. Use when a PR needs a spec-conformance check before or alongside human review. Use when you need to know whether the diff actually implements what was specified.
 ---
 
 # AI Code Review
@@ -28,26 +28,42 @@ in the context (no story acceptance criteria, no documented contract, no
 stated intent) — conformance has nothing to measure against, and a general
 quality review is the right pass instead. You want
 judgement on clarity, complexity, security, or style; this pass deliberately
-does not give it. The spec is not approved (conforming to a draft is not a
-meaningful verdict — get the spec approved first).
+does not give it. The requirements are not agreed — a `Draft` spec, or a list
+nobody confirmed (conforming to a draft is not a meaningful verdict — get it
+approved or confirmed first).
 
 ## Inputs
 
 | Input | Where | If it is missing |
 |---|---|---|
-| An approved spec (`R-*`, `NG-*`, `TC-*`, contracts) | `.specs/<slug>/spec.md` | If the spec file is absent, proceed in reduced mode: measure the diff against the closest written expectations available — the story's `AC-*`, documented contracts, the PR's stated intent — and label the verdict as measured against intent, not against a spec. A conformance check without a spec is weaker, and if no spec file exists, propose creating one at the end of the process so the next pass is a full check. If the spec file exists but is not approved, stop and say so (conforming to a draft is not a meaningful verdict). If no expectations exist anywhere in the context, stop: there is nothing to measure. |
+| An approved spec (`R-*`, `NG-*`, `TC-*`, contracts) | `.specs/<slug>/spec.md` | If the spec file is absent, proceed against the requirements agreed in the conversation (see Agreed expectations); failing that, against the closest written expectations — the story's `AC-*`, documented contracts, the PR's stated intent — and label the verdict with what it was measured against. If the spec file exists but is `Draft`, stop and say so (conforming to a draft is not a meaningful verdict). If no expectations exist anywhere in the context, stop: there is nothing to measure. |
+| The PR's intended scope (`SL-*` slices, or requirements it defers) | `plan.md`, the PR description, commit messages, or the conversation | Proceed, and treat every agreed `R-*` as in scope for this PR. Say so in the report — a PR that deliberately ships part of the work should name its slices so the rest can be marked Deferred. |
 | The PR diff | PR, branch, or commit range | Stop. Ask which diff is being checked. |
 | The story's acceptance criteria (`AC-*`) | `.specs/<slug>/story.md` | Proceed. `R-*` carries the requirement; `AC-*` adds the user-facing phrasing when it exists. |
 | Test evidence | `.specs/<slug>/evidence/` | Proceed. This skill checks that a test matching each `TC-*` exists in the diff, which is a different question from whether it passed. |
 
+**Agreed expectations.** Requirements count as agreed when a spec file says
+`Status: Approved` with an approver, or — in context-driven work, with no spec
+file — when the user has explicitly confirmed a restated list of the
+requirements or acceptance criteria in the conversation. A spec file that is
+still `Draft` is not agreed, and neither is a list the user never confirmed.
+
 ## Process
 
-1. **Read the spec and the diff.** Read `.specs/<slug>/spec.md` in full —
-   requirements `R-*`, non-scope `NG-*`, test criteria `TC-*`, interface and
-   data contracts. Then read the complete PR diff (every changed file, not a
-   sample). If the spec's Status is not Approved, stop and say so.
-2. **Build the conformance matrix.** For every `R-*` in the spec, find the
-   diff hunk(s) that implement it. Record:
+1. **Read the requirements and the diff.** Read the agreed requirements in
+   full — `R-*`, non-scope `NG-*`, test criteria `TC-*`, interface and data
+   contracts — from `.specs/<slug>/spec.md`, including its change log, or from
+   the conversation. Then read the complete PR diff (every changed file, not
+   a sample). If the requirements are not agreed, stop and say so. Record
+   whether this review runs in a fresh context or in the session that wrote
+   the code — a same-session check is weaker and the report says so.
+2. **Fix the PR's scope.** From the plan, the PR description, or the commit
+   messages (`SL-<n>`), determine which requirements this PR is meant to
+   deliver. Requirements assigned to later slices or explicitly deferred are
+   out of this PR's scope; with no such signal, all agreed requirements are
+   in scope.
+3. **Build the conformance matrix.** For every `R-*`, find the diff hunk(s)
+   that implement it. Record:
    - **Implemented** — the diff contains code that satisfies the requirement,
      and you can point at the lines.
    - **Partially implemented** — some of the requirement is there; name the
@@ -55,56 +71,65 @@ meaningful verdict — get the spec approved first).
    - **Not implemented** — no diff hunk addresses it.
    - **Cannot verify** — the requirement is about behavior the diff does not
      touch (e.g. an operational requirement); say what would verify it.
-   Every `R-*` gets exactly one of these four states. A matrix with a
-   requirement missing is a failed review, not a clean one.
-3. **Check for scope creep.** For every significant diff hunk, find the
+   - **Deferred** — out of this PR's scope (step 2); name where it is
+     planned. Not a gap.
+   - **Dropped** — marked `(dropped: reason)` by an amendment. Must *not* be
+     implemented; code for it is a finding.
+   Every `R-*` gets exactly one of these states. A matrix with a requirement
+   missing is a failed review, not a clean one.
+4. **Check for scope creep.** For every significant diff hunk, find the
    `R-*` it implements. Hunks that implement no requirement are either
    - **Justified** — they are required plumbing (imports, wiring, test
      scaffolding) for an implemented requirement, or
    - **Unspecified** — they add behavior the spec does not ask for.
    Unspecified behavior is a finding: it is scope creep, and it includes
    "helpful" extras the spec's non-scope (`NG-*`) explicitly excluded.
-4. **Check the contracts.** Compare the diff's interfaces and data shapes
-   against the spec's sections 4 and 5: field names, types, error responses,
+5. **Check the contracts.** Compare the diff's interfaces and data shapes
+   against the agreed interface and data contracts: field names, types, error responses,
    state transitions, migration direction. A contract that differs from the
    spec is a finding even if the difference "seems better" — the spec is the
    contract, and changing it is a spec change, not an implementation detail.
-5. **Check the test criteria.** For every `TC-*` the spec defines, confirm
+6. **Check the test criteria.** For every in-scope `TC-*`, confirm
    the diff contains a test that matches it (setup, call, assertion per the
    spec's wording). A `TC-*` with no matching test is a finding — the spec
    said this behavior must be proven, and the proof is missing. A test that
    matches no `TC-*` is noted (it may be good extra coverage; label it as
    such).
-6. **Write the comments.** Each finding becomes a review comment mapped to
+7. **Write the comments.** Each finding becomes a review comment mapped to
    its ID: which `R-*`, `NG-*`, or `TC-*` it concerns, where in the diff,
    what is wrong, and what conformance would require. A comment that cannot
    name an ID is a quality observation, not a conformance finding — put it
    under Notes for the quality review to pick up, and keep it out of the
    verdict.
-7. **Reach the conformance verdict.**
-   - **Conformant** — every `R-*` is Implemented (or Cannot verify with a
-     named verification), every contract matches, every `TC-*` has a matching
-     test, and there is no unspecified behavior.
+8. **Reach the conformance verdict.**
+   - **Conformant** — every in-scope `R-*` is Implemented (or Cannot verify
+     with a named verification), every contract matches, every in-scope
+     `TC-*` has a matching test, and there is no unspecified behavior.
+     Deferred requirements do not count against it.
    - **Conformant with gaps** — no requirement is contradicted, but one or
-     more are Partially/Not implemented or lack their `TC-*` test. The gaps
-     are listed; the PR is not done.
+     more in-scope requirements are Partially/Not implemented or lack their
+     `TC-*` test. The gaps are listed; the PR is not done.
    - **Non-conformant** — the diff contradicts the spec: a requirement is
      implemented differently than specified, a contract differs, or
-     non-scoped behavior was built. This is a stop: the spec or the diff is
+     non-scoped or dropped behavior was built. This is a stop: the spec or the diff is
      wrong, and one of them must change before merge.
-8. **Present the result, then propose the spec.** Show the full result —
-   the conformance report written with the template below, leading with the
-   verdict and the non-conformances, the matrix — in one place, and wait for
-   the user's reaction. Then, if no spec file exists for this
-   work (`.specs/<slug>/spec.md`), ask whether to create one that captures
-   what this pass established: the scope, the requirements (`R-<n>`) the
-   diff implements, the test criteria (`TC-*`) that prove them, and the
-   contract shapes the diff follows. Write it only if the user agrees, and
-   only from what was actually established — anything still open goes into
-   its open-questions section, not invented. If a spec file already exists,
-   there is nothing to propose — it is the record, and a second spec for the
-   same slug would be a second source of truth. Do not edit the diff —
-   report, do not fix.
+9. **Present the result, then offer a spec only where specs are in use.** Show
+   the full result — the conformance report written with the template below,
+   leading with the verdict and the non-conformances, the matrix — in one
+   place, and wait for the user's reaction. If nobody is there to respond (an
+   automated or chained run), end here with the result reported and create
+   nothing optional. Offer a spec file only if the project already keeps spec
+   documents (`.specs/` or its own spec tool) or the user asked for one, and
+   this work has none — and offer it at most once per session: a declined
+   offer is not repeated, and the work stays context-driven. If the user
+   agrees, write `.specs/<slug>/spec.md` from what this pass established — the
+   scope, the requirements (`R-<n>`) the diff implements, the test criteria
+   (`TC-*`) that prove them, and the contract shapes the diff follows — with
+   `Status: Draft` and the standard spec sections (context, scope, non-scope,
+   interface and data contracts, behaviour, error and edge cases, test
+   criteria, observability, rollback plan, open questions). Only a human
+   approves it, later. Anything still open goes into its open questions, not
+   invented. Do not edit the diff — report, do not fix.
 
 ## Writing rules
 
@@ -132,7 +157,10 @@ meaningful verdict — get the spec approved first).
 
 > **Date:** <YYYY-MM-DD>
 > **PR:** <link / branch>
-> **Spec:** `.specs/<slug>/spec.md` (Status: Approved)
+> **Requirements:** `.specs/<slug>/spec.md` (Status: Approved) | agreed in
+>   conversation (<date>) | stated intent only
+> **PR scope:** <SL-* in this PR, or "all requirements">
+> **Reviewer independence:** fresh context | same session as the author
 
 ## Conformance verdict
 
@@ -148,11 +176,13 @@ meaningful verdict — get the spec approved first).
 | R-2 | Partially implemented | <file:lines> | <missing part> |
 | R-3 | Not implemented | — | <what is missing> |
 | R-4 | Cannot verify | — | <what would verify it> |
+| R-5 | Deferred | — | <planned in SL-n / next PR> |
+| R-6 | Dropped | — | <AM-n; no code expected> |
 
 ## Contract check
 
-- Interfaces (spec §4): <match / mismatch detail>
-- Data (spec §5): <match / mismatch detail>
+- Interfaces: <match / mismatch detail>
+- Data: <match / mismatch detail>
 
 ## Test-criteria check
 
@@ -182,7 +212,7 @@ noted, context for the human reviewer.>
 
 | Rationalization | Reality |
 |---|---|
-| "The diff is close enough to the spec, I'll call it conformant" | "Close enough" is how a spec stops meaning anything. The matrix has four states and they are not a gradient — Partial is a gap, and the gap is named. |
+| "The diff is close enough to the spec, I'll call it conformant" | "Close enough" is how a spec stops meaning anything. The matrix states are not a gradient — Partial is a gap, and the gap is named. |
 | "I'll skip requirements that are obviously implemented" | "Obviously" is the fast read again. The matrix is one row per requirement, pointed at lines. Skipping rows is how a missing requirement ships with a green verdict. |
 | "The contract difference is an improvement, I'll note it as a nit" | A contract difference is a non-conformance until the spec changes. Calling it a nit lets the diff and the spec drift apart silently — the next consumer of the spec gets the wrong contract. |
 | "The extra feature is useful, so it's not scope creep" | Useful or not, it was not specified, and the spec's non-scope may explicitly exclude it. Scope creep is defined by the spec, not by usefulness. The finding stands; the team can add it to the spec deliberately. |
@@ -204,7 +234,9 @@ noted, context for the human reviewer.>
 Before returning, confirm:
 
 - [ ] The spec's Status is Approved; the diff read is the complete PR diff.
-- [ ] The conformance matrix has exactly one row per `R-*`, each in one of the four states.
+- [ ] The PR's scope was established (slices or deferrals), or all requirements were treated as in scope and the report says so.
+- [ ] The conformance matrix has exactly one row per `R-*`, each in exactly one state; Deferred and Dropped rows name their pointer.
+- [ ] The report records whether the reviewer ran in a fresh context.
 - [ ] Every "Implemented" row points at a file and lines.
 - [ ] The contract check covers both interfaces (spec §4) and data (spec §5).
 - [ ] Every `TC-*` in the spec has a row in the test-criteria check.

@@ -1,13 +1,14 @@
 ---
 name: plan
-description: Plans how to build an approved spec into ordered, verifiable build slices. Use when a spec is approved and needs an implementation plan. Use when tasks exist but their build order, parallelism, and verification checkpoints are undefined.
+description: Plans how to build agreed requirements — from an approved spec or from the conversation — into ordered, verifiable build slices. Use when a multi-slice change needs an implementation plan. Use when tasks exist but their build order, parallelism, and verification checkpoints are undefined. Not for writing code or for single-slice changes.
 ---
 
 # Plan
 
 ## Overview
 
-Turn an approved spec into a build plan: the components to create, the order
+Turn agreed requirements — an approved spec, or requirements confirmed in the
+conversation — into a build plan: the components to create, the order
 they must be built in, what can run in parallel, and the verification
 checkpoint after each slice. The plan is the input to implementation — it decides
 *in what order and how to check*, while implementation decides *how to write each
@@ -15,7 +16,8 @@ slice*.
 
 ## When to Use
 
-- A spec (`.specs/<slug>/spec.md`) is approved and nothing has been planned.
+- Requirements are agreed (an approved `.specs/<slug>/spec.md`, or a list the
+  user confirmed in the conversation) and nothing has been planned.
 - Tasks exist (`.specs/<slug>/tasks.md`) but their build order, parallelism,
   and checkpoints are undefined.
 - A multi-slice feature is about to start and you need to know what "done
@@ -25,27 +27,41 @@ slice*.
 anywhere in the context (no story, no spec sketch, no documented behavior) —
 a plan with nothing to plan from is a guess. The work is a single slice (no
 plan needed — build it directly). You are planning a technical design that
-has open decisions (settle them in the spec first). A missing spec alone is
-not a stop: plan in reduced mode from the context (see Inputs), and the spec
-still must exist and be approved before any slice is built. An existing spec
-that is not approved is a stop — get it approved first (Process step 1).
+has open decisions (settle them first). A missing spec is not a stop: plan
+from the context (see Inputs). A spec file that exists but is still `Draft`
+is a stop — get it approved first (Process step 1).
 
 ## Inputs
 
 | Input | Where | If it is missing |
 |---|---|---|
-| Approved spec (`R-*`, `TC-*`, contracts) | `.specs/<slug>/spec.md` | Proceed in reduced mode, not as a stop. Pull the requirements and test criteria from the available context — the story's `AC-*`, the spec sketch's `R-*`, documented contracts, and the code itself — and mark each as context-sourced in the plan. The plan is then a draft, not an approved one: before any slice is built, a spec file must exist and be approved, and if no spec file exists, propose creating one at the end of the process. If the requirements and test criteria exist nowhere in the context, stop and say what is missing. |
+| Approved spec (`R-*`, `TC-*`, contracts) | `.specs/<slug>/spec.md` | Proceed from context, not as a stop. Pull the requirements and test criteria from the conversation — the request, the story's `AC-*`, the spec sketch's `R-*`, documented contracts, and the code itself — and mark each as context-sourced in the plan. Restate them and get the user's confirmation before planning (see Agreed expectations). If the requirements exist nowhere in the context, stop and say what is missing. |
 | Task breakdown (`T-*`) | `.specs/<slug>/tasks.md` | Proceed. Derive slices from the requirements directly; tasks are a convenience, not an input this skill needs. |
 | Quality bar (`C-*` gates) | `CONSTRAINTS.md` at repo root | Proceed. Set each slice's checkpoint from the repository's existing test and lint commands. |
 | Repository structure | the codebase | Proceed, but a slice ordering built on a guessed structure is a guess. Verify where the code actually lives before fixing the order. |
 
+**Where output goes.** Spec documents are optional. Write
+`.specs/<slug>/plan.md` only when the project already keeps spec documents (a
+`.specs/` directory, or its own spec tool's format — then use that format) or
+the user asks for files. Otherwise return the plan in the conversation: the
+IDs it assigns are still used, marked context-sourced, and carried into the
+slice commits and the PR body.
+
+**Agreed expectations.** Requirements count as agreed when a spec file says
+`Status: Approved` with an approver, or — in context-driven work, with no spec
+file — when the user has explicitly confirmed a restated list of the
+requirements or acceptance criteria in the conversation. A spec file that is
+still `Draft` is not agreed, and neither is a list the user never confirmed.
+
 ## Process
 
-1. **Read the inputs.** Read `.specs/<slug>/spec.md` (requirements `R-*`,
-   test criteria `TC-*`, interfaces, data contracts, rollback plan),
-   `.specs/<slug>/tasks.md` if it exists, and the relevant existing code. If
-   the spec's Status is not Approved, stop and say so.
-2. **Identify the components.** List every component the spec requires:
+1. **Read the inputs.** Read the requirements `R-*`, test criteria `TC-*`,
+   interfaces, data contracts, and rollback plan — from `.specs/<slug>/spec.md`
+   when it exists, otherwise from the conversation — plus the tasks if they
+   exist and the relevant existing code. If the requirements are not agreed
+   (see Agreed expectations), stop: restate them and ask the user to confirm,
+   or get the `Draft` spec approved.
+2. **Identify the components.** List every component the requirements need:
    modules, endpoints, data migrations, jobs, UI surfaces, config. For each,
    note whether it is new or a modification of existing code, and which
    `R-*` it delivers.
@@ -71,23 +87,29 @@ that is not approved is a stop — get it approved first (Process step 1).
    the exact evidence that the slice is done: which `TC-*` must pass, which
    command runs them, and what a human checks if the tests cannot cover it.
    A checkpoint without a command is a wish.
-7. **Note risks and rollback.** Carry the spec's rollback plan into the plan:
+7. **Note risks and rollback.** Carry the agreed rollback plan into the plan (if none
+   was agreed, say so and propose one):
    which slice introduces risk (migrations, flag flips, public interfaces),
    and what the rollback looks like at that point. If a slice makes rollback
    harder than the previous one, say so explicitly.
-8. **Write the plan** to `.specs/<slug>/plan.md` using the template below.
-9. **Present the result, then propose the spec.** Show the full result —
-   the plan, its file path, the slice order, the checkpoints, the rollback
-   position — in one place, and wait for the user's reaction. Then, if no
-   spec file exists for this work (`.specs/<slug>/spec.md`), ask whether to
-   create one that captures what this pass established: the scope, the
+8. **Write the plan** using the template below (see Where output goes).
+9. **Present the result, then offer a spec only where specs are in use.** Show
+   the full result — the plan, where it was saved (or that it lives in the
+   conversation), the slice order, the checkpoints, the rollback position — in
+   one place, and wait for the user's reaction. If nobody is there to respond
+   (an automated or chained run), end here with the result reported and create
+   nothing optional. Offer a spec file only if the project already keeps spec
+   documents (`.specs/` or its own spec tool) or the user asked for one, and
+   this work has none — and offer it at most once per session: a declined
+   offer is not repeated, and the work stays context-driven. If the user
+   agrees, write `.specs/<slug>/spec.md` from what this pass established — the
    requirements (`R-<n>`) the slices deliver, the test criteria (`TC-*`) the
-   checkpoints run, and the decisions behind the order. Write it only if the
-   user agrees, and only from what was actually established — anything still
-   open goes into its open-questions section, not invented. If a spec file
-   already exists, there is nothing to propose — it is the record, and a
-   second spec for the same slug would be a second source of truth. Do not
-   build.
+   checkpoints run, and the decisions behind the order — with `Status: Draft`
+   and the standard spec sections (context, scope, non-scope, interface and
+   data contracts, behaviour, error and edge cases, test criteria,
+   observability, rollback plan, open questions). Only a human approves it,
+   later. Anything still open goes into its open questions, not invented. Do
+   not build.
 
 ## Writing rules
 
@@ -105,7 +127,7 @@ that is not approved is a stop — get it approved first (Process step 1).
 - **Migrations get their own slice.** A data migration is its own slice with
    its own checkpoint (up, down, and the data check), never folded into a
    feature slice.
-- **The plan names the first slice explicitly.** "Start with S-1: ..." — the
+- **The plan names the first slice explicitly.** "Start with SL-1: ..." — the
   plan's last job is to tell the implementer exactly where to begin.
 
 ## Template
@@ -114,7 +136,8 @@ that is not approved is a stop — get it approved first (Process step 1).
 # Plan: <feature name>
 
 > **Slug:** <slug>
-> **Spec:** `.specs/<slug>/spec.md` (Status: Approved)
+> **Requirements:** `.specs/<slug>/spec.md` (Status: Approved) | confirmed in
+>   conversation on <YYYY-MM-DD>
 > **Date:** <YYYY-MM-DD>
 
 ## Components
@@ -176,14 +199,15 @@ is safe to start there>.
 - Parallel slices that touch the same files.
 - A migration folded into a feature slice.
 - The plan starts with the easiest component instead of the dependency root.
-- Planning an unapproved spec.
+- Planning against requirements nobody agreed (a `Draft` spec, or an
+  unconfirmed list).
 
 ## Verification
 
 Before returning, confirm:
 
-- [ ] `.specs/<slug>/plan.md` exists and matches the template.
-- [ ] The spec's Status is Approved; the plan cites it.
+- [ ] The plan matches the template, saved or returned per Where output goes.
+- [ ] The requirements are agreed (approved spec, or confirmed in conversation), and the plan cites where.
 - [ ] Every component is marked new/modified and traces to `R-*`.
 - [ ] Build order follows data and interface dependencies; no cycles.
 - [ ] Every slice delivers at least one `R-*` and names its `TC-*` checkpoint with a command.

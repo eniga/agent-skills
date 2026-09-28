@@ -32,7 +32,7 @@ the rules; this skill writes them).
 
 | Input | Where | If it is missing |
 |---|---|---|
-| The repository and its existing checks | lint, type, test, and CI configuration | Stop. The bar is written from what the project can actually enforce; inventing thresholds no command checks produces a document, not a gate. |
+| The repository and its existing checks | lint, type, test, and CI configuration | Proceed — a new project has none yet. Write each rule with the command that will check it and mark it `not yet wired`, with the setup step that wires it; a rule with no command at all is marked `manual` with a named checker. Never present an unwired rule as a gate that is already enforcing. |
 | Existing written conventions | `AGENTS.md`, `CLAUDE.md`, `CONTRIBUTING.md` | Proceed. Their absence means you are setting the bar for the first time. |
 | Team agreement on thresholds | a person | Proceed with proposed values clearly marked as proposals, and get them confirmed before the gates block anyone. |
 
@@ -72,19 +72,12 @@ the rules; this skill writes them).
    (editor / pre-commit / CI / nightly).
 5. **Show the user the file and get approval.** The bar is a team decision,
    not an agent decision. Do not mark it approved until the user says so.
-6. **Present the result, then propose the spec.** Show the full result —
-   the bar, its gates, the approval status, the exceptions — in one place,
-   and wait for the user's reaction. Then, if the work that motivated this
-   pass has no spec file (`.specs/<slug>/spec.md`), ask whether to create
-   one that captures what this pass established: the scope, the requirements
-   (`R-<n>`) the work commits to, the test criteria (`TC-*`) that would
-   prove them, and the rules that bound it. Write it only if the user
-   agrees, and only from what was actually established — anything still open
-   goes into its open-questions section, not invented. If a spec file
-   already exists, there is nothing to propose — it is the record, and a
-   second spec for the same slug would be a second source of truth. Do not
-   start enforcing it on existing code: the bar applies to new changes from
-   now on; retrofitting is a separate, explicit decision.
+6. **Present the result, then stop.** Show the full result — the bar, its
+   gates, the approval status, the exceptions — in one place, and wait for the
+   user's reaction. If nobody is there to respond (an automated or chained
+   run), end here with the result reported. Do not start enforcing it on
+   existing code: the bar applies to new changes from now on; retrofitting is
+   a separate, explicit decision.
 
 ## Writing rules
 

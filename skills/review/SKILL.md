@@ -1,6 +1,6 @@
 ---
 name: review
-description: Reviews code changes before merge, checking correctness, security, regressions, complexity, tests, and docs, and suggesting improvements to code health. Use before merging any change. Use when a second opinion on a diff, branch, or PR is needed.
+description: Reviews code changes before merge, checking correctness, security, regressions, complexity, tests, and docs, and suggesting improvements to code health. Use before merging any change. Use when a second opinion on a diff, branch, or PR is needed. Not for reviewing designs or proposals before code exists.
 ---
 
 # Review
@@ -31,7 +31,7 @@ including things no spec mentions.
 | Input | Where | If it is missing |
 |---|---|---|
 | The change under review | diff, branch, commit range, or PR | Stop. A review needs a named change; a whole-repository audit is different work. |
-| Requirements and non-goals (`R-*`, `AC-*`, `NG-*`) | `.specs/<slug>/spec.md` or `story.md` | Proceed. Review against the change's own stated intent (PR description, commit messages, issue) and say in the report that no spec existed, so conformance was judged against intent. Findings then cite `—` instead of an ID. |
+| Requirements and non-goals (`R-*`, `AC-*`, `NG-*`) | `.specs/<slug>/spec.md`, `story.md`, or the requirements agreed in the conversation | Proceed. Review against the change's own stated intent (PR description, commit messages, issue) and say in the report that no spec existed, so conformance was judged against intent. Findings then cite `—` instead of an ID. |
 | Test evidence (a report with per-`TC-*` results) | `.specs/<slug>/evidence/` | Proceed, and record "no test report" as a finding — an unproven change is a reviewable defect, not a missing prerequisite. |
 | Quality bar (`C-*` rules and gates) | `CONSTRAINTS.md` at repo root | Proceed. Judge against the repository's existing lint, type, and test configuration, and say no written bar existed. |
 
@@ -43,7 +43,9 @@ optional; each one absent costs precision, not the review.
 1. **Set the frame.** Identify the exact change under review: the diff,
    branch, commit range, or PR. Read the change summary, the linked spec or
    story if there is one, and the repository's rules (`CONSTRAINTS.md`,
-   `AGENTS.md`, lint config). Name who is affected by the change. If there is
+   `AGENTS.md`, lint config). Name who is affected by the change. Record
+   whether this review runs in a fresh context or in the session that wrote
+   the change; a same-session review is weaker, and the report says so. If there is
    no local change and no named target, say so and stop — do not substitute a
    whole-repo audit for a review of a change.
 2. **Take the broad view first.** Before reading line by line, confirm the
@@ -87,20 +89,24 @@ optional; each one absent costs precision, not the review.
    edits the code stops being an independent read of it.
 8. **Assign severity and a verdict.** Label every finding (below) and reach
    a verdict: **Approve**, **Approve with notes**, or **Request changes**.
-9. **Present the result, then propose the spec.** Show the full result —
-   the review written with the template below, leading with the verdict and
-   the blocking findings, the findings with their evidence, the proof check
-   — in one place, and wait for the user's reaction. Then, if no spec file
-   exists for
-   this work (`.specs/<slug>/spec.md`), ask whether to create one that
-   captures what this pass established: the scope, the requirements
-   (`R-<n>`) the change delivers, the test criteria (`TC-*`) that prove it,
-   and the behaviors the findings show are still open. Write it only if the
-   user agrees, and only from what was actually established — anything still
-   open goes into its open-questions section, not invented. If a spec file
-   already exists, there is nothing to propose — it is the record, and a
-   second spec for the same slug would be a second source of truth. Do not
-   edit the code — a review reports, it does not fix.
+9. **Present the result, then offer a spec only where specs are in use.** Show
+   the full result — the review written with the template below, leading with
+   the verdict and the blocking findings, the findings with their evidence,
+   the proof check — in one place, and wait for the user's reaction. If nobody
+   is there to respond (an automated or chained run), end here with the result
+   reported and create nothing optional. Offer a spec file only if the project
+   already keeps spec documents (`.specs/` or its own spec tool) or the user
+   asked for one, and this work has none — and offer it at most once per
+   session: a declined offer is not repeated, and the work stays
+   context-driven. If the user agrees, write `.specs/<slug>/spec.md` from what
+   this pass established — the scope, the requirements (`R-<n>`) the change
+   delivers, the test criteria (`TC-*`) that prove it, and the behaviors the
+   findings show are still open — with `Status: Draft` and the standard spec
+   sections (context, scope, non-scope, interface and data contracts,
+   behaviour, error and edge cases, test criteria, observability, rollback
+   plan, open questions). Only a human approves it, later. Anything still open
+   goes into its open questions, not invented. Do not edit the code — a review
+   reports, it does not fix.
 
 ## Severity labels
 
@@ -141,6 +147,7 @@ replacement for human review — it is the record of what a fresh read found.
 > **Change:** <branch / PR / commit range>
 > **Spec:** `.specs/<slug>/spec.md` (or: none)
 > **Reviewer:** <fresh agent / name>
+> **Reviewer independence:** fresh context | same session as the author
 
 ## Verdict
 
@@ -209,7 +216,7 @@ repository's existing lint, type, and test configuration.">
 
 Before returning, confirm:
 
-- [ ] The exact change under review is named (diff, branch, range, or PR).
+- [ ] The exact change under review is named (diff, branch, range, or PR), and reviewer independence is recorded.
 - [ ] The broad view was taken first: one outcome, matches intent, reasonable size.
 - [ ] Correctness, security, regressions, data, and concurrency/operations were each checked for the changed flows.
 - [ ] Every changed line was read in context; generated files were spot-checked.

@@ -35,6 +35,13 @@ first; one story, one outcome).
 
 This skill needs an intent and somewhere to write. Nothing else.
 
+**Where output goes.** Spec documents are optional. Write
+`.specs/<slug>/story.md` only when the project already keeps spec documents (a
+`.specs/` directory, or its own spec tool's format — then use that format) or
+the user asks for files. Otherwise return the story in the conversation: the
+IDs it assigns are still used, marked context-sourced, and carried into the
+refinement, the commit messages, and the PR body.
+
 ## Process
 
 1. **Capture the intent.** Read the raw request. Restate it in one sentence
@@ -49,22 +56,28 @@ This skill needs an intent and somewhere to write. Nothing else.
    happens on failure. Ask at most 5 questions, each with your recommended
    answer. Record non-blocking unknowns as open questions in the story
    instead of asking.
-4. **Write the story** using the template below. Save it to
-   `.specs/<slug>/story.md` in the current repository.
+4. **Write the story** using the template below (see Where output goes).
+   Give it the tracker's key if it has one; otherwise the next unused
+   `S-<n>` in the repository (`S-1` only when no stories exist yet).
 5. **Self-triage once.** Run the readiness checklist below against what you
    just wrote. Fix gaps you can fix from the answers you already have; list
    the rest under Open questions.
-6. **Present the result, then propose the spec.** Show the full result —
-   the story, the file path, the open questions — in one place, and wait
-   for the user's reaction. Then, if no spec file exists for this work
-   (`.specs/<slug>/spec.md`), ask whether to create one that captures what
-   this pass established: the scope, the requirements (`R-<n>`) and test
-   criteria (`TC-*`) the acceptance criteria imply, and the decisions behind
-   them. Write it only if the user agrees, and only from what was actually
-   established — anything still open goes into its open-questions section,
-   not invented. If a spec file already exists, there is nothing to propose
-   — it is the record, and a second spec for the same slug would be a second
-   source of truth. Do not refine, spec, or plan.
+6. **Present the result, then offer a spec only where specs are in use.** Show
+   the full result — the story, where it was saved (or that it lives in the
+   conversation), the open questions — in one place, and wait for the user's
+   reaction. If nobody is there to respond (an automated or chained run), end
+   here with the result reported and create nothing optional. Offer a spec
+   file only if the project already keeps spec documents (`.specs/` or its own
+   spec tool) or the user asked for one, and this work has none — and offer it
+   at most once per session: a declined offer is not repeated, and the work
+   stays context-driven. If the user agrees, write `.specs/<slug>/spec.md`
+   from what this pass established — the scope, and the requirements (`R-<n>`)
+   and test criteria (`TC-*`) the acceptance criteria imply — with `Status:
+   Draft` and the standard spec sections (context, scope, non-scope, interface
+   and data contracts, behaviour, error and edge cases, test criteria,
+   observability, rollback plan, open questions). Only a human approves it,
+   later. Anything still open goes into its open questions, not invented. Do
+   not refine, spec, or plan.
 
 ## Readiness checklist
 
@@ -111,7 +124,7 @@ gap under Open questions with an owner.
 # Story: <one-line title>
 
 > **Slug:** <slug>
-> **Story ID:** S-1
+> **Story ID:** <tracker key, or next unused S-<n>>
 > **Status:** Draft
 > **Source:** <where the intent came from — issue link, meeting, request>
 
@@ -171,7 +184,7 @@ touched, known constraints, links to prior art.>
 
 Before returning, confirm:
 
-- [ ] `.specs/<slug>/story.md` exists and matches the template.
+- [ ] The story matches the template and was saved or returned per Where output goes.
 - [ ] The user story has a role, a capability, and an outcome.
 - [ ] Every AC is Given/When/Then with concrete values; at least one AC covers a failure path.
 - [ ] Every NG is a plausible scope assumption, not filler.

@@ -39,11 +39,18 @@ renames with no behavioral surface.
 | Input | Where | If it is missing |
 |---|---|---|
 | The merged change | git, relative to what is currently deployed | Stop. "What is shipping?" must have an exact answer: commits, or a version tag. |
-| Observability plan (logs, metrics, alerts) | `.specs/<slug>/spec.md` §Observability | Proceed, and record it as a gap: a change shipping with no defined signal cannot be watched, only guessed at. Derive the minimum signal — does the new path emit anything at all? — and say it was derived. |
-| Rollback plan (mechanism, trigger, data consequences) | `.specs/<slug>/spec.md` §Rollback | Proceed only after writing one here. A release without a stated undo path is a one-way door, and that needs to be an explicit decision, not an oversight. |
-| Test evidence | `.specs/<slug>/evidence/` | Stop if absent. Deploying unproven code and watching production is not a release process, it is an experiment on users. |
+| Observability plan (logs, metrics, alerts) | `.specs/<slug>/spec.md` §Observability, the PR, or the conversation | Proceed, and record it as a gap: a change shipping with no defined signal cannot be watched, only guessed at. Derive the minimum signal — does the new path emit anything at all? — and say it was derived. |
+| Rollback plan (mechanism, trigger, data consequences) | `.specs/<slug>/spec.md` §Rollback, the PR, or the conversation | Proceed only after writing one here. A release without a stated undo path is a one-way door, and that needs to be an explicit decision, not an oversight. |
+| Test evidence | `.specs/<slug>/evidence/`, the PR, or CI results for the merge commit | Stop if absent everywhere. Deploying unproven code and watching production is not a release process, it is an experiment on users. |
 | Deploy and rollback access | the pipeline, the flag system, the migration tooling | Proceed to a written go/no-go, and hand the execution to whoever has access. Say clearly that the checks were verified but not executed by you. |
 | Quality gates (`C-*`) | `CONSTRAINTS.md` at repo root | Proceed. Report which CI gates passed on the merge commit. |
+
+**Where output goes.** Spec documents are optional. Write
+`.specs/<slug>/evidence/release-<date>.md` only when the project already keeps
+spec documents (a `.specs/` directory, or its own spec tool's format — then
+use that format) or the user asks for files. Otherwise return the release
+record in the conversation: the IDs it assigns are still used, marked
+context-sourced, and carried into the deploy ticket or PR.
 
 ## Process
 
@@ -81,29 +88,47 @@ renames with no behavioral surface.
 6. **Make the go / no-go call.** Against the checks below, with evidence. Any
    blocker unresolved is a no-go. "Ship it and watch closely" is not a
    mitigation for a missing rollback — it is the absence of one.
+   - **GO** — every check passes.
+   - **GO WITH CONDITIONS** — every blocker passes; one or more non-blocking
+     checks (for example a warn-level gate, or a metric with no baseline yet)
+     are accepted as named conditions, each with an owner and a due date,
+     listed under Follow-ups. A blocker can never become a condition.
+   - **NO-GO** — any blocker unresolved: missing rollback, a promised signal
+     absent, an unrouted alert, stale or failing test evidence.
 7. **Deploy, then actually watch.** Observe the signals from step 5 for the
    stated window. Record what they did — including "nothing changed", which
    is the result you want and still evidence. Do not start other work during
-   the watch window; an unwatched watch window is a waiting period.
+   the watch window; an unwatched watch window is a waiting period. If you
+   can query the signals, check them at a fixed interval across the whole
+   window and record each reading. If you cannot, or the window outlasts the
+   session, hand the watch to a named person with the watch plan (signals,
+   thresholds, window, rollback trigger) and record the handover — the
+   release record is not complete until they report the outcome.
 8. **Record the outcome, and close the loop.** Write the release record. If
    you rolled back, record the trigger, the duration, and what the data did —
    that evidence is worth more than the release itself, and it feeds the
    diagnosis of what went wrong.
-9. **Present the result, then propose the spec.** Show the full result —
-   the release record, the go / no-go decision, the evidence for each check
-   — in one place, and wait for the user's reaction. Then, if no spec file
-   exists for this work (`.specs/<slug>/spec.md`), ask whether to create one
-   that captures what this pass established: the scope, the requirements
-   (`R-<n>`) that shipped, the observability signals and rollback plan that
-   were proven to work, and the watch thresholds. Write it only if the user
-   agrees, and only from what was actually established — anything still open
-   goes into its open-questions section, not invented. If a spec file
-   already exists, there is nothing to propose — it is the record, and a
-   second spec for the same slug would be a second source of truth.
+9. **Present the result, then offer a spec only where specs are in use.** Show
+   the full result — the release record, the go / no-go decision, the evidence
+   for each check — in one place, and wait for the user's reaction. If nobody
+   is there to respond (an automated or chained run), end here with the result
+   reported and create nothing optional. Offer a spec file only if the project
+   already keeps spec documents (`.specs/` or its own spec tool) or the user
+   asked for one, and this work has none — and offer it at most once per
+   session: a declined offer is not repeated, and the work stays
+   context-driven. If the user agrees, write `.specs/<slug>/spec.md` from what
+   this pass established — the scope, the requirements (`R-<n>`) that shipped,
+   the observability signals and rollback plan that were proven to work, and
+   the watch thresholds — with `Status: Draft` and the standard spec sections
+   (context, scope, non-scope, interface and data contracts, behaviour, error
+   and edge cases, test criteria, observability, rollback plan, open
+   questions). Only a human approves it, later. Anything still open goes into
+   its open questions, not invented.
 
 ## Templates
 
-Release record, saved to `.specs/<slug>/evidence/release-<date>.md`:
+Release record, saved to `.specs/<slug>/evidence/release-<date>.md` or
+returned in the conversation (see Where output goes):
 
 ```markdown
 # Release: <what is shipping>
@@ -123,7 +148,7 @@ contract changes called out explicitly.>
 
 | ID | Check | Result | Evidence |
 |---|---|---|---|
-| RL-1 | Test evidence current and passing | Pass | `evidence/test-<date>.md` |
+| RL-1 | Test evidence current and passing | Pass | <report file, PR, or CI run> |
 | RL-2 | CI gates green on merge commit (`C-*`) | Pass | <link / output> |
 | RL-3 | Promised logs emit | Pass | <log line observed in staging> |
 | RL-4 | Promised metrics report | Pass | <query + value> |

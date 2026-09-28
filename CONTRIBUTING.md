@@ -84,15 +84,28 @@ Rules:
   recorded in that document's header. A refresh keeps its id and updates its
   **Last verified** stamp; it never renumbers. A removed document is marked
   `Superseded by PD-<n>` rather than deleted.
-- **Every skill ends by presenting its result, and offers the spec file.**
-  When a skill finishes, it shows the full result — the artifact, the
-  verdict, the evidence — and, if no spec file (`.specs/<slug>/spec.md`)
-  exists for the work, it asks whether to create one from what the pass
-  established. It writes the file only on agreement. Conversely, a missing
-  spec file is not a blanket stop: a skill proceeds with details pulled from
-  the available context (the story, the sketch, the context map, documented
-  contracts, the code), marks them as context-sourced, and stops only when
-  the detail it needs exists nowhere.
+- **Spec documents are optional.** A skill works the same whether or not
+  the project keeps them. When `.specs/` (or the project's own spec tool)
+  exists, the skill reads and writes those files. When it does not, the skill
+  pulls the same details from the context — the conversation, the story, the
+  code, documented contracts — marks them context-sourced, returns its
+  artifacts in the conversation, and carries the IDs into commit messages and
+  the PR body. It stops only when the detail it needs exists nowhere, and it
+  never creates a `.specs/` directory the user did not ask for.
+- **Agreed means approved or confirmed.** Requirements are agreed when a spec
+  file says `Status: Approved` with an approver, or — with no spec file —
+  when the user explicitly confirmed a restated list in the conversation. A
+  `Draft` spec is not agreed. Once agreed, requirements change only as a
+  recorded amendment with re-approval.
+- **Every skill ends by presenting its result.** It shows the full result —
+  the artifact, the verdict, the evidence — and waits for the user; in an
+  automated run with nobody to respond, it ends there and creates nothing
+  optional. It offers a spec file only when the project already keeps spec
+  documents (or the user asked), at most once per session, and any spec it
+  writes starts as `Draft`.
+- **Code changes stay inside the task.** A skill that edits code changes only
+  what the user's task or request needs. Problems noticed elsewhere are
+  recorded as follow-ups, never fixed in the same change.
 
 ## Artifact home
 

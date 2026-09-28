@@ -41,6 +41,13 @@ per-criterion report; this skill finds causes).
 | Specified behavior (`R-*`, `AC-*`, `TC-*`) | `.specs/<slug>/spec.md` or `story.md` | Proceed. Use the documented behavior, the contract, or the reasonable expectation instead, and say in the record which you used. Note that the absence of a criterion covering this behavior is itself a finding. |
 | Recent changes | `git log`, `git bisect`, deploy history | Proceed. History narrows the search; it is not required to run it. |
 
+**Where output goes.** Spec documents are optional. Write
+`.specs/<slug>/defects/D-<n>.md` only when the project already keeps spec
+documents (a `.specs/` directory, or its own spec tool's format — then use
+that format) or the user asks for files. Otherwise return the defect record in
+the conversation: the IDs it assigns are still used, marked context-sourced,
+and carried into the fix's commit message and the PR body.
+
 ## Process
 
 1. **State the gap.** Write down two things before touching any code: what
@@ -61,6 +68,12 @@ per-criterion report; this skill finds causes).
    it fail, and confirm the failure message describes the real gap rather
    than a setup error. This test is the deliverable — it outlives the fix and
    becomes the regression guard.
+   - A failing test must not break the build for everyone else. Unless the
+     fix follows in the same branch, mark it with the test framework's
+     expected-failure mechanism (`xfail`, `test.fails`, `@Disabled` with a
+     reason, …) citing `D-<n>` — the fix removes the marker, and the test
+     must then pass. Never commit it as a plain failing test to a shared
+     branch.
 4. **Localize it.** Narrow where the cause lives before reasoning about why.
    Use whichever is cheapest:
    - Bisect the input: which argument, record, or request triggers it?
@@ -81,7 +94,10 @@ per-criterion report; this skill finds causes).
    observed, not just the headline symptom: the error, the conditions under
    which it happens, the conditions under which it does not, and the
    intermittency rate if any. Demonstrate it — make the defect appear and
-   disappear by manipulating the cause alone.
+   disappear by manipulating the cause alone. Changes made to demonstrate
+   it — a forced value, a patched line, extra logging — are temporary
+   experiments: revert every one before the record is written, and confirm
+   the working tree holds only the regression test.
    - If the cause explains the symptom but not why it only happens on
      Tuesdays, you have found *a* problem, not *the* cause. Keep going.
 7. **Decide what is wrong: the code or the specification.** Now that the
@@ -96,24 +112,31 @@ per-criterion report; this skill finds causes).
 8. **Write the defect record** using the template below. The fix itself is
    separate work: it changes the system, and it must be verified against the
    failing test this skill produced. Do not fix and diagnose in the same
-   motion — the moment you start editing, you stop observing.
-9. **Present the result, then propose the spec.** Show the full result —
-   the defect record, the proven cause, the failing regression test, the
-   classification — in one place, and wait for the user's reaction. Then, if
-   no spec file exists for the behavior the defect touches
-   (`.specs/<slug>/spec.md`), ask whether to create one that captures what
-   this pass established: the expected behavior as it was observed, the
-   requirement (`R-<n>`) or acceptance criterion (`AC-<n>`) it maps to, and
-   the test criteria (`TC-*`) the regression test proves. Write it only if
-   the user agrees, and only from what was actually established — anything
-   still open goes into its open-questions section, not invented. If a spec
-   file already exists, there is nothing to propose — it is the record, and
-   a second spec for the same slug would be a second source of truth.
+   motion — the moment you start editing, you stop observing. Keep to the
+   defect the user reported: other problems noticed along the way go in the
+   record's blast radius or as separate findings, not into this change.
+9. **Present the result, then offer a spec only where specs are in use.** Show
+   the full result — the defect record, the proven cause, the failing
+   regression test and how it is kept from breaking the build, the
+   classification — in one place, and wait for the user's reaction. If nobody
+   is there to respond (an automated or chained run), end here with the result
+   reported and create nothing optional. Offer a spec file only if the project
+   already keeps spec documents (`.specs/` or its own spec tool) or the user
+   asked for one, and this work has none — and offer it at most once per
+   session: a declined offer is not repeated, and the work stays
+   context-driven. If the user agrees, write `.specs/<slug>/spec.md` from what
+   this pass established — the expected behavior, the requirement (`R-<n>`) or
+   acceptance criterion (`AC-<n>`) it maps to, and the test criteria (`TC-*`)
+   the regression test proves — with `Status: Draft` and the standard spec
+   sections (context, scope, non-scope, interface and data contracts,
+   behaviour, error and edge cases, test criteria, observability, rollback
+   plan, open questions). Only a human approves it, later. Anything still open
+   goes into its open questions, not invented. Do not fix the defect here.
 
 ## Templates
 
-Defect record, saved to `.specs/<slug>/defects/D-<n>.md`, or returned in chat
-when there is no slug:
+Defect record, saved to `.specs/<slug>/defects/D-<n>.md` or returned in the
+conversation — see Where output goes:
 
 ```markdown
 # D-<n>: <one-line symptom>
@@ -210,3 +233,4 @@ once usually appears more than once.>
 - [ ] The defect record cites the `R-*`/`AC-*`/`TC-*` it violates, or states that no criterion covered this behavior.
 - [ ] The blast radius was checked — other sites with the same cause.
 - [ ] No fix was applied inside this skill, and no test was weakened.
+- [ ] Every experimental change was reverted; the only code change left is the regression test, marked expected-failure unless the fix follows on the same branch.

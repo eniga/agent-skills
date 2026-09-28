@@ -76,23 +76,27 @@ This skill needs code and a passing test for it. Nothing else.
 7. **Record the before/after.** Note what was complex, what you changed, and
    the test evidence that behavior is preserved. If this is part of a review
    finding, reference the finding.
-8. **Present the result, then propose the spec.** Show the full result —
-   the simplified code, the before/after note, the test evidence that
-   behavior is preserved — in one place, and wait for the user's reaction.
-   Then, if the behavior that was just pinned has no spec file
-   (`.specs/<slug>/spec.md`), ask whether to create one that captures what
-   this pass established: the behavior as it is now pinned by tests, the
-   requirements (`R-<n>`) those behaviors are, and the test criteria
-   (`TC-*`) that prove them. Write it only if the user agrees, and only from
-   what was actually established — anything still open goes into its
-   open-questions section, not invented. If a spec file already exists,
-   there is nothing to propose — it is the record, and a second spec for the
-   same slug would be a second source of truth. Do not change behavior, do
-   not add features, do not "improve" beyond clarity: if simplification
-   reveals a bug or a missing requirement, report it — do not fix it inside
-   a simplification.
+8. **Present the result, then offer a spec only where specs are in use.** Show
+   the full result — the simplified code, the before/after note, the test
+   evidence that behavior is preserved — in one place, and wait for the user's
+   reaction. If nobody is there to respond (an automated or chained run), end
+   here with the result reported and create nothing optional. Offer a spec
+   file only if the project already keeps spec documents (`.specs/` or its own
+   spec tool) or the user asked for one, and this work has none — and offer it
+   at most once per session: a declined offer is not repeated, and the work
+   stays context-driven. If the user agrees, write `.specs/<slug>/spec.md`
+   from what this pass established — the behavior as it is now pinned by
+   tests, the requirements (`R-<n>`) those behaviors are, and the test
+   criteria (`TC-*`) that prove them — with `Status: Draft` and the standard
+   spec sections (context, scope, non-scope, interface and data contracts,
+   behaviour, error and edge cases, test criteria, observability, rollback
+   plan, open questions). Only a human approves it, later. Anything still open
+   goes into its open questions, not invented. Do not change behavior, do not
+   add features, do not "improve" beyond clarity: if simplification reveals a
+   bug or a missing requirement, report it — do not fix it inside a
+   simplification.
 
-## The Rule of 500
+## Simplify what hurts, not everything
 
 If a function or file is so large that simplifying it would take more than a
 focused session, do not attempt the whole thing. Simplify the worst 20% —
@@ -104,13 +108,18 @@ mid-refactor.
 
 - **Behavior is the invariant.** Every edit must be explainable as "this does
   the same thing, more clearly". If an edit changes what the code does, it
-  is not simplification — stop and route it to the right skill.
+  is not simplification — stop, and record it as a defect or a new
+  requirement for separate work.
 - **Prefer the boring version.** The version a new reader understands in one
   pass beats the version that is shorter. Explicit over clever, every time.
 - **Names are simplification.** Often the highest-leverage change is a better
   name, not a structural one. Rename before you restructure.
 - **Delete confidently, but only what is dead.** Dead code goes. Code whose
   purpose you cannot state stays, flagged.
+- **The scope is the target the user named.** Simplify the file, function,
+  or diff that was asked for. Similar code elsewhere is listed as a
+  follow-up, not simplified in the same pass — even when the same fix would
+  apply.
 - **No drive-by changes.** Do not reformat untouched lines, reorder imports,
   or "fix" adjacent code while simplifying. The diff should be only the
   simplification.
@@ -144,6 +153,7 @@ Before returning, confirm:
 - [ ] The baseline (before) test run passed and is recorded.
 - [ ] Every removed or changed element was either dead code or a clarity improvement — and any fence you did not remove is flagged with the open question.
 - [ ] Each edit is one concern; the diff contains no drive-by formatting or behavior changes.
+- [ ] Every change is inside the target the user named; similar code elsewhere is listed as a follow-up.
 - [ ] The focused tests pass unchanged (no test edited) after the simplification.
 - [ ] The wider suite for the area passes.
 - [ ] A before/after note records what was complex, what changed, and the test evidence.

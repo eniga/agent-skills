@@ -1,13 +1,16 @@
 ---
 name: spec-amend
-description: Changes an approved specification under control, recording what changed and why, re-approving it, and naming every downstream artifact the change invalidates. Use when requirements change after a spec is approved. Use when implementation reveals the spec is wrong, incomplete, or impossible. Use when scope is added, dropped, or renegotiated mid-build.
+description: Changes agreed requirements under control — in an approved spec file, or confirmed in the conversation when the project keeps no specs — recording what changed and why, re-approving it, and naming every downstream artifact the change invalidates. Use when requirements change after they were agreed. Use when implementation reveals the spec is wrong, incomplete, or impossible. Use when scope is added, dropped, or renegotiated mid-build.
 ---
 
 # Spec Amend
 
 ## Overview
 
-Change an approved spec without losing the guarantees approval gave it. An
+Change agreed requirements without losing the guarantees approval gave them.
+The requirements may live in an approved spec file or, in a project that keeps
+no spec documents, in a list the user confirmed in the conversation — the
+discipline is the same; only where the record lands differs. An
 amendment records what changed, why, who approved it, and — the part that is
 always skipped — **which downstream work the change just invalidated**: the
 slices already built, the tests already written, the estimates already given.
@@ -24,8 +27,9 @@ what was agreed, and when, is the reason anyone can trust the document at all.
 - A diagnosis concluded the specification, not the code, was at fault.
 - A contract the spec depends on changed underneath it.
 
-**When NOT to use:** The spec is not approved yet (just edit it — there is no
-agreement to amend). The change is a typo, formatting, or a clarification
+**When NOT to use:** The requirements were never agreed — a `Draft` spec, or
+a list the user never confirmed (just edit it — there is no agreement to
+amend). The change is a typo, formatting, or a clarification
 that alters no behavior and no contract (edit it and say so in the change
 log). The work is a new, independently shippable outcome (that is a new
 story and a new spec, not an amendment to this one). You disagree with the
@@ -36,10 +40,16 @@ to write).
 
 | Input | Where | If it is missing |
 |---|---|---|
-| The approved spec | `.specs/<slug>/spec.md` | Stop. There is nothing to amend. If the spec was never approved, edit it directly and get it approved. |
+| The agreed requirements | `.specs/<slug>/spec.md` (approved), or the list confirmed in the conversation | If neither exists, stop: there is nothing to amend. If a spec file exists but is `Draft`, edit it directly and get it approved. Without a spec file, amend the list agreed in the conversation (see Process step 7). |
 | The reason for the change | a person, a defect record, a failed build, a decision | Stop. "The spec is wrong" is not a reason; what is wrong, discovered how, is. |
 | Downstream artifacts | `plan.md`, `tasks.md`, `evidence/`, the code and its tests | Proceed, but the invalidation analysis is the point of this skill. Without them, say explicitly which downstream work you could not check. |
 | A human approver | a person | Stop before marking the amendment approved. An amendment self-approved by the party who wanted it is just an edit. |
+
+**Agreed expectations.** Requirements count as agreed when a spec file says
+`Status: Approved` with an approver, or — in context-driven work, with no spec
+file — when the user has explicitly confirmed a restated list of the
+requirements or acceptance criteria in the conversation. A spec file that is
+still `Draft` is not agreed, and neither is a list the user never confirmed.
 
 ## Process
 
@@ -82,11 +92,14 @@ to write).
    the original spec needed, from someone who is not you. Corrections and
    clarifications need an approver's acknowledgement. Record who approved it
    and when. **Do not mark an amendment approved on your own authority.**
-7. **Apply the amendment to the spec.** Update the spec body so it reads as
-   a current, coherent document — a reader should not have to reconstruct
-   the current requirements from a pile of diffs — and append the amendment
-   record to its change log. The body is the current truth; the log is how it
-   got there.
+7. **Apply the amendment.** With a spec file: update the spec body so it
+   reads as a current, coherent document — a reader should not have to
+   reconstruct the current requirements from a pile of diffs — and append the
+   amendment record to its change log. The body is the current truth; the log
+   is how it got there. Without a spec file: restate the full, current list
+   of requirements and test criteria in the conversation, with the amendment
+   record beneath it, and carry the record into the PR body so the change
+   survives the session.
 8. **Present the result, then stop.** The amendment record and the updated
    spec are this skill's output: present them in full, and make sure the
    re-approval from step 6 is recorded, before ending — an amendment the
@@ -97,7 +110,8 @@ to write).
 ## Templates
 
 Amendment record, appended to a `## Change log` section at the end of
-`.specs/<slug>/spec.md`:
+`.specs/<slug>/spec.md` — or, with no spec file, given in the conversation
+beneath the restated requirements and copied into the PR body:
 
 ```markdown
 ### AM-<n> — <short title>
@@ -175,5 +189,5 @@ Amendment record, appended to a `## Change log` section at the end of
 - [ ] The invalidation list names affected slices, tests, evidence, estimates, and merged code — or says what could not be checked.
 - [ ] Tests asserting superseded expectations are identified as must-rewrite, not left green.
 - [ ] Re-approval is recorded with a name and a date, by someone other than the author.
-- [ ] The spec body reads as a current, coherent document, and the change log records how it got there.
+- [ ] The current requirements read as one coherent list (spec body, or restated in the conversation), and the amendment record says how they got there — in the spec's change log or the PR body.
 - [ ] No re-planning, rebuilding, or re-testing was done inside this skill.

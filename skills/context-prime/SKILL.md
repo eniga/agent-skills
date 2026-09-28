@@ -46,6 +46,12 @@ touches).
 | Existing documentation | `README.md`, `ARCHITECTURE.md`, `AGENTS.md`, `CLAUDE.md`, ADRs | Proceed. Their absence is normal, and their presence is a claim to verify against the code, not a source to copy. |
 | A way to run the project | test and build commands | Proceed, but a map built without running anything is entirely inference. Running the tests is the cheapest verification available. |
 
+**Where output goes.** Spec documents are optional. Write `.specs/context.md`
+only when the project already keeps spec documents (a `.specs/` directory, or
+its own spec tool's format — then use that format) or the user asks for files.
+Otherwise return the map in the conversation: the IDs it assigns are still
+used, marked context-sourced, and carried into later work in the same session.
+
 ## Process
 
 1. **Name the purpose.** One sentence: what decision this map has to support.
@@ -86,25 +92,20 @@ touches).
    wrote. Anything you did not read directly is an inference — label it, and
    say what would confirm it. **This step is the skill.** Everything before it
    is reading; this is what makes the map safe to build on.
-10. **Write the map.** Do not design, specify, or fix anything you
-    found. Record hazards as hazards; acting on them is separate work with
+10. **Write the map** (see Where output goes). Do not design, specify, or
+    fix anything you found. Record hazards as hazards; acting on them is separate work with
     its own gates.
-11. **Present the result, then propose the spec.** Show the full result —
-    the map, what was run, what was left unmapped — in one place, and wait
-    for the user's reaction. Then, if no spec file exists for the work this
-    map will support (`.specs/<slug>/spec.md`), ask whether to create one
-    that captures what this pass established: the scope, the requirements
-    (`R-<n>`) and test criteria (`TC-*`) the work implies, and the context
-    facts behind them. Write it only if the user agrees, and only from what
-    was actually established — anything still open goes into its
-    open-questions section, not invented. If a spec file already exists,
-    there is nothing to propose — it is the record, and a second spec for the
-    same slug would be a second source of truth.
+11. **Present the result, then stop.** Show the full result — the map, what
+    was run, what was left unmapped — in one place, and wait for the user's
+    reaction. If nobody is there to respond (an automated or chained run), end
+    here with the result reported. Do not design, specify, or fix anything the
+    map found.
 
 ## Templates
 
-Context map, saved to `.specs/context.md`, or `.specs/<slug>/context.md` when
-scoped to one piece of work:
+Context map, saved to `.specs/context.md` (or `.specs/<slug>/context.md` when
+scoped to one piece of work) or returned in the conversation — see Where
+output goes:
 
 ```markdown
 # Context map: <repository or area>

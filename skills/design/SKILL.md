@@ -44,6 +44,14 @@ a design; record it as a decision with its actual reasoning, however thin).
 | Non-functional requirements (load, latency, availability, compliance) | the story, the product owner, existing SLOs | Proceed with explicit assumptions and stated numbers. "Should scale" is not a requirement; "2,000 writes/second at p99 < 200ms" is. |
 | A reviewer | a person | Proceed to a proposed decision, but mark it proposed. A design nobody reviewed is a preference. |
 
+**Where output goes.** Spec documents are optional. Write
+`.specs/<slug>/design.md` (or `docs/decisions/` for a repository-wide
+decision, if that directory exists) only when the project already keeps spec
+documents (a `.specs/` directory, or its own spec tool's format — then use
+that format) or the user asks for files. Otherwise return the design record in
+the conversation: the IDs it assigns are still used, marked context-sourced,
+and carried into the PR body.
+
 ## Process
 
 1. **State the problem, not the solution.** One paragraph: what has to become
@@ -87,22 +95,29 @@ a design; record it as a decision with its actual reasoning, however thin).
    the approach; the spec then fixes the behavior, contracts, and test
    criteria within it. Do not write the spec here, and do not implement —
    a design proven only by building it is expensive to disprove.
-10. **Present the result, then propose the spec.** Show the full result —
-   the design record, the decision, what it gives up, the open questions —
-   in one place, and wait for the user's reaction. Then, if no spec file
-   exists for this work (`.specs/<slug>/spec.md`), ask whether to create one
-   that captures what this pass established: the scope, the requirements
-   (`R-<n>`) the decision commits to, the test criteria (`TC-*`) that would
-   prove them, and the decision itself with its rationale. Write it only if
-   the user agrees, and only from what was actually established — anything
-   still open goes into its open-questions section, not invented. If a spec
-   file already exists, there is nothing to propose — it is the record, and
-   a second spec for the same slug would be a second source of truth.
+10. **Present the result, then offer a spec only where specs are in use.**
+    Show the full result — the design record, the decision, what it gives up,
+    the open questions — in one place, and wait for the user's reaction. If
+    nobody is there to respond (an automated or chained run), end here with
+    the result reported and create nothing optional. Offer a spec file only if
+    the project already keeps spec documents (`.specs/` or its own spec tool)
+    or the user asked for one, and this work has none — and offer it at most
+    once per session: a declined offer is not repeated, and the work stays
+    context-driven. If the user agrees, write `.specs/<slug>/spec.md` from
+    what this pass established — the scope, the requirements (`R-<n>`) the
+    decision commits to, the test criteria (`TC-*`) that would prove them, and
+    the decision with its rationale — with `Status: Draft` and the standard
+    spec sections (context, scope, non-scope, interface and data contracts,
+    behaviour, error and edge cases, test criteria, observability, rollback
+    plan, open questions). Only a human approves it, later. Anything still
+    open goes into its open questions, not invented. Do not write the spec
+    here, and do not implement.
 
 ## Templates
 
-Design record, saved to `.specs/<slug>/design.md`, or
-`docs/decisions/AD-<n>-<slug>.md` for a repository-wide decision:
+Design record, saved to `.specs/<slug>/design.md` or
+`docs/decisions/AD-<n>-<slug>.md` for a repository-wide decision, or returned
+in the conversation — see Where output goes:
 
 ```markdown
 # AD-<n>: <decision, stated as the choice made>

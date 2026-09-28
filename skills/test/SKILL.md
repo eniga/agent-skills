@@ -1,6 +1,6 @@
 ---
 name: test
-description: Proves a change works by running the focused tests for the new change first, then the full suite to catch regressions, and reporting each test criterion as pass, fail, or unverified with evidence. Use when a build is complete and needs proof. Use when a change needs verification before review or merge.
+description: Proves a change works by running the focused tests for the new change first, then the full suite to catch regressions, and reporting each test criterion as pass, fail, or unverified with evidence. Use when a build is complete and needs proof. Use when a change needs verification before review or merge. Not for writing tests while implementing, or for finding the cause of a failure.
 ---
 
 # Test
@@ -36,13 +36,26 @@ does not find or fix causes).
 
 | Input | Where | If it is missing |
 |---|---|---|
-| Test criteria (`TC-*`, each mapped to an `R-*`) | `.specs/<slug>/spec.md` | Proceed. Derive the criteria from the change's acceptance criteria, or from the observable behaviors the diff introduces, and label them `TC-U/I/E<n>` yourself. Say in the report that the criteria were derived, not specified. |
+| Test criteria (`TC-*`, each mapped to an `R-*`) | `.specs/<slug>/spec.md`, or the criteria agreed in the conversation | Proceed. Derive the criteria from the change's acceptance criteria, or from the observable behaviors the diff introduces, and label them `TC-U/I/E<n>` yourself. Say in the report that the criteria were derived, not specified. |
 | The change under test | git diff, branch, or commit range | Stop. Ask which change is being verified. A whole-suite run with no named change is a CI job, not a verification pass. |
 | Quality bar (coverage and gate rules `C-*`) | `CONSTRAINTS.md` at repo root | Proceed. Report the numbers without a pass/fail judgement against a threshold, and say no bar was set. |
 | Slice records (`SL-*`) | `.specs/<slug>/plan.md` | Proceed. Slices help scope the focused run; without them, scope it from the diff. |
 
 This skill needs the criteria and the change, not the tools that produced
 them.
+
+**Where output goes.** Spec documents are optional. Write
+`.specs/<slug>/evidence/test-<date>.md` only when the project already keeps
+spec documents (a `.specs/` directory, or its own spec tool's format — then
+use that format) or the user asks for files. Otherwise return the report in
+the conversation: the IDs it assigns are still used, marked context-sourced,
+and carried into the PR body.
+
+**Agreed expectations.** Requirements count as agreed when a spec file says
+`Status: Approved` with an approver, or — in context-driven work, with no spec
+file — when the user has explicitly confirmed a restated list of the
+requirements or acceptance criteria in the conversation. A spec file that is
+still `Draft` is not agreed, and neither is a list the user never confirmed.
 
 ## Process
 
@@ -73,25 +86,27 @@ them.
    evidence, or mark the criterion **unverified** and say exactly what would
    verify it. Never mark a criterion pass because the code "looks like it
    does that".
-6. **Write the report** using the template below. Save it to
-   `.specs/<slug>/evidence/test-<date>.md` if a slug exists, otherwise return
-   it in chat. Every criterion row has a result and evidence.
-7. **Present the result, then propose the spec.** Show the full result —
-   the report, the verdict, the per-criterion evidence — in one place,
-   leading with failures and unverified criteria — never bury them below the
-   passes — and wait for the user's reaction. Then, if no spec file exists
-   for this work
-   (`.specs/<slug>/spec.md`), ask whether to create one that captures what
-   this pass established: the scope, the requirements (`R-<n>`) the change
-   delivers, the test criteria (`TC-*`) that were checked and how they were
-   derived, and the failures still open. Write it only if the user agrees,
-   and only from what was actually established — anything still open goes
-   into its open-questions section, not invented. If a spec file already
-   exists, there is nothing to propose — it is the record, and a second spec
-   for the same slug would be a second source of truth. Do not fix failures;
-   report them. Diagnosing and fixing a failure is separate work with its
-   own evidence, and doing it here would invalidate the report you just
-   wrote.
+6. **Write the report** using the template below, saved or returned as
+   described in Where output goes. Every criterion row has a result and evidence.
+7. **Present the result, then offer a spec only where specs are in use.** Show
+   the full result — the report, the verdict, the per-criterion evidence,
+   leading with failures and unverified criteria rather than burying them
+   below the passes — in one place, and wait for the user's reaction. If
+   nobody is there to respond (an automated or chained run), end here with the
+   result reported and create nothing optional. Offer a spec file only if the
+   project already keeps spec documents (`.specs/` or its own spec tool) or
+   the user asked for one, and this work has none — and offer it at most once
+   per session: a declined offer is not repeated, and the work stays
+   context-driven. If the user agrees, write `.specs/<slug>/spec.md` from what
+   this pass established — the requirements (`R-<n>`) the change delivers, the
+   test criteria (`TC-*`) that were checked and how they were derived, and the
+   failures still open — with `Status: Draft` and the standard spec sections
+   (context, scope, non-scope, interface and data contracts, behaviour, error
+   and edge cases, test criteria, observability, rollback plan, open
+   questions). Only a human approves it, later. Anything still open goes into
+   its open questions, not invented. Do not fix failures; report them.
+   Diagnosing and fixing a failure is separate work with its own evidence, and
+   doing it here would invalidate the report you just wrote.
 
 ## Writing rules
 
@@ -117,7 +132,8 @@ them.
 
 > **Date:** <YYYY-MM-DD>
 > **Change:** <branch / PR / commit range>
-> **Spec:** `.specs/<slug>/spec.md` (or: no spec — criteria from <source>)
+> **Criteria from:** `.specs/<slug>/spec.md` | agreed in conversation | derived
+>   from <source>
 
 ## Summary
 
@@ -183,4 +199,4 @@ Before returning, confirm:
 - [ ] Every Pass has command-and-output evidence; every Unverified says what would close it.
 - [ ] Regressions are named as regressions with a likely cause.
 - [ ] The report leads with failures and unverified criteria.
-- [ ] The report was saved (`.specs/<slug>/evidence/`) or returned in chat, and no fixes were made.
+- [ ] The report was saved or returned per Where output goes, and no fixes were made.
