@@ -1,227 +1,186 @@
 ---
-name: release
-description: Proves a merged change is safe to ship and safe to undo by verifying that its observability and rollback plan actually exist and work, then watching named signals after deploy. Use when a change is merged and about to be deployed. Use when a release needs a go or no-go decision with evidence. Use when the rollback path has never been tested.
+name: spine-release
+description: Proves a merged change is safe to ship and safe to undo by checking that its logs, metrics, and alerts really fire, rehearsing the rollback, defining watch thresholds before deploy, and recording a go or no-go decision. Use when a merged change is about to be deployed. Use when a release needs a go/no-go with evidence. Use when the rollback path has never been run.
 ---
 
-# Release
+# Spine Release
 
 ## Overview
 
-Prove that a merged change is safe to ship **and safe to undo**, then watch it
-land. A specification promises logs, metrics, alerts, and a rollback plan;
-this skill is where those promises get checked against reality, before they
-are needed at three in the morning.
-
-The defining rule: **an untested rollback is not a rollback plan, it is a
-hope.** The two questions this skill answers are "will we know if this breaks?"
-and "can we undo it?" — and neither is answered by reading the document that
-promised it.
+Answer two questions with evidence: **will we know if this breaks, and can
+we undo it?** A rollback that was never run is not a rollback plan. This
+skill checks the promised signals, rehearses the undo, sets the watch, and
+records the decision.
 
 ## When to Use
 
-- A change is merged and about to be deployed.
-- A release needs a go / no-go decision that someone can point at afterwards.
-- The rollback path has never actually been executed.
-- A change carries a migration, a feature flag, or a contract change.
-- You want the post-deploy watch defined *before* deploying, not improvised
-  during an incident.
+- A merged change is about to deploy.
+- A release needs a go/no-go someone can point at later.
+- The change carries a migration, a flag, a contract change, or a
+  permission change.
 
-**When NOT to use:** The change is not merged or not verified (get it proven
-first — a release check on unproven code measures the wrong thing). You are
-mid-incident and need to roll back right now (execute the rollback; do the
-analysis afterwards). The deployment is fully automated, rehearsed, and
-already carries these gates (do not re-run ceremony the pipeline performs).
-The change ships nothing observable — documentation, comments, internal
-renames with no behavioral surface.
+**Not for:** unmerged or unverified code; an incident in progress (roll back
+now, analyze after); a pipeline that already performs and records these
+checks; a change with no runtime effect.
 
 ## Inputs
 
-| Input | Where | If it is missing |
+| Input | Where | If missing |
 |---|---|---|
-| The merged change | git, relative to what is currently deployed | Stop. "What is shipping?" must have an exact answer: commits, or a version tag. |
-| Observability plan (logs, metrics, alerts) | `.specs/<slug>/spec.md` §Observability, the PR, or the conversation | Proceed, and record it as a gap: a change shipping with no defined signal cannot be watched, only guessed at. Derive the minimum signal — does the new path emit anything at all? — and say it was derived. |
-| Rollback plan (mechanism, trigger, data consequences) | `.specs/<slug>/spec.md` §Rollback, the PR, or the conversation | Proceed only after writing one here. A release without a stated undo path is a one-way door, and that needs to be an explicit decision, not an oversight. |
-| Test evidence | `.specs/<slug>/evidence/`, the PR, or CI results for the merge commit | Stop if absent everywhere. Deploying unproven code and watching production is not a release process, it is an experiment on users. |
-| Deploy and rollback access | the pipeline, the flag system, the migration tooling | Proceed to a written go/no-go, and hand the execution to whoever has access. Say clearly that the checks were verified but not executed by you. |
-| Quality gates (`C-*`) | `CONSTRAINTS.md` at repo root | Proceed. Report which CI gates passed on the merge commit. |
+| What is shipping | commits or version tag, against what is deployed | Stop. This needs an exact answer. |
+| Test evidence for the merge commit | evidence file, PR, CI | Stop. Unproven code is not released. |
+| Observability plan | spec, PR, conversation | Proceed. Record the gap and derive the minimum signal the new path emits. |
+| Rollback plan | spec, PR, conversation | Write one here before going on. No undo path is a one-way door that a person must accept. |
+| Deploy and rollback access | pipeline, flag system, migration tool | Proceed to a written go/no-go and hand execution to someone with access. Say which checks you did not run. |
+| Quality gates `C-*` | `CONSTRAINTS.md` | Proceed. Report which CI gates passed on the merge commit. |
 
-**Where output goes.** Spec documents are optional. Write
-`.specs/<slug>/evidence/release-<date>.md` only when the project already keeps
-spec documents (a `.specs/` directory, or its own spec tool's format — then
-use that format) or the user asks for files. Otherwise return the release
-record in the conversation: the IDs it assigns are still used, marked
-context-sourced, and carried into the deploy ticket or PR.
+## Operating contract
+
+These rules apply to every step below. They override habit and convenience.
+
+1. **Think, then act.** Before the first edit or claim, write down: the goal,
+   what you verified, what you are assuming, the smallest plan, and the check
+   that will prove it done.
+2. **Evidence, not belief.** Read the code and run the command before stating
+   a fact. Cite `path:line`, or the command and its output. Label everything
+   else an assumption. Never report a check you did not run.
+3. **Smallest change that works.** Change only what the task needs. Search for
+   existing code to reuse before writing new code. No drive-by refactors,
+   renames, reformatting, new dependencies, or speculative abstractions.
+   Problems outside the task are reported as follow-ups, not fixed.
+4. **Keep contracts substitutable (Liskov).** Whatever you change must still
+   work everywhere the old version was used: accept at least the same inputs,
+   keep the same outputs, errors, and side effects, and leave callers
+   unchanged. If a contract must break, stop and say so. That is a decision
+   for a human, not a detail.
+5. **One source of truth (DRY).** Each rule, fact, and piece of logic lives in
+   one place. Reference it; do not copy it. Do not merge code that only looks
+   alike: extract on the third real duplicate of the same knowledge.
+6. **Secure by default.** No secrets in code, logs, commits, or output. Treat
+   external input as untrusted. Grant least privilege. Add or upgrade a
+   dependency only when needed, pinned, from a known source. Flag any change
+   to auth, permissions, personal data, crypto, or CI/CD for human review.
+7. **Ask, do not guess.** If a missing detail would change the result, stop
+   and ask one question with a recommended answer. Never approve your own work
+   at a human gate. Never run a destructive or irreversible action without
+   explicit approval.
+8. **Specs are optional.** If the project keeps spec files (`.specs/<slug>/`,
+   or its own spec tool), read and write them there. If not, work in the
+   conversation with the same IDs marked *context-sourced*, and carry them
+   into commits and the PR. Never create `.specs/` unasked. Requirements are
+   *agreed* only when a spec says `Status: Approved` with an approver, or the
+   user confirmed a restated list.
+9. **Finish by reporting.** Show the full result (output, evidence, open
+   items, follow-ups) and stop. Do not start the next stage. If the project
+   keeps spec files and this work has none, offer once to write a `Draft`
+   spec.
 
 ## Process
 
-1. **Name exactly what is shipping.** The commit range or version, the
-   requirements (`R-*`) it delivers, and anything merged alongside it that
-   will ride along. A release is what deploys, not what you were working on.
-2. **Check the observability actually exists.** For every log, metric, and
-   alert the spec promised: find it in the code, and confirm it fires. Emit
-   the log line locally or in staging and read it back. Query the metric and
-   see a value. For each alert, confirm the condition, the threshold, and
-   **who gets paged** — an alert routed nowhere is a comment.
-   - A promised signal that does not exist is a release blocker, not a
-     follow-up ticket. It is the thing you will wish you had.
-3. **Rehearse the rollback.** Not read it — run it, in a non-production
-   environment that resembles production enough to mean something.
-   - **Flag:** flip it off and confirm old behavior returns.
-   - **Deploy revert:** deploy the previous version and confirm it boots and
-     serves.
-   - **Migration:** run the down-migration and confirm the schema and the
-     data survive it.
-   Record how long it took. Rollback duration is the number that matters
-   during an incident, and nobody knows it until they measure it.
-4. **Work out what rollback does to data.** The part that turns a rollback
-   into a second incident. For data written by the new version: does the old
-   version read it, ignore it, or crash on it? Are there rows the old schema
-   cannot represent? Is any of it irreversible — an email sent, a payment
-   captured, a webhook delivered, a third-party record created?
-   - If some effects cannot be undone, say so plainly and name them. A
-     partial rollback is still useful; a rollback wrongly believed to be
-     total is dangerous.
-5. **Define the watch, before deploying.** Write down the signals to observe,
-   for how long, and the threshold at which you stop and roll back. Decide
-   these while calm; the entire point is to have a number to compare against
-   rather than a judgement to make under pressure.
-6. **Make the go / no-go call.** Against the checks below, with evidence. Any
-   blocker unresolved is a no-go. "Ship it and watch closely" is not a
-   mitigation for a missing rollback — it is the absence of one.
-   - **GO** — every check passes.
-   - **GO WITH CONDITIONS** — every blocker passes; one or more non-blocking
-     checks (for example a warn-level gate, or a metric with no baseline yet)
-     are accepted as named conditions, each with an owner and a due date,
-     listed under Follow-ups. A blocker can never become a condition.
-   - **NO-GO** — any blocker unresolved: missing rollback, a promised signal
-     absent, an unrouted alert, stale or failing test evidence.
-7. **Deploy, then actually watch.** Observe the signals from step 5 for the
-   stated window. Record what they did — including "nothing changed", which
-   is the result you want and still evidence. Do not start other work during
-   the watch window; an unwatched watch window is a waiting period. If you
-   can query the signals, check them at a fixed interval across the whole
-   window and record each reading. If you cannot, or the window outlasts the
-   session, hand the watch to a named person with the watch plan (signals,
-   thresholds, window, rollback trigger) and record the handover — the
-   release record is not complete until they report the outcome.
-8. **Record the outcome, and close the loop.** Write the release record. If
-   you rolled back, record the trigger, the duration, and what the data did —
-   that evidence is worth more than the release itself, and it feeds the
-   diagnosis of what went wrong.
-9. **Present the result, then offer a spec only where specs are in use.** Show
-   the full result — the release record, the go / no-go decision, the evidence
-   for each check — in one place, and wait for the user's reaction. If nobody
-   is there to respond (an automated or chained run), end here with the result
-   reported and create nothing optional. Offer a spec file only if the project
-   already keeps spec documents (`.specs/` or its own spec tool) or the user
-   asked for one, and this work has none — and offer it at most once per
-   session: a declined offer is not repeated, and the work stays
-   context-driven. If the user agrees, write `.specs/<slug>/spec.md` from what
-   this pass established — the scope, the requirements (`R-<n>`) that shipped,
-   the observability signals and rollback plan that were proven to work, and
-   the watch thresholds — with `Status: Draft` and the standard spec sections
-   (context, scope, non-scope, interface and data contracts, behaviour, error
-   and edge cases, test criteria, observability, rollback plan, open
-   questions). Only a human approves it, later. Anything still open goes into
-   its open questions, not invented.
+1. **Name exactly what ships:** the commit range or version, the `R-*` it
+   delivers, and everything riding along. Call out migrations, flags,
+   contract changes, new permissions, and changed configuration or secrets.
+2. **Confirm the artifact is the tested one.** The build being deployed
+   comes from the commit the evidence covers, and the security gates
+   (secret scan, dependency audit, code and image scans) passed on it.
+3. **Check every promised signal exists and fires.** Find each log, metric,
+   and alert in the code. Emit the log and read it back. Query the metric
+   and see a value. For each alert, confirm the condition, the threshold,
+   and who is paged.
+4. **Rehearse the rollback** in a non-production environment and time it:
+   - flag: turn it off and confirm the old behavior;
+   - deploy revert: deploy the previous version and confirm it serves;
+   - migration: run the down migration and confirm schema and data survive.
+5. **Work out what rollback does to data.** Can the old version read what
+   the new one wrote? Name anything that cannot be undone: emails sent,
+   payments captured, webhooks delivered, third-party records.
+6. **Define the watch before deploying:** the signals, their normal values,
+   the threshold that triggers rollback, and the window.
+7. **Make the call:**
+   - **GO:** every check passes.
+   - **GO WITH CONDITIONS:** every blocker passes; named non-blocking gaps
+     each have an owner and a due date.
+   - **NO-GO:** any blocker fails: no rehearsed rollback, a promised signal
+     missing, an alert routed to nobody, stale or failing evidence, a
+     failed security gate.
+8. **Get the decision from a person, then deploy and watch.** Read the
+   signals at a fixed interval for the whole window and record each
+   reading. If you cannot watch, hand the watch plan to a named person and
+   record the handover.
+9. **Record the outcome** using Output, then report. If it was rolled back,
+   record the trigger, the duration, and what happened to the data.
 
-## Templates
+## Rules
 
-Release record, saved to `.specs/<slug>/evidence/release-<date>.md` or
-returned in the conversation (see Where output goes):
+- Rehearse the rollback. Reading the plan is not rehearsing it.
+- An alert that exists but pages nobody fails the check.
+- A blocker never becomes a condition or a follow-up.
+- "Ship it and watch closely" does not replace a rollback.
+- Watch thresholds are numbers set before deploy, never "keep an eye on
+  it".
+- "Nothing changed" during the watch is a result. Record it.
+- Scale the checks to the blast radius, not to the size of the diff.
+- You never decide GO alone and never deploy to production without explicit
+  approval.
+
+## Output
+
+Save to `.specs/<slug>/evidence/release-<YYYY-MM-DD>.md`, or return it in the
+conversation and the deploy ticket (contract rule 8).
 
 ```markdown
 # Release: <what is shipping>
 
 > **Date:** <YYYY-MM-DD>
 > **Version / commits:** <tag or range>
-> **Requirements:** R-<n>, R-<m>
-> **Decision:** <GO | NO-GO | GO WITH CONDITIONS>
+> **Requirements:** R-<n>
+> **Decision:** GO | GO WITH CONDITIONS | NO-GO
 > **Decided by:** <name>
 
 ## Scope
+<What deploys, with migrations, flags, contract, permission, and
+configuration changes called out.>
 
-<What deploys, including anything riding along. Migrations, flags, and
-contract changes called out explicitly.>
-
-## Release checks
-
-| ID | Check | Result | Evidence |
-|---|---|---|---|
-| RL-1 | Test evidence current and passing | Pass | <report file, PR, or CI run> |
-| RL-2 | CI gates green on merge commit (`C-*`) | Pass | <link / output> |
-| RL-3 | Promised logs emit | Pass | <log line observed in staging> |
-| RL-4 | Promised metrics report | Pass | <query + value> |
-| RL-5 | Alerts configured, threshold set, route confirmed | Fail | <no route — blocker> |
-| RL-6 | Rollback rehearsed | Pass | <mechanism, duration> |
-| RL-7 | Data consequences of rollback understood | Pass | <summary> |
-| RL-8 | Watch plan defined with thresholds | Pass | <below> |
+## Checks
+| ID | Check | Blocker | Result | Evidence |
+|---|---|---|---|---|
+| RL-1 | Test evidence current for the merge commit | yes | Pass | <report or CI run> |
+| RL-2 | CI and security gates green on the shipped commit | yes | Pass | <link> |
+| RL-3 | Promised logs emit | yes | Pass | <line seen in staging> |
+| RL-4 | Promised metrics report | yes | Pass | <query and value> |
+| RL-5 | Alerts: condition, threshold, route | yes | Fail | <no route> |
+| RL-6 | Rollback rehearsed and timed | yes | Pass | <mechanism, duration> |
+| RL-7 | Data consequences of rollback known | yes | Pass | <summary> |
+| RL-8 | Watch plan with thresholds | yes | Pass | below |
 
 ## Rollback
-
-- **Mechanism:** <flag / revert / down-migration>
-- **Rehearsed:** <where, when> — took **<duration>**
-- **Trigger:** <the signal and threshold that starts a rollback>
-- **Data consequences:** <what happens to data written by the new version>
-- **Irreversible effects:** <emails, payments, webhooks — or "none">
+- **Mechanism:** <flag / revert / down migration>
+- **Rehearsed:** <where, when>, took <duration>
+- **Trigger:** <signal and threshold>
+- **Data consequences:** <what happens to new-version data>
+- **Cannot be undone:** <effects, or "none">
 
 ## Watch plan
-
 | Signal | Normal | Roll back if | Window |
 |---|---|---|---|
-| <error rate> | <baseline> | <threshold> | <duration> |
-| <p99 latency> | <baseline> | <threshold> | <duration> |
 
 ## Outcome
-
-> Filled in after the watch window.
-
 - **Deployed:** <timestamp>
-- **Observed:** <what each signal did — "unchanged" is a result>
-- **Result:** <held | rolled back>
-- **If rolled back:** trigger <what>, duration <how long>, data <what happened>
+- **Observed:** <each signal's readings>
+- **Result:** held | rolled back (<trigger, duration, data outcome>)
 
-## Follow-ups
-
-<Gaps accepted as conditions of the GO, each with an owner.>
+## Conditions and follow-ups
+- <gap> | owner: <name> | due: <date>, or "none"
 ```
-
-## Common Rationalizations
-
-| Rationalization | Reality |
-|---|---|
-| "The rollback plan is written, that's enough" | The written plan has never encountered the actual migration, the actual flag, or the actual deploy tooling. Plans that have never been run fail in ways nobody predicted, at the exact moment when nobody has time to debug them. Run it once while it is cheap. |
-| "We'll add the metrics if we see problems" | You cannot see problems without the metrics — that is what the metrics are for. Adding observability during an incident means shipping code to a system you already believe is broken. |
-| "The alert exists" | Existing and firing are different. An alert with a wrong threshold, a stale route, or a paused schedule is worse than no alert, because it buys unearned confidence. Confirm the condition, the threshold, and who receives it. |
-| "Rolling back is easy, it's just a revert" | Not once the new version has written data. The revert is the easy half; the question is whether the old version can read what the new one wrote. That is what makes rollbacks turn into second incidents. |
-| "I'll watch it after I finish this other thing" | Then nobody is watching. The window exists because the failure modes that survive testing surface under real traffic within minutes. A watch window you are not present for is a waiting period with extra steps. |
-| "It's a small change, it doesn't need a release check" | Small changes touch shared code and ship with less scrutiny, which is a well-documented way to cause a large incident. Scale the checks to the blast radius, not to the diff size. |
-| "The deploy pipeline handles all this" | Some of it, probably. Name which checks it performs and mark those as covered — that is a legitimate and quick answer. What the pipeline does not check is what this skill is for. |
-| "We can't roll back, but we've tested it thoroughly" | That may be the right call, and it is a decision someone must make knowingly. Record it as a one-way door with the reason, so the risk is chosen rather than discovered. |
-| "Nothing happened during the watch, so there's nothing to record" | "Signals unchanged for thirty minutes at full traffic" is exactly the evidence that makes the next release's baseline meaningful. Record it. |
-
-## Red Flags
-
-- A rollback plan that has never been executed anywhere.
-- Rollback duration unknown.
-- An alert whose recipient nobody can name.
-- Observability described in the spec but absent from the code.
-- Data consequences of a rollback unexamined, on a change with a migration.
-- Watch thresholds chosen after deploy, or expressed as "keep an eye on it".
-- Deploying at the end of the day, before a weekend, or with the watch
-  delegated to nobody.
-- A GO decision with an unresolved blocker reclassified as a follow-up.
-- The release record's Outcome section still empty a day later.
 
 ## Verification
 
-- [ ] Exactly what is shipping is named: commits or version, and the `R-*` it delivers.
-- [ ] Test evidence is current and passing for the merge commit.
-- [ ] Every promised log, metric, and alert was found in the code **and observed working**.
-- [ ] Each alert's condition, threshold, and route to a named recipient are confirmed.
-- [ ] The rollback was rehearsed, not just read, with its duration recorded.
-- [ ] Data consequences of rollback are stated, including irreversible effects or "none".
-- [ ] Watch signals, baselines, thresholds, and window were written before deploy.
-- [ ] The go / no-go decision is recorded with a name, and no blocker was downgraded to make it a GO.
-- [ ] The watch window was actually observed, and the outcome recorded — including "unchanged".
-- [ ] If rolled back: trigger, duration, and data outcome are recorded.
+- [ ] What ships is named exactly, and the artifact matches the tested
+      commit.
+- [ ] Every promised log, metric, and alert was seen working, and each
+      alert has a named recipient.
+- [ ] The rollback was run, not read, and its duration is recorded.
+- [ ] Data consequences are stated, including what cannot be undone.
+- [ ] Watch signals and thresholds were written before deploy.
+- [ ] The decision names a person, and no blocker was downgraded.
+- [ ] The watch window was observed and the outcome recorded.

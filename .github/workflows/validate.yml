@@ -5,6 +5,9 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   skills:
     runs-on: ubuntu-latest
@@ -15,9 +18,9 @@ jobs:
         with:
           node-version: 22
 
-      # Frontmatter must parse, `name` must equal the directory name, and the
-      # description must fit the 1024-char budget the agent sees at startup.
-      - name: Check skill frontmatter
+      # Frontmatter, required sections, the 200-line budget, self-containment,
+      # and the Operating contract matching docs/operating-contract.md.
+      - name: Check skills
         run: node .github/scripts/check-skills.mjs
 
       # The checker's own behavior is pinned by tests — a broken validator
@@ -51,3 +54,18 @@ jobs:
             }
             console.log("All " + onDisk.length + " skills installed.");
           '
+
+  # The pack ships the gate it asks consumers to run, so it runs it too.
+  # There is no dependency job: this repository has no manifest or lockfile.
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Scan for secrets (gitleaks v8.30.1)
+        run: |
+          docker run --rm -v "$PWD:/repo" \
+            ghcr.io/gitleaks/gitleaks@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f \
+            git /repo --redact --no-banner

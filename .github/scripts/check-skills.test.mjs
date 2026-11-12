@@ -1,10 +1,8 @@
 // Pins the observable behavior of check-skills.mjs — exit codes, stdout,
 // and exact error messages — against fixture skill trees in temp dirs.
-// These tests predate the simplification pass; they must pass unchanged
-// before and after it.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { execFile } from "node:child_process";
@@ -33,15 +31,21 @@ function validSkill(name) {
     "",
     "None.",
     "",
-    "## Common Rationalizations",
+    "## Operating contract",
     "",
-    "| R | Reality |",
-    "|---|---|",
-    "| one | two |",
+    "Be careful.",
     "",
-    "## Red Flags",
+    "## Process",
+    "",
+    "1. Do it.",
+    "",
+    "## Rules",
     "",
     "- one",
+    "",
+    "## Output",
+    "",
+    "The thing.",
     "",
     "## Verification",
     "",
@@ -57,7 +61,9 @@ function padTo(text, total) {
 
 // Build a temp repo with the given skills (name -> SKILL.md text; null =
 // directory without SKILL.md) and run the checker against it from there.
-async function runChecker(skills) {
+// `contract` writes docs/operating-contract.md; `args` are passed to the
+// checker; `files` returns each SKILL.md as it is after the run.
+async function runChecker(skills, { contract, args = [] } = {}) {
   const root = await mkdtemp(join(tmpdir(), "check-skills-"));
   try {
     for (const [name, text] of Object.entries(skills)) {
@@ -65,47 +71,57 @@ async function runChecker(skills) {
       await mkdir(dir, { recursive: true });
       if (text !== null) await writeFile(join(dir, "SKILL.md"), text);
     }
-    try {
-      const { stdout } = await run(process.execPath, [SCRIPT], { cwd: root });
-      return { status: 0, stdout, stderr: "" };
-    } catch (err) {
-      return { status: err.code, stdout: err.stdout ?? "", stderr: err.stderr ?? "" };
+    if (contract !== undefined) {
+      await mkdir(join(root, "docs"));
+      await writeFile(join(root, "docs", "operating-contract.md"), contract);
     }
+    let result;
+    try {
+      const { stdout } = await run(process.execPath, [SCRIPT, ...args], { cwd: root });
+      result = { status: 0, stdout, stderr: "" };
+    } catch (err) {
+      result = { status: err.code, stdout: err.stdout ?? "", stderr: err.stderr ?? "" };
+    }
+    const files = {};
+    for (const [name, text] of Object.entries(skills)) {
+      if (text !== null) files[name] = await readFile(join(root, "skills", name, "SKILL.md"), "utf8");
+    }
+    return { ...result, files };
   } finally {
     await rm(root, { recursive: true, force: true });
   }
 }
 
 test("a valid skill passes", async () => {
-  const { status, stdout } = await runChecker({ foo: validSkill("foo") });
+  const { status, stdout } = await runChecker({ "spine-foo": validSkill("spine-foo") });
   assert.equal(status, 0);
   assert.equal(stdout, "✓ 1 skills valid.\n");
 });
 
 test("a directory without SKILL.md fails", async () => {
-  const { status, stderr } = await runChecker({ foo: null });
+  const { status, stderr } = await runChecker({ "spine-foo": null });
   assert.equal(status, 1);
-  assert.match(stderr, /skills\/foo\/SKILL\.md: no SKILL\.md/);
+  assert.match(stderr, /skills\/spine-foo\/SKILL\.md: no SKILL\.md/);
 });
 
 test("missing frontmatter fails", async () => {
-  const { status, stderr } = await runChecker({ foo: "# foo\n\nNo frontmatter here.\n" });
+  const { status, stderr } = await runChecker({ "spine-foo": "# spine-foo\n\nNo frontmatter here.\n" });
   assert.equal(status, 1);
   assert.match(stderr, /missing or malformed frontmatter/);
 });
 
 test("frontmatter without a name fails", async () => {
   const { status, stderr } = await runChecker({
-    foo: validSkill("foo").replace("name: foo\n", ""),
+    "spine-foo": validSkill("spine-foo").replace("name: spine-foo\n", ""),
   });
   assert.equal(status, 1);
   assert.match(stderr, /frontmatter has no `name`/);
 });
 
 test("name that does not match the directory fails", async () => {
-  const { status, stderr } = await runChecker({ foo: validSkill("bar") });
+  const { status, stderr } = await runChecker({ "spine-foo": validSkill("spine-bar") });
   assert.equal(status, 1);
-  assert.match(stderr, /name "bar" does not match directory "foo"/);
+  assert.match(stderr, /name "spine-bar" does not match directory "spine-foo"/);
 });
 
 test("name that is not lowercase-hyphenated fails", async () => {
@@ -118,7 +134,7 @@ test("name that is not lowercase-hyphenated fails", async () => {
 
 test("frontmatter without a description fails", async () => {
   const { status, stderr } = await runChecker({
-    foo: validSkill("foo").replace(/^description:.*\n/m, ""),
+    "spine-foo": validSkill("spine-foo").replace(/^description:.*\n/m, ""),
   });
   assert.equal(status, 1);
   assert.match(stderr, /frontmatter has no `description`/);
@@ -127,7 +143,7 @@ test("frontmatter without a description fails", async () => {
 test("description over 1024 characters fails", async () => {
   const description = `Use when ${"x".repeat(1016)}`; // 1025 chars
   const { status, stderr } = await runChecker({
-    foo: validSkill("foo").replace(
+    "spine-foo": validSkill("spine-foo").replace(
       /description:.*\n/,
       `description: ${description}\n`,
     ),
@@ -139,7 +155,7 @@ test("description over 1024 characters fails", async () => {
 test("description of exactly 1024 characters passes", async () => {
   const description = `Use when ${"x".repeat(1015)}`; // 1024 chars
   const { status } = await runChecker({
-    foo: validSkill("foo").replace(
+    "spine-foo": validSkill("spine-foo").replace(
       /description:.*\n/,
       `description: ${description}\n`,
     ),
@@ -149,7 +165,7 @@ test("description of exactly 1024 characters passes", async () => {
 
 test("description without a Use-when trigger fails", async () => {
   const { status, stderr } = await runChecker({
-    foo: validSkill("foo").replace(
+    "spine-foo": validSkill("spine-foo").replace(
       /description:.*\n/,
       "description: Does the thing for everyone, always.\n",
     ),
@@ -160,51 +176,51 @@ test("description without a Use-when trigger fails", async () => {
 
 test("a backticked reference to a sibling skill fails", async () => {
   const { status, stderr } = await runChecker({
-    alpha: validSkill("alpha").replace("Body.", "See `my-tool` for details."),
-    "my-tool": validSkill("my-tool"),
+    "spine-alpha": validSkill("spine-alpha").replace("Body.", "See `spine-tool` for details."),
+    "spine-tool": validSkill("spine-tool"),
   });
   assert.equal(status, 1);
-  assert.match(stderr, /references another skill \(`my-tool`\)/);
+  assert.match(stderr, /references another skill \(`spine-tool`\)/);
 });
 
 test("a reference to the skill's own name passes", async () => {
   const { status } = await runChecker({
-    alpha: validSkill("alpha").replace("Body.", "This is `alpha`."),
+    "spine-alpha": validSkill("spine-alpha").replace("Body.", "This is `spine-alpha`."),
   });
   assert.equal(status, 0);
 });
 
 test("an unbackticked mention of a sibling skill passes", async () => {
   const { status } = await runChecker({
-    alpha: validSkill("alpha").replace("Body.", "See my-tool for details."),
-    "my-tool": validSkill("my-tool"),
+    "spine-alpha": validSkill("spine-alpha").replace("Body.", "See spine-tool for details."),
+    "spine-tool": validSkill("spine-tool"),
   });
   assert.equal(status, 0);
 });
 
-test("more than 500 lines fails", async () => {
-  const { status, stderr } = await runChecker({ foo: padTo(validSkill("foo"), 501) });
+test("more than 200 lines fails", async () => {
+  const { status, stderr } = await runChecker({ "spine-foo": padTo(validSkill("spine-foo"), 201) });
   assert.equal(status, 1);
-  assert.match(stderr, /501 lines \(max 500\)/);
+  assert.match(stderr, /201 lines \(max 200\)/);
 });
 
-test("exactly 500 lines passes", async () => {
-  const { status } = await runChecker({ foo: padTo(validSkill("foo"), 500) });
+test("exactly 200 lines passes", async () => {
+  const { status } = await runChecker({ "spine-foo": padTo(validSkill("spine-foo"), 200) });
   assert.equal(status, 0);
 });
 
 test("headings inside code fences do not count", async () => {
   // The only `## Overview` in the file is inside a fenced block, so it must
   // not count as a section.
-  const text = validSkill("foo").replace("## Overview\n", "```text\n## Overview\n```\n");
-  const { status, stderr } = await runChecker({ foo: text });
+  const text = validSkill("spine-foo").replace("## Overview\n", "```text\n## Overview\n```\n");
+  const { status, stderr } = await runChecker({ "spine-foo": text });
   assert.equal(status, 1);
   assert.match(stderr, /missing section "## Overview"/);
 });
 
 test("an unclosed code fence fails", async () => {
   const { status, stderr } = await runChecker({
-    foo: validSkill("foo").replace("Body.", "```\nBody."),
+    "spine-foo": validSkill("spine-foo").replace("Body.", "```\nBody."),
   });
   assert.equal(status, 1);
   assert.match(stderr, /unclosed code fence/);
@@ -212,10 +228,39 @@ test("an unclosed code fence fails", async () => {
 
 test("errors from multiple skills are all reported", async () => {
   const { status, stderr } = await runChecker({
-    "bad-a": null,
-    "bad-b": validSkill("bad-b").replace("## Red Flags\n", ""),
+    "spine-bad-a": null,
+    "spine-bad-b": validSkill("spine-bad-b").replace("## Rules\n", ""),
   });
   assert.equal(status, 1);
   assert.match(stderr, /no SKILL\.md/);
-  assert.match(stderr, /missing section "## Red Flags"/);
+  assert.match(stderr, /missing section "## Rules"/);
+});
+
+test("an Operating contract matching the shared contract passes", async () => {
+  const { status } = await runChecker({ "spine-foo": validSkill("spine-foo") }, { contract: "Be careful.\n" });
+  assert.equal(status, 0);
+});
+
+test("an Operating contract that drifted from the shared contract fails", async () => {
+  const { status, stderr } = await runChecker(
+    { "spine-foo": validSkill("spine-foo") },
+    { contract: "Be very careful.\n" },
+  );
+  assert.equal(status, 1);
+  assert.match(stderr, /Operating contract differs from docs\/operating-contract\.md/);
+});
+
+test("--fix restamps a drifted Operating contract and nothing else", async () => {
+  const { status, files } = await runChecker(
+    { "spine-foo": validSkill("spine-foo") },
+    { contract: "Be very careful.\n", args: ["--fix"] },
+  );
+  assert.equal(status, 0);
+  assert.equal(files["spine-foo"], validSkill("spine-foo").replace("Be careful.", "Be very careful."));
+});
+
+test("a name without the pack prefix fails", async () => {
+  const { status, stderr } = await runChecker({ foo: validSkill("foo") });
+  assert.equal(status, 1);
+  assert.match(stderr, /name "foo" does not start with "spine-"/);
 });

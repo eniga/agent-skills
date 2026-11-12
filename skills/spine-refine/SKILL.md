@@ -1,227 +1,166 @@
 ---
-name: refine
-description: Breaks a ready story into tasks with story points and rationale, and writes a spec sketch that gives the spec author a head start. Use when a story is triaged Ready and needs refinement before specification. Use when a story needs task breakdown and pointing for sprint planning.
+name: spine-refine
+description: Breaks a ready story into vertical tasks with story points and a rationale for each, and drafts a spec sketch of proposed requirements, interfaces, and risks. Use when a ready story needs sizing before specification. Use when sprint planning needs a task breakdown and points.
 ---
 
-# Refine
+# Spine Refine
 
 ## Overview
 
-Take a ready story and produce two artifacts: a **spec sketch** (a head start
-for the spec author — proposed requirements, interfaces, and risks, not a
-finished spec) and a **task breakdown with pointing** (tasks `T-<n>` with
-story points and the rationale for each point). Refinement decides *how big*
-the work is and *what the spec should cover*; it does not decide *how to
-build it* (that is planning) and it does not write the spec (that is
-specification) — it sizes the work and gives the spec author a head start.
+Size a ready story. Produce a **spec sketch** (draft `R-<n>` requirements,
+rough interfaces, risks) and a **task breakdown** (`T-<n>` with points).
+**Every point has a reason, and every task is a vertical slice.** This skill
+does not write the spec, plan the build, or implement.
 
 ## When to Use
 
-- A story is triaged Ready and the next step is to specify it.
-- Sprint planning needs a task breakdown and points for a story.
-- A story is too big to spec in one pass and needs to be split.
+- A story is ready and the next step is specification.
+- Sprint planning needs tasks and points.
 
-**When NOT to use:** The story is not ready — it has no clear outcome, no
-acceptance criteria, or unresolved product questions (get those fixed first;
-refining a broken story wastes the refinement). The spec already exists (the
-next step is planning the build order, not re-sizing). The work is a single
-task (no breakdown needed — build it).
+**Not for:** a story that is not ready (fix it first); work that already has
+a spec (plan the build instead); a single task (build it).
 
 ## Inputs
 
-| Input | Where | If it is missing |
+| Input | Where | If missing |
 |---|---|---|
-| A ready story with `AC-*` and `NG-*` | `.specs/<slug>/story.md`, a ticket, or the conversation | Proceed from a story in the conversation (a pasted ticket, or the request with its acceptance criteria) when there is no file. Stop only if no outcome or acceptance criteria are stated anywhere. If the story exists but is thin, say which readiness gaps you found, size only what is sizeable, and list the rest as unknowns rather than inventing points. |
-| Repository context (where the work lands, what exists) | the codebase | Proceed, but mark every estimate that rests on an unverified assumption. Points on guessed context are guesses. |
-| Team pointing scale | team convention | Proceed with the Fibonacci scale in this skill and say which scale you used. |
+| Ready story with `AC-*` and `NG-*` | `.specs/<slug>/story.md`, a ticket, the conversation | Stop if no outcome or criteria exist anywhere. If the story is thin, size what can be sized and list the rest as unknowns. |
+| Repository context | the codebase | Proceed. Mark every estimate that rests on unverified code as assumed. |
+| Pointing scale | team convention | Proceed with 1, 2, 3, 5, 8 and say so. |
 
-This skill needs a story. The sketch it writes is a head start for whoever
-specifies the work, not a dependency on any particular tool.
+## Operating contract
 
-**Where output goes.** Spec documents are optional. Write
-`.specs/<slug>/sketch.md` and `tasks.md` only when the project already keeps
-spec documents (a `.specs/` directory, or its own spec tool's format — then
-use that format) or the user asks for files. Otherwise return both artifacts
-in the conversation: the IDs it assigns are still used, marked
-context-sourced, and carried into the plan, the commit messages, and the PR
-body.
+These rules apply to every step below. They override habit and convenience.
+
+1. **Think, then act.** Before the first edit or claim, write down: the goal,
+   what you verified, what you are assuming, the smallest plan, and the check
+   that will prove it done.
+2. **Evidence, not belief.** Read the code and run the command before stating
+   a fact. Cite `path:line`, or the command and its output. Label everything
+   else an assumption. Never report a check you did not run.
+3. **Smallest change that works.** Change only what the task needs. Search for
+   existing code to reuse before writing new code. No drive-by refactors,
+   renames, reformatting, new dependencies, or speculative abstractions.
+   Problems outside the task are reported as follow-ups, not fixed.
+4. **Keep contracts substitutable (Liskov).** Whatever you change must still
+   work everywhere the old version was used: accept at least the same inputs,
+   keep the same outputs, errors, and side effects, and leave callers
+   unchanged. If a contract must break, stop and say so. That is a decision
+   for a human, not a detail.
+5. **One source of truth (DRY).** Each rule, fact, and piece of logic lives in
+   one place. Reference it; do not copy it. Do not merge code that only looks
+   alike: extract on the third real duplicate of the same knowledge.
+6. **Secure by default.** No secrets in code, logs, commits, or output. Treat
+   external input as untrusted. Grant least privilege. Add or upgrade a
+   dependency only when needed, pinned, from a known source. Flag any change
+   to auth, permissions, personal data, crypto, or CI/CD for human review.
+7. **Ask, do not guess.** If a missing detail would change the result, stop
+   and ask one question with a recommended answer. Never approve your own work
+   at a human gate. Never run a destructive or irreversible action without
+   explicit approval.
+8. **Specs are optional.** If the project keeps spec files (`.specs/<slug>/`,
+   or its own spec tool), read and write them there. If not, work in the
+   conversation with the same IDs marked *context-sourced*, and carry them
+   into commits and the PR. Never create `.specs/` unasked. Requirements are
+   *agreed* only when a spec says `Status: Approved` with an approver, or the
+   user confirmed a restated list.
+9. **Finish by reporting.** Show the full result (output, evidence, open
+   items, follow-ups) and stop. Do not start the next stage. If the project
+   keeps spec files and this work has none, offer once to write a `Draft`
+   spec.
 
 ## Process
 
-1. **Read the inputs.** Read the story, ACs, non-goals, and any triage
-   verdict (`.specs/<slug>/story.md`, or the conversation) and the relevant
-   existing code. If a triage verdict is Not ready or Blocked, stop and say
-   so — do not refine over known gaps.
-2. **Check the size.** If the story contains two independently shippable
-   outcomes, stop and split it into stories first (one story, one outcome).
-   Refinement splits tasks within a story, not stories.
-3. **Write the spec sketch** (see Where output goes) using the template
-   below. The sketch is a head start for the spec author:
-   - **Proposed requirements:** draft `R-<n>` entries, one per behavior you
-     can already see. Mark each `confirmed` (stated in the story) or
-     `assumed` (your inference — the spec author must verify).
-   - **Proposed interfaces:** the interfaces you expect the spec to need,
-     with rough shapes. These are hypotheses, not contracts.
-   - **Data questions:** the data the feature touches and what is unknown
-     about it.
-   - **Risks:** the top 3-5 risks, each with a one-line mitigation.
-   - **Open questions:** what the spec author must settle, each with a
-     recommended default.
-4. **Break the story into tasks.** Each task `T-<n>`:
-   - delivers one observable piece of the story,
-   - is small enough to build and verify in a single focused session,
-   - maps to at least one `AC-<n>` (or a sketch `R-<n>`),
-   - names its dependencies on other tasks.
-   Order tasks by dependency, not by perceived importance.
-5. **Point each task and write the rationale.** Use the Fibonacci scale
-   (1, 2, 3, 5, 8). The point is a relative size estimate, not a time
-   estimate. For each task, write one line of rationale: what makes it that
-   size (unknowns, integration surface, test surface, risk). A task with no
-   rationale is a guess wearing a number.
-   - **1:** one file, no unknowns, obvious test.
-   - **2:** a few files, one small unknown.
-   - **3:** multiple files or one real unknown; a full day of focused work.
-   - **5:** significant unknowns or integration surface; would be split if it
-     could be.
-   - **8:** too big to estimate honestly. Split it, or flag it as a spike
-     (a task whose output is knowledge, not code).
-6. **Sanity-check the total.** If the story's points exceed the team's
-   iteration capacity, say so and propose which tasks to cut or defer (cite
-   the `NG-*` or AC they would drop). Do not silently shrink the story.
-7. **Present the result, then offer a spec only where specs are in use.** Show
-   the full result — both artifacts, where they were saved (or that they live
-   in the conversation), the total points, the unknowns — in one place, and
-   wait for the user's reaction. If nobody is there to respond (an automated
-   or chained run), end here with the result reported and create nothing
-   optional. Offer a spec file only if the project already keeps spec
-   documents (`.specs/` or its own spec tool) or the user asked for one, and
-   this work has none — and offer it at most once per session: a declined
-   offer is not repeated, and the work stays context-driven. If the user
-   agrees, write `.specs/<slug>/spec.md` from what this pass established — the
-   scope, the sketch's requirements (`R-<n>`, marked confirmed or assumed),
-   the test criteria (`TC-*`) the acceptance criteria imply, and the risks —
-   with `Status: Draft` and the standard spec sections (context, scope,
-   non-scope, interface and data contracts, behaviour, error and edge cases,
-   test criteria, observability, rollback plan, open questions). Only a human
-   approves it, later. Anything still open goes into its open questions, not
-   invented. Do not write the spec, do not plan the build, do not implement.
+1. **Read the story and the code it touches.** If a triage verdict says Not
+   ready or Blocked, stop and say so.
+2. **Check the size.** Two shippable outcomes means two stories: stop and
+   split.
+3. **Find where the work lands.** Name the existing modules, interfaces, and
+   helpers the story will reuse or change. Prefer extending what exists over
+   adding something new.
+4. **Write the sketch:** draft `R-<n>` marked `confirmed` (stated in the
+   story) or `assumed` (your inference); rough interfaces; data questions;
+   the top three to five risks, including security and data risks, each with
+   a mitigation; open questions with recommended defaults.
+5. **Break the story into tasks.** Each `T-<n>` delivers one observable piece
+   end to end, fits one focused session, maps to an `AC-<n>` or `R-<n>`, and
+   names its dependencies. Order by dependency.
+6. **Point each task** and give one line of rationale:
 
-## Writing rules
+   | Points | Means |
+   |---|---|
+   | 1 | One file, no unknowns, obvious test. |
+   | 2 | A few files, one small unknown. |
+   | 3 | Several files or one real unknown. |
+   | 5 | Significant unknowns or integration surface. Split if you can. |
+   | 8 | Too big to estimate. Split it, or make it a spike. |
 
-- **The sketch is a head start, not a shortcut.** It exists so the spec
-  author starts from your hypotheses instead of a blank page. Every `assumed`
-  requirement is a question the spec must answer, not an answer the spec
-  inherits.
-- **Tasks are vertical, not horizontal.** A task is "the retry endpoint works
-  end to end", not "write the database layer". Horizontal tasks (all the
-  models, then all the endpoints) produce code that cannot be tested until
-  the last task.
-- **Pointing rationale is mandatory.** The number without the reason is
-  unreviewable. The rationale is what the team argues with in planning.
-- **Spikes are named as spikes.** When a task's output is knowledge (a
-  prototype, a benchmark, a proof of concept), say so. Spikes are not
-  delivered as production code.
-- **Dependencies are explicit.** "Depends on: T-2, T-5" or "None". A task
-  with hidden dependencies is a scheduling bug waiting to happen.
+7. **Check the total** against iteration capacity. If it is over, propose
+   which tasks to cut or defer, citing the `AC-<n>` affected.
+8. **Report.**
 
-## Templates
+## Rules
 
-### Spec sketch (`.specs/<slug>/sketch.md`)
+- Tasks are vertical ("the retry endpoint works end to end"), never layers
+  ("write the database layer").
+- Points measure relative size and unknowns, not hours.
+- A point without a rationale is a guess. Write the reason.
+- A spike produces knowledge, not production code. Label it a spike.
+- Sketch interfaces are hypotheses. Every `assumed` item is a question for
+  the spec author.
+- Never shrink the story silently to fit capacity.
+
+## Output
+
+Save to `.specs/<slug>/sketch.md` and `.specs/<slug>/tasks.md`, or return
+both in the conversation (contract rule 8).
 
 ```markdown
-# Spec Sketch: <feature name>
+# Spec sketch: <feature>
 
-> **Slug:** <slug>
-> **Story:** S-<n> — <title>
+> **Slug:** <slug> | **Story:** S-<n> | **Date:** <YYYY-MM-DD>
 > **Status:** Head start for the spec (not a spec)
-> **Date:** <YYYY-MM-DD>
+
+## Lands in
+- `<path>`: <reused or changed, and how>
 
 ## Proposed requirements
-
 - **R-1 (confirmed):** <behavior stated in the story>
-- **R-2 (assumed):** <your inference — spec author must verify>
-- **R-3 (assumed):** <...>
+- **R-2 (assumed):** <inference to verify>
 
 ## Proposed interfaces
-
-<Interfaces you expect the spec to need, with rough shapes. Hypotheses, not
-contracts.>
-
-### <Interface 1>
-- <rough request/response or signature>
-- <what is unknown about it>
+- <rough shape, and what is unknown>
 
 ## Data questions
-
-- <data the feature touches, and what is unknown about it>
+- <data touched, its sensitivity, what is unknown>
 
 ## Risks
-
 | # | Risk | Mitigation |
 |---|---|---|
-| 1 | <risk> | <one-line mitigation> |
-| 2 | <...> | <...> |
 
-## Open questions for the spec author
-
-- <question, with recommended default>
+## Open questions
+- <question> | recommended: <default>
 ```
 
-### Task breakdown (`.specs/<slug>/tasks.md`)
-
 ```markdown
-# Tasks: <feature name>
+# Tasks: <feature>
 
-> **Slug:** <slug>
-> **Story:** S-<n> — <title>
-> **Total points:** <sum>
-> **Date:** <YYYY-MM-DD>
+> **Slug:** <slug> | **Story:** S-<n> | **Total points:** <sum>
 
 | ID | Task | Maps to | Points | Rationale | Depends on |
 |---|---|---|---|---|---|
 | T-1 | <one observable piece> | AC-1 | 2 | <what makes it this size> | None |
-| T-2 | <...> | AC-2, R-2 | 3 | <...> | T-1 |
-| T-3 | <spike: ...> | R-4 | 5 | <unknown being resolved> | None |
 
 ## Notes
-
-- <anything a planner needs: cut candidates if over capacity, sequencing
-  constraints, external dependencies>
+- <cut candidates, sequencing constraints, external dependencies>
 ```
-
-## Common Rationalizations
-
-| Rationalization | Reality |
-|---|---|
-| "I'll skip the sketch, the spec author can figure it out" | The sketch is the difference between a spec author starting from your hypotheses and starting from a blank page. Ten minutes of sketching saves an hour of re-reading the codebase. |
-| "Points are just a number, the rationale is optional" | A number without a reason is unreviewable. The rationale is what the team argues with — "5 because the provider contract is unknown" is a decision; "5" is a mood. |
-| "I'll point by how long it will take" | Points are relative size, not time. A 3-point task for a senior engineer is a 5 for a junior; the point should track the unknowns and the surface, not the clock. |
-| "Horizontal tasks are faster to estimate" | "All the models, then all the endpoints" is easy to point and impossible to test until the end. Vertical tasks are harder to slice and testable from the first one. |
-| "An 8 is fine, it's just a big task" | An 8 means "I cannot estimate this honestly". Split it, or make it a spike. Shipping an 8 into a sprint is how sprints miss. |
-| "The story is big but I'll refine it anyway" | Refinement splits tasks within a story. If the story is two stories, the breakdown is a fiction — split the story first. |
-
-## Red Flags
-
-- A task that is a layer ("write the database layer"), not an outcome.
-- A point with no rationale.
-- A task with no `Maps to` — work that traces to no acceptance criterion.
-- Hidden dependencies (a task that needs another task's output but says "None").
-- The sketch presented as a spec (Status says "spec" or the interfaces are
-  written as contracts).
-- A story over iteration capacity with no cut proposal.
-- Refinement proceeding over a Not-ready triage verdict.
 
 ## Verification
 
-Before returning, confirm:
-
-- [ ] The sketch is saved or returned (per Where output goes) and marked as a head start, not a spec.
-- [ ] Every sketch requirement is marked `confirmed` or `assumed`.
-- [ ] The sketch has risks (3-5) and open questions with recommended defaults.
-- [ ] The task table is saved or returned (per Where output goes).
-- [ ] Every task maps to at least one `AC-<n>` or sketch `R-<n>`.
-- [ ] Every task has points on the Fibonacci scale and a one-line rationale.
-- [ ] Every task names its dependencies explicitly.
-- [ ] Tasks are ordered by dependency and are vertical (each delivers an observable piece).
-- [ ] The total points were checked against iteration capacity; over-capacity stories have a cut proposal.
-- [ ] No spec, plan, or implementation was produced.
+- [ ] The sketch is marked as a head start, not a spec.
+- [ ] Every sketch requirement is `confirmed` or `assumed`.
+- [ ] Every task maps to an `AC-<n>` or `R-<n>` and names its dependencies.
+- [ ] Every task has points and a one-line rationale. No unsplit 8.
+- [ ] Tasks are vertical and ordered by dependency.
+- [ ] The total was checked against capacity.
+- [ ] No spec, plan, or code was produced.

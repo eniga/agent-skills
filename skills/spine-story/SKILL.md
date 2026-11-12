@@ -1,137 +1,128 @@
 ---
-name: story-author
-description: Turns a feature intent into a Jira-ready story with Given/When/Then acceptance criteria and explicit non-goals. Use when starting a new feature from a vague idea, a voice note, or a product request. Use when a story needs to be written before refinement or specification.
+name: spine-story
+description: Turns a feature intent into a tracker-ready story with one outcome, Given/When/Then acceptance criteria including failure and misuse paths, and explicit non-goals. Use when a feature exists only as an idea, a voice note, or a product request. Use when a story is too vague to size or specify.
 ---
 
-# Story Author
+# Spine Story
 
 ## Overview
 
-Turn a feature intent into a story a team can actually work from: one user
-story, testable Given/When/Then acceptance criteria, and explicit non-goals.
-The output is a markdown file the team pastes into Jira — this skill never
-writes to Jira itself.
+Turn an intent into a story a team can work from: one user story, testable
+`AC-<n>` acceptance criteria, and explicit `NG-<n>` non-goals. **One story,
+one outcome, no implementation.** The output is markdown; this skill never
+writes to a tracker.
 
 ## When to Use
 
-- A feature exists only as a sentence, a voice note, or a product request.
-- A story in the tracker is too vague to refine or spec.
-- You are about to refine or specify a feature and there is no story yet.
+- A feature exists only as a sentence, a voice note, or a request.
+- A story is too vague to size or specify.
 
-**When NOT to use:** The story already exists and just needs a readiness
-check (triage it instead of rewriting it). The work is a bug fix with a
-known reproduction (diagnose and fix it, recording the defect and its
-regression test rather than authoring a feature story). The request bundles
-several independently shippable features (split it into multiple stories
-first; one story, one outcome).
+**Not for:** a story that only needs a readiness check (judge it, do not
+rewrite it); a bug with a known reproduction (record the defect instead);
+several shippable features in one request (split first, write the first).
 
 ## Inputs
 
-| Input | Where | If it is missing |
+| Input | Where | If missing |
 |---|---|---|
-| The feature intent | a request, voice note, ticket, or conversation | Stop. Ask what outcome is wanted and for whom. A story invented without intent is fiction. |
-| Repository context (what exists, what it is called) | the codebase | Proceed, and mark any assumption about existing behavior as an open question rather than stating it as fact. |
-| Existing conventions for stories | the tracker or `.specs/` | Proceed with this skill's template, and adapt field names to the tracker afterwards. |
+| Feature intent | the request, a ticket, a note | Stop. Ask what outcome is wanted and for whom. |
+| Repository context | the codebase | Proceed. Any claim about existing behavior is an open question. |
+| Story conventions | the tracker or `.specs/` | Proceed with the template below. |
 
-This skill needs an intent and somewhere to write. Nothing else.
+## Operating contract
 
-**Where output goes.** Spec documents are optional. Write
-`.specs/<slug>/story.md` only when the project already keeps spec documents (a
-`.specs/` directory, or its own spec tool's format — then use that format) or
-the user asks for files. Otherwise return the story in the conversation: the
-IDs it assigns are still used, marked context-sourced, and carried into the
-refinement, the commit messages, and the PR body.
+These rules apply to every step below. They override habit and convenience.
+
+1. **Think, then act.** Before the first edit or claim, write down: the goal,
+   what you verified, what you are assuming, the smallest plan, and the check
+   that will prove it done.
+2. **Evidence, not belief.** Read the code and run the command before stating
+   a fact. Cite `path:line`, or the command and its output. Label everything
+   else an assumption. Never report a check you did not run.
+3. **Smallest change that works.** Change only what the task needs. Search for
+   existing code to reuse before writing new code. No drive-by refactors,
+   renames, reformatting, new dependencies, or speculative abstractions.
+   Problems outside the task are reported as follow-ups, not fixed.
+4. **Keep contracts substitutable (Liskov).** Whatever you change must still
+   work everywhere the old version was used: accept at least the same inputs,
+   keep the same outputs, errors, and side effects, and leave callers
+   unchanged. If a contract must break, stop and say so. That is a decision
+   for a human, not a detail.
+5. **One source of truth (DRY).** Each rule, fact, and piece of logic lives in
+   one place. Reference it; do not copy it. Do not merge code that only looks
+   alike: extract on the third real duplicate of the same knowledge.
+6. **Secure by default.** No secrets in code, logs, commits, or output. Treat
+   external input as untrusted. Grant least privilege. Add or upgrade a
+   dependency only when needed, pinned, from a known source. Flag any change
+   to auth, permissions, personal data, crypto, or CI/CD for human review.
+7. **Ask, do not guess.** If a missing detail would change the result, stop
+   and ask one question with a recommended answer. Never approve your own work
+   at a human gate. Never run a destructive or irreversible action without
+   explicit approval.
+8. **Specs are optional.** If the project keeps spec files (`.specs/<slug>/`,
+   or its own spec tool), read and write them there. If not, work in the
+   conversation with the same IDs marked *context-sourced*, and carry them
+   into commits and the PR. Never create `.specs/` unasked. Requirements are
+   *agreed* only when a spec says `Status: Approved` with an approver, or the
+   user confirmed a restated list.
+9. **Finish by reporting.** Show the full result (output, evidence, open
+   items, follow-ups) and stop. Do not start the next stage. If the project
+   keeps spec files and this work has none, offer once to write a `Draft`
+   spec.
 
 ## Process
 
-1. **Capture the intent.** Read the raw request. Restate it in one sentence
-   back to the user: "So the feature is X for Y so that Z." If the restatement
-   is wrong, fix it before anything else.
-2. **Choose the slug.** Pick a kebab-case slug for the feature (e.g.
-   `payment-retries`). It names the `.specs/<slug>/` directory every later
-   stage writes into. Confirm it with the user; it is chosen once and never
-   renamed.
-3. **Ask blocking questions.** Identify what you cannot infer: who the user
-   is, what "done" looks like, which platforms/roles are in play, what
-   happens on failure. Ask at most 5 questions, each with your recommended
-   answer. Record non-blocking unknowns as open questions in the story
-   instead of asking.
-4. **Write the story** using the template below (see Where output goes).
-   Give it the tracker's key if it has one; otherwise the next unused
-   `S-<n>` in the repository (`S-1` only when no stories exist yet).
-5. **Self-triage once.** Run the readiness checklist below against what you
-   just wrote. Fix gaps you can fix from the answers you already have; list
-   the rest under Open questions.
-6. **Present the result, then offer a spec only where specs are in use.** Show
-   the full result — the story, where it was saved (or that it lives in the
-   conversation), the open questions — in one place, and wait for the user's
-   reaction. If nobody is there to respond (an automated or chained run), end
-   here with the result reported and create nothing optional. Offer a spec
-   file only if the project already keeps spec documents (`.specs/` or its own
-   spec tool) or the user asked for one, and this work has none — and offer it
-   at most once per session: a declined offer is not repeated, and the work
-   stays context-driven. If the user agrees, write `.specs/<slug>/spec.md`
-   from what this pass established — the scope, and the requirements (`R-<n>`)
-   and test criteria (`TC-*`) the acceptance criteria imply — with `Status:
-   Draft` and the standard spec sections (context, scope, non-scope, interface
-   and data contracts, behaviour, error and edge cases, test criteria,
-   observability, rollback plan, open questions). Only a human approves it,
-   later. Anything still open goes into its open questions, not invented. Do
-   not refine, spec, or plan.
+1. **Restate the intent** in one sentence: "X for Y so that Z". Correct it
+   with the user before going on.
+2. **Choose the slug:** kebab-case, for example `payment-retries`. Confirm it.
+   It is chosen once and never renamed.
+3. **Ask the blocking questions,** at most five, each with a recommended
+   answer: who the user is, what done looks like, what happens on failure,
+   who must **not** be able to do this, and what sensitive data it touches.
+   Everything non-blocking becomes an open question in the story.
+4. **Write the story** using Output. Use the tracker's key as the ID, or the
+   next unused `S-<n>`.
+5. **Run the readiness check** below. Fix what the answers allow. List the
+   rest under Open questions with an owner.
+6. **Report.** Do not size, specify, or plan.
 
-## Readiness checklist
+Readiness check:
 
-Run this against the story you just wrote. A story that fails any of the
-first five is not ready to be sized or specified — fix it now, or record the
-gap under Open questions with an owner.
+| # | Check | Passes when |
+|---|---|---|
+| 1 | One outcome | The story ships one independently useful change. |
+| 2 | User and value | It names who benefits and how. |
+| 3 | Testable criteria | Every `AC-<n>` is Given/When/Then with concrete values. |
+| 4 | Failure path | At least one `AC-<n>` covers invalid input, timeout, or empty state. |
+| 5 | Misuse path | If it touches auth, permissions, money, or personal data, an `AC-<n>` covers the denied case. |
+| 6 | Non-goals | At least one `NG-<n>` a reader would otherwise assume is in scope. |
+| 7 | No solution | No stack, endpoints, or data models outside Context. |
 
-- [ ] **One outcome.** The story delivers one independently shippable change.
-      Two outcomes means two stories.
-- [ ] **A user and a value.** The story names who gets the benefit and what
-      the benefit is, not just what to build.
-- [ ] **Testable acceptance criteria.** Every `AC-<n>` is Given/When/Then and
-      describes observable behavior. "Works correctly" is not testable.
-- [ ] **Failure paths covered.** At least one `AC-<n>` describes what happens
-      when the thing goes wrong, not only the happy path.
-- [ ] **Explicit non-goals.** At least one `NG-<n>`, naming what this story
-      deliberately does not do. A story with no non-goals has undefined edges.
-- [ ] **Open questions have owners.** Each one names who answers it, and
-      whether it blocks.
-- [ ] **No solution smuggled in.** The story says what and why; it does not
-      dictate the implementation unless the constraint is real and stated.
+## Rules
 
-## Writing rules
+- Acceptance criteria use concrete values, never "works correctly",
+  "appropriate", or "etc.".
+- Write the criteria before anyone knows the implementation. Criteria written
+  after the code only describe the code.
+- A non-goal must be something a reader would plausibly assume is included.
+- Implementation ideas go under Context as notes, never as requirements.
+- Two shippable outcomes are two stories. Say so and write the first.
 
-- **One story, one outcome.** If the intent contains two things that could
-  ship separately, say so and write the first story only.
-- **ACs are testable.** Every acceptance criterion is Given/When/Then with
-  concrete values, not adjectives. "Given a card with an expired expiry, when
-  the user submits, then the form shows an inline error and nothing is
-  charged" — not "the form validates the card."
-- **ACs cover the failure paths.** For each happy path, write at least one
-  criterion for the most likely failure (invalid input, timeout, no
-  permission, empty state).
-- **Non-goals are real.** Each `NG-*` is something a reader would plausibly
-  assume is in scope. "No mobile app support" is a non-goal; "we will not
-  build a time machine" is noise.
-- **No implementation in the story.** No tech stack, no API shapes, no data
-  models. Those belong in the spec. If you know the implementation, note it
-  under Open questions as context, not as a requirement.
+## Output
 
-## Template
+Save to `.specs/<slug>/story.md`, or return it in the conversation (contract
+rule 8).
 
 ```markdown
 # Story: <one-line title>
 
 > **Slug:** <slug>
-> **Story ID:** <tracker key, or next unused S-<n>>
+> **Story ID:** <tracker key or S-<n>>
 > **Status:** Draft
-> **Source:** <where the intent came from — issue link, meeting, request>
+> **Source:** <issue link, meeting, request>
 
 ## User story
-As a <role>,
-I want <capability>,
-so that <outcome>.
+As a <role>, I want <capability>, so that <outcome>.
 
 ## Acceptance criteria
 
@@ -140,54 +131,22 @@ so that <outcome>.
 - **When** <concrete action>
 - **Then** <observable result>
 
-### AC-2: <name>
-- **Given** <concrete context>
-- **When** <concrete action>
-- **Then** <observable result>
-
 ## Non-goals
-
-- **NG-1:** <what is explicitly out of scope, and why it is easy to assume it is in>
-- **NG-2:** <...>
+- **NG-1:** <what is out of scope, and why it is easy to assume it is in>
 
 ## Open questions
-
-- <unresolved question, with the recommended default if you have one>
+- <question> | owner: <name> | blocks: yes/no | recommended: <default>
 
 ## Context
-
-<Anything a spec author needs that is not a requirement: existing systems
-touched, known constraints, links to prior art.>
+<Systems touched, sensitive data involved, known constraints, prior art.>
 ```
-
-## Common Rationalizations
-
-| Rationalization | Reality |
-|---|---|
-| "The intent is clear enough, I'll skip the questions" | Clear to you, not to the next reader. The questions exist to surface the assumptions you are silently making. Five questions now beats a re-spec later. |
-| "I'll write the ACs after I know the implementation" | ACs are the contract the implementation must satisfy. Writing them after the code means they just describe what the code does, bugs included. |
-| "Non-goals are negative and add nothing" | Non-goals are how scope creep gets caught. Every `NG-*` is a future "can we also..." that already has its answer. |
-| "I'll put the tech stack in the story so the spec is faster" | The story is the *what*; the spec is the *how*. Baking implementation in locks the spec into your first guess and makes the story unreviewable by product. |
-| "One big story is fine, we'll split it during refinement" | Refinement splits tasks, not stories. If two outcomes could ship separately, they are two stories, and the second one is invisible until you name it. |
-| "I'll write it straight into Jira" | The markdown file is the source of truth and the input to refinement and specification. Jira is a copy destination, not a workflow. |
-
-## Red Flags
-
-- An AC that contains "etc.", "appropriate", "reasonable", or "as needed".
-- A story with happy-path ACs and no failure-path ACs.
-- Non-goals that are jokes or that nobody would assume are in scope.
-- Implementation details (frameworks, endpoints, table names) in the story body.
-- Two independently shippable outcomes in one story.
-- The slug was not confirmed, or later stages use a different slug.
 
 ## Verification
 
-Before returning, confirm:
-
-- [ ] The story matches the template and was saved or returned per Where output goes.
-- [ ] The user story has a role, a capability, and an outcome.
-- [ ] Every AC is Given/When/Then with concrete values; at least one AC covers a failure path.
-- [ ] Every NG is a plausible scope assumption, not filler.
-- [ ] No implementation details appear outside the Context section.
-- [ ] Open questions are listed with recommended defaults where you have them.
-- [ ] The slug was confirmed with the user.
+- [ ] The restated intent and the slug were confirmed by the user.
+- [ ] The story has a role, a capability, and an outcome.
+- [ ] Every `AC-<n>` is Given/When/Then with concrete values.
+- [ ] A failure path is covered, and a misuse path where check 5 applies.
+- [ ] At least one real `NG-<n>` exists.
+- [ ] No implementation detail appears outside Context.
+- [ ] Every open question has an owner.

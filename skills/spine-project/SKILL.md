@@ -1,302 +1,196 @@
 ---
-name: project
-description: Produces a project's complete documentation set — architecture, design, constraints, product requirements, delivery plan, roadmap, development, and deployment guides — from verified repository evidence, then reports on it. Use when a project has no docs/ set. Use when existing documentation no longer matches the code. Use when asked to initialize, list, or summarize a project's documentation.
+name: spine-project
+description: Writes or audits a project's documentation set (README, PRD, architecture, design, constraints, plan, roadmap, development, deployment) from verified repository evidence. Use when a project has no docs/ set. Use when documentation no longer matches the code. Use when asked to initialize, list, or summarize a project's documentation.
 ---
 
-# Project
+# Spine Project
 
 ## Overview
 
-Document what the project **is**, from what the repository **does**. This skill
-has three modes:
+Document what the project **is** from what the repository **does**. Every
+printed command was executed. Every fact cites a file or is labelled an
+assumption. This skill writes documentation and never changes code.
 
-| Mode | Purpose | Writes |
+| Mode | Does | Writes |
 |---|---|---|
-| `project init` | Review the whole project and generate the full documentation set | `docs/` (10 documents) + the front-door `README.md` |
-| `project list` | Report every document that exists, what it owns, and how far it has drifted from the code | nothing |
-| `project summary` | Give a one-page brief on what the project is | nothing |
-
-Two rules define the skill.
-
-1. **A document is a claim about the running system.** Every command printed in
-   a document was executed before the document was written; every fact in every
-   document cites the file that proves it, or is labelled an assumption.
-2. **`init` writes documentation, never code.** Hazards discovered while
-   surveying are recorded in the docs, not repaired in the same pass. A survey
-   that edits is no longer a survey.
+| `init` | Surveys the project and writes the documentation set | `README.md` + `docs/` |
+| `list` | Reports each document, what it owns, and its drift from the code | nothing |
+| `summary` | Gives a one-page brief of the project | nothing |
 
 ## When to Use
 
-- A project has no `docs/` set, or only a stale `README.md`, and needs
-  architecture, constraints, product, plan, roadmap, development, and
-  deployment documentation.
-- New contributors (or agents) keep re-deriving the same facts because nothing
-  is written down, or because the docs describe a system that no longer exists.
-- A handover, audit, or onboarding needs a written, citable account of the
-  project as it stands today.
-- Someone asks what the project is, and the honest answer is "read the code"
-  (`project summary`).
-- Someone asks which docs exist and whether they can be trusted (`project list`).
+- The project has no `docs/` set, or the docs describe a system that no
+  longer exists.
+- A handover, audit, or onboarding needs a citable account of the project.
+- Someone asks what the project is (`summary`) or which docs can be trusted
+  (`list`).
 
-**When NOT to use:** The project is already documented and only one document is
-wrong — edit that document; do not regenerate the set. You are documenting a
-proposed system rather than an existing one (a design record for a change
-belongs with the change). You want a decision recorded (that is a design
-record, not project documentation). You are writing feature-level artifacts
-for one piece of work (those belong under `.specs/<slug>/`). The repository is
-a throwaway spike with a shelf life shorter than the documentation.
+**Not for:** one wrong document (edit that document); a proposed system or a
+single decision (that is a design record); artifacts for one change (those
+live under `.specs/<slug>/`).
 
 ## Inputs
 
-| Input | Where | If it is missing |
+| Input | Where | If missing |
 |---|---|---|
-| The repository | the working directory | Stop. There is nothing to document. |
-| The mode | the request — `init`, `list`, or `summary` | Proceed with `summary` and say so. It is read-only, so it is the only safe default; `init` rewrites files and is never assumed. If the request is a bare "document this project", treat it as `init`. |
-| Existing documentation | `docs/`, `README.md`, root-level `.md` files, a docs site config | Proceed. For `init`, absence is the normal case. For `list`/`summary`, report that the set is absent and fall back to reading the repository directly. |
-| A runnable project | install, build, test, and run commands from the manifest and CI config | Proceed, but every command you could not run is recorded as a hazard. A document written without running anything is inference wearing a suit. |
-| Product intent, users, priorities, roadmap, ownership | a person — maintainer, product owner, or the request | Proceed for `list` and `summary`. For `init`, write the sections that need these as **open questions with owners**, never as invented content. A fabricated roadmap is worse than a missing one. |
-| Git metadata | the repository's history and current revision | Proceed, and stamp documents with the date instead of a commit. Without a revision there is no drift detection later; say so in the doc header. |
+| Repository | working directory | Stop. Nothing to document. |
+| Mode | the request | Use `summary` (read-only) and say so. "Document this project" means `init`. |
+| Existing docs | `docs/`, `README.md`, root `.md` files | Proceed. Normal for `init`; `list` and `summary` report the set as absent. |
+| Runnable project | install, build, test, run commands | Proceed. Record every command you could not run as a hazard. |
+| Product intent, users, roadmap, owners | a person | `init`: write these as open questions with owners. Never invent them. |
+| Git revision | repository history | Proceed. Stamp the date and say drift detection is unavailable. |
+
+## Operating contract
+
+These rules apply to every step below. They override habit and convenience.
+
+1. **Think, then act.** Before the first edit or claim, write down: the goal,
+   what you verified, what you are assuming, the smallest plan, and the check
+   that will prove it done.
+2. **Evidence, not belief.** Read the code and run the command before stating
+   a fact. Cite `path:line`, or the command and its output. Label everything
+   else an assumption. Never report a check you did not run.
+3. **Smallest change that works.** Change only what the task needs. Search for
+   existing code to reuse before writing new code. No drive-by refactors,
+   renames, reformatting, new dependencies, or speculative abstractions.
+   Problems outside the task are reported as follow-ups, not fixed.
+4. **Keep contracts substitutable (Liskov).** Whatever you change must still
+   work everywhere the old version was used: accept at least the same inputs,
+   keep the same outputs, errors, and side effects, and leave callers
+   unchanged. If a contract must break, stop and say so. That is a decision
+   for a human, not a detail.
+5. **One source of truth (DRY).** Each rule, fact, and piece of logic lives in
+   one place. Reference it; do not copy it. Do not merge code that only looks
+   alike: extract on the third real duplicate of the same knowledge.
+6. **Secure by default.** No secrets in code, logs, commits, or output. Treat
+   external input as untrusted. Grant least privilege. Add or upgrade a
+   dependency only when needed, pinned, from a known source. Flag any change
+   to auth, permissions, personal data, crypto, or CI/CD for human review.
+7. **Ask, do not guess.** If a missing detail would change the result, stop
+   and ask one question with a recommended answer. Never approve your own work
+   at a human gate. Never run a destructive or irreversible action without
+   explicit approval.
+8. **Specs are optional.** If the project keeps spec files (`.specs/<slug>/`,
+   or its own spec tool), read and write them there. If not, work in the
+   conversation with the same IDs marked *context-sourced*, and carry them
+   into commits and the PR. Never create `.specs/` unasked. Requirements are
+   *agreed* only when a spec says `Status: Approved` with an approver, or the
+   user confirmed a restated list.
+9. **Finish by reporting.** Show the full result (output, evidence, open
+   items, follow-ups) and stop. Do not start the next stage. If the project
+   keeps spec files and this work has none, offer once to write a `Draft`
+   spec.
 
 ## Process
 
-Confirm the mode from the request, then follow that mode's steps. Do not blend
-them: `list` and `summary` write nothing.
+### Mode: init
 
-### Mode: `init`
+1. **Agree the docs home.** Default `docs/` plus root `README.md`. If docs
+   already live elsewhere, use that place. Never create a second tree.
+2. **Read the cheap, load-bearing files:** manifest, lockfile, build, test,
+   and lint config, CI workflow, entry points, layout, environment samples,
+   container and infrastructure files. Record exact versions and commands
+   with their source file.
+3. **Classify each existing document:** absent (write it), current (leave it
+   and cite it), or stale (refresh it as a visible diff). A root `README.md`,
+   `CONSTRAINTS.md`, or `ARCHITECTURE.md` is authoritative: the `docs/` entry
+   becomes a pointer, not a copy.
+4. **Run the project:** install, build, test, start. Record each command, its
+   result, and its duration.
+5. **Trace one real path** end to end through the code, with a file at each
+   hop.
+6. **Map structure, data, and seams:** directory responsibilities, where
+   state lives, external APIs, auth, secrets, flags, jobs, error handling,
+   observability. Cite a file for each.
+7. **Learn conventions from examples,** one cited example per convention.
+8. **Build one fact ledger.** Every claim is a `CX-<n>` citing `path:line`,
+   or an open question. Derive each fact once and reuse it in every document.
+9. **Ask a person what the code cannot answer,** one question at a time, each
+   with a recommended default. Unanswered items stay open questions with
+   owners.
+10. **Write the documents in this order,** each from its template in
+    `references/`: architecture, design, constraints, PRD, development,
+    deployment, plan, roadmap, docs index, root README.
+11. **Stamp and link.** Every document opens with the doc header. Link to the
+    owning document instead of restating it. Mark a document that does not
+    apply as Not applicable in the index; do not ship an empty template.
+12. **Report.** The set stays `Draft` until a person accepts it.
 
-1. **Agree the documentation home.** Default: `docs/` for the set, `README.md`
-   at the repository root as the front door. If the repository already keeps
-   documentation elsewhere, adopt that home. Never create a second docs tree.
-2. **Read the cheap, load-bearing surfaces before the code.** Manifest and
-   lockfile, language/runtime versions, build/test/lint/format configuration,
-   the CI workflow, entry points, top-level directory layout, environment
-   samples, container and infrastructure files. Record exact versions and
-   exact commands, each with the file it came from.
-3. **Reconcile what already exists, per file, before writing anything.**
-   Classify each document as *absent* (write it), *present and current* (leave
-   it; cite it), or *present and stale* (refresh it as a diff). A document that
-   already lives at the repository root under a reserved name — `README.md`,
-   `CONSTRAINTS.md`, `ARCHITECTURE.md` — is authoritative: the `docs/` entry
-   becomes a short pointer, never a second copy. Show every rewrite as a diff.
-   Never delete a human's paragraph without naming it.
-4. **Run the project.** Execute install, build, the test suite, and the start
-   command; record each command, its result, and its duration. This is what
-   separates documentation from speculation, and a suite that does not run is
-   the single most important fact in the set.
-5. **Trace one real path end to end.** Pick the flow a new reader would care
-   about most and follow it through the actual code: entry point → routing →
-   handler → business logic → data access → response, naming the file at each
-   hop. One traced path teaches the real layering; a directory listing does not.
-6. **Map the structure, the data, and the seams.** Directory-by-directory
-   responsibilities and ownership; where state lives and who else reads it;
-   external APIs, auth, flags, background jobs, configuration and secrets,
-   error handling, observability. Cite a file for each.
-7. **Learn the conventions by reading, not assuming.** How this repository
-   structures tests, handles errors, logs, names things, and splits modules —
-   one real example per convention. A convention you cannot point at is a
-   preference you brought with you.
-8. **Build one fact ledger for the whole set.** Every factual claim resolves to
-   a context fact (`CX-<n>`) citing `path:line`, or to an entry under open
-   questions/inferences. Derive it once and reuse it across documents instead
-   of re-deriving per document — that is what keeps the set consistent.
-9. **Ask the human for what the code cannot answer.** Product intent, target
-   users, non-goals, priorities, roadmap bets, deployment targets, ownership.
-   Ask one question at a time, each with a recommended default drawn from the
-   evidence. Record every answer with its source; leave the rest as open
-   questions with owners.
-10. **Write the documents in dependency order**, each from
-    `references/<document>.md` in this skill:
-    architecture → design → constraints → product requirements → development →
-    deployment → plan → roadmap → docs index → front-door README. The two
-    entry documents go last so they list files that exist.
-11. **Stamp and cross-link.** Every generated document carries the doc header
-    below. Internal claims link to the document that owns them instead of
-    restating them. Where a document does not apply to this project (a
-    60-line script needs no deployment runbook), say so in the index rather
-    than shipping an empty template.
-12. **Present the result, then stop.** Show the full result — the documents
-    written, what was run, what failed, what is an open question, and which
-    existing files were changed — in one place, and wait for the user's
-    reaction. If nobody is there to respond (an automated or chained run), end
-    here with the result reported. Status is `Draft` until a human accepts it.
+### Mode: list
 
-### Mode: `list`
+1. Find the docs home and list every document in it, plus root docs.
+2. Parse each doc header.
+3. Detect drift: `git diff --stat <commit>..HEAD -- <Reads paths>`. A
+   document whose subject changed after its last-verified commit is stale,
+   whatever its status says.
+4. Print the table. Write nothing and fix nothing.
 
-1. **Locate the documentation home** the same way `init` would, and enumerate
-   every document under it plus root-level docs.
-2. **Parse each doc header** — id, path, what it owns, status, owner, the
-   commit it was last verified against, and the paths it reads.
-3. **Detect drift, not just presence.** For each document, check whether the
-   paths under **Reads:** changed after the last-verified commit
-   (`git diff --stat <commit>..HEAD -- <paths>`). Report the count of commits
-   or files that touch the document's subject. A document whose subject changed
-   and whose date did not is stale regardless of what its status field says.
-4. **Report the standard set against reality**: which of the ten documents
-   exist, which are missing, and which are marked not-applicable and why.
-5. **Print the table and stop.** Write nothing, fix nothing, and do not offer
-   to fix anything in the same pass.
+### Mode: summary
 
-### Mode: `summary`
+1. Summarize from `docs/PRD.md`, `docs/ARCHITECTURE.md`, and the root
+   `README.md`. If they are absent, derive the brief from the code and say
+   that no documentation set exists.
+2. Write one page. Cite a file for anything non-obvious. Report every place
+   the docs and the code disagree.
 
-1. **Prefer the written set.** If `docs/PRD.md`, `docs/ARCHITECTURE.md`, and
-   the front-door `README.md` exist, summarise from them.
-2. **Fall back to the code, and say so.** If the docs are absent, derive the
-   brief from the repository directly and state plainly that no documentation
-   set exists, so the reader knows the brief is unverified against a written
-   source.
-3. **Write the brief, not the manual.** One page: what it is, who it is for,
-   what it does, how it works in a few sentences, current state, how to run and
-   test it, and what is next. Cite a file for anything non-obvious, and flag
-   any place the docs and the code disagree — the disagreement is itself the
-   finding.
+## Rules
 
-## The document set
+- `init` writes documentation only. Record hazards; never repair them.
+- `list` and `summary` write no files.
+- Never overwrite or delete a person's text without showing the diff.
+- Folder names are not architecture. Trace the path and cite the files.
+- A roadmap, user, date, or priority nobody supplied is an open question.
+- **Last verified** is the commit you verified against, not today's date.
+- Each document owns one subject and links to the others (see the table).
 
-Ten documents. Each owns a subject and must not restate another's; depth
-scales with the project, but the ownership boundaries do not move.
+## Output
 
-| PD | Path | Owns | Must not duplicate |
+| PD | Path | Owns | Template |
 |---|---|---|---|
-| PD-1 | `README.md` (root) | Front door: what it is, who it is for, quick start, where to go next | Architecture depth, test strategy, deploy runbook — link out |
-| PD-2 | `docs/README.md` | The index: every document, reading order, status, freshness | Document content; it is a map |
-| PD-3 | `docs/PRD.md` | Problem, users, capabilities, non-goals, success measures | Implementation detail, task-level plan |
-| PD-4 | `docs/ARCHITECTURE.md` | System shape, components, structure map, data, seams, one traced path, hazards | Product intent, roadmap |
-| PD-5 | `docs/DESIGN.md` | Conventions and patterns with examples; design decisions (`AD-<n>`) and their rationale | The system inventory, the quality bar |
-| PD-6 | `docs/CONSTRAINTS.md` | The quality bar: `C-<n>` rules, thresholds, checking commands, gates | Convention prose; every rule names its command |
-| PD-7 | `docs/PLAN.md` | Delivery plan: milestones, sequencing, current state, next work, blockers | Now/next/later bets |
-| PD-8 | `docs/ROADMAP.md` | Technical now/next/later, drivers, risks, revisit triggers | Committed dates presented as promises |
-| PD-9 | `docs/DEVELOPMENT.md` | Prerequisites, install, configuration, run, seed, test commands by level, debugging, troubleshooting | The deploy procedure |
-| PD-10 | `docs/DEPLOYMENT.md` | Build and artifact, environments, configuration and secrets, release steps, health checks, rollback, observability | The local development loop |
+| PD-1 | `README.md` | Front door: what it is, quick start, where next | `references/readme.md` |
+| PD-2 | `docs/README.md` | Index: every document, status, freshness | `references/readme.md` |
+| PD-3 | `docs/PRD.md` | Problem, users, capabilities, non-goals | `references/prd.md` |
+| PD-4 | `docs/ARCHITECTURE.md` | Components, structure, data, seams, traced path, hazards | `references/architecture.md` |
+| PD-5 | `docs/DESIGN.md` | Conventions with examples; decisions (`AD-<n>`) | `references/design.md` |
+| PD-6 | `docs/CONSTRAINTS.md` | Quality bar: `C-<n>` rules, commands, gates | `references/constraints.md` |
+| PD-7 | `docs/PLAN.md` | Milestones, current state, next work | `references/plan.md` |
+| PD-8 | `docs/ROADMAP.md` | Technical now, next, later | `references/roadmap.md` |
+| PD-9 | `docs/DEVELOPMENT.md` | Setup, run, test, debug | `references/development.md` |
+| PD-10 | `docs/DEPLOYMENT.md` | Build, environments, release, rollback | `references/deployment.md` |
 
-If a root-level `CONSTRAINTS.md` or `ARCHITECTURE.md` already exists, it is the
-authoritative document and the `docs/` entry is a pointer to it.
-
-## Doc header
-
-Every generated document opens with this block. It is the only machine-readable
-part of the set: `list` parses it, and **Reads:** is the drift surface.
+Load only the template you are writing. Doc header, opening every document:
 
 ```markdown
 > **Doc:** PD-<n>
 > **Status:** Draft | Current | Stale | Superseded by PD-<n> | Not applicable
 > **Owner:** <name or role>
 > **Last verified:** <YYYY-MM-DD> against `<commit>` on `<branch>`
-> **Reads:** <the paths this document was derived from>
+> **Reads:** <paths this document was derived from>
 ```
 
-## Templates
+`list` output:
 
-Every generated document is written from its own template. Load only the one
-you are writing; each carries the section shape, what belongs in each section,
-and the evidence rule for that document.
+```markdown
+| PD | Document | Status | Last verified | Drift since |
+|---|---|---|---|---|
+| PD-4 | docs/ARCHITECTURE.md | Current | <date> @ <commit> | 3 commits touch <path> |
 
-| Document | Template |
-|---|---|
-| Front-door README and docs index | `references/readme.md` |
-| Product requirements | `references/prd.md` |
-| Architecture and structure | `references/architecture.md` |
-| Design and conventions | `references/design.md` |
-| Quality bar | `references/constraints.md` |
-| Delivery plan | `references/plan.md` |
-| Technical roadmap | `references/roadmap.md` |
-| Development and testing guide | `references/development.md` |
-| Deployment guide | `references/deployment.md` |
-
-`list` and `summary` write no files; their output shapes are these.
-
-`project list` output:
-
-```
-## Documentation in <repo>
-
-<docs home> — <n> documents, <n> missing from the standard set
-
-| PD | Document | Owns | Status | Last verified | Drift since |
-|---|---|---|---|---|---|
-| PD-4 | docs/ARCHITECTURE.md | System shape and structure | Current | <date> @ <commit> | 3 commits touch <src path> |
-| PD-9 | docs/DEVELOPMENT.md | Local development and testing | Stale | <date> @ <commit> | 41 files changed |
-
-Missing: PD-<n> — <what it would cover>
-Not applicable: PD-<n> — <the reason recorded in the index>
-Unreadable: <documents with no doc header, or a header that does not parse>
+Missing: PD-<n>: <what it would cover>
+Not applicable: PD-<n>: <reason from the index>
+Unreadable: <documents with no parseable header>
 ```
 
-`project summary` output:
-
-```
-# <Project name> — summary
-
-<One paragraph: what it is, and the problem it solves.>
-
-- For: <who uses it>
-- Does: <the three to five capabilities that matter>
-- Built with: <language, framework, versions> (<manifest>)
-- State: <shipped / in progress / prototype> (docs/PLAN.md)
-- Run it: <command> (docs/DEVELOPMENT.md)
-- Test it: <command>
-- Next: <the next milestone, one line> (docs/PLAN.md)
-
-<How it works, in three to five sentences, naming the components and the path
-a request or command takes.>
-
-Sources: <which documents were read, or "no documentation set exists — derived
-from the code".>
-Disagreements: <where the docs and the code conflict, or "none found".>
-```
-
-
-## Common Rationalizations
-
-| Rationalization | Reality |
-|---|---|
-| "The README is enough documentation" | A README answers "what is this and how do I start it". It cannot answer "why is this shaped this way", "what breaks at 3am", or "what are we doing next quarter". Readers who need those answers will read the code, slowly and wrongly. |
-| "I'll describe the architecture I can see in the folder names" | Folder names describe the intent of whoever created them, which the code diverges from the same week. Trace the path and cite the files, or you are documenting a project that does not exist. |
-| "The commands are standard, I don't need to run them" | The standard command is exactly the one the project customized and forgot to mention. A README whose quick start fails is worse than no README — it teaches the reader that the docs are unreliable. |
-| "I'll write the roadmap from the TODOs and open issues" | TODOs are one engineer's notes from an unknown date. A roadmap states intent and priority, which only a human can supply. Ask; where nobody answers, write an open question with an owner. |
-| "The old doc is wrong, I'll overwrite it" | The old doc often contains history the code no longer shows — why a decision was made, what was tried. Rewrite as a visible diff and let the human keep the parts that are still knowledge. |
-| "A small project needs all ten documents too" | Ceremony, not documentation. Scale depth to the project and record which documents are not applicable and why. Ten empty templates are worse than three real ones. |
-| "Documentation is done when the files exist" | It is done when a reader who has never seen the project can install it, run it, test it, and understand its shape using only the set. Test that by following your own quick start on a clean checkout. |
-| "I found problems, so I'll fix them while I'm here" | Then the documentation is now describing code nobody specified or tested, and the diff mixes two changes a reviewer cannot separate. Record hazards in the docs; repair them deliberately in their own change. |
-| "I'll add the last-verified stamp at the end, or skip it" | The stamp is the only mechanism that tells a future reader whether to trust the document and lets `list` report drift. Set it to the commit you actually verified against, not today's date. |
-| "I'll write the summary without reading the docs, I remember the project" | Memory of a codebase goes stale the same way the docs do, and it cannot be cited. Read the documents and the files; say when they disagree. |
-
-## Red Flags
-
-- A factual claim with no file citation and no assumption label.
-- A quick-start command that was never executed, or that fails.
-- Architecture that matches a framework's documentation rather than this
-  repository — no files cited, no traced path.
-- A PRD, plan, or roadmap containing users, dates, or priorities nobody
-  supplied.
-- `docs/` duplicating a root-level document wholesale (two sources of truth).
-- Existing documents overwritten or deleted without the user seeing the diff.
-- Missing doc headers, or **Last verified** dated to today with no commit.
-- Ten identical templates shipped for a project that needs four.
-- An index or README listing documents that do not exist.
-- Code changed during `init`.
-- `list` or `summary` writing files, or `init` leaving documents half-written.
+`summary` output: one page with a one-paragraph description, then For, Does,
+Built with (citing the manifest), Run, Test, State, Next, three to five
+sentences on how it works, Sources (documents read, or "none; derived from
+code"), and Disagreements (where docs and code conflict, or "none found").
 
 ## Verification
 
-- [ ] The documentation home was agreed, and no second docs tree was created.
-- [ ] Each of the ten documents exists at its path, or its absence is recorded
-      in the index with a reason.
-- [ ] Every document carries the doc header, with a real commit in
-      **Last verified** and real paths in **Reads:**.
-- [ ] Install, build, test, and run commands were executed; results, durations,
-      and failures are recorded.
-- [ ] Every factual claim cites `path:line`, or appears as an assumption or an
-      open question with an owner.
-- [ ] At least one real execution path is traced end to end in the architecture
-      document.
-- [ ] Structure, data ownership, and seams each cite files.
-- [ ] Conventions are each backed by a concrete example in this repository.
-- [ ] The quality bar names a checking command for every rule.
-- [ ] Product intent, roadmap, and ownership gaps are open questions, not
-      invented content.
-- [ ] No existing document was overwritten or deleted without the diff being
-      shown.
-- [ ] The front door and the index list exactly the documents that exist.
-- [ ] No code was changed, and no hazard was fixed, during `init`.
-- [ ] The set is `Draft` until a human accepts it, and anything not applicable
-      is marked as such rather than stubbed.
+- [ ] One docs home; no second tree created.
+- [ ] Each of the ten documents exists, or the index says why it does not.
+- [ ] Every document has the header with a real commit and real paths.
+- [ ] Install, build, test, and run were executed and recorded.
+- [ ] Every claim cites `path:line`, or is an open question with an owner.
+- [ ] No existing text was replaced without showing the diff.
+- [ ] No code changed. `list` and `summary` wrote nothing.

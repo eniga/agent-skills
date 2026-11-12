@@ -1,250 +1,194 @@
 ---
-name: spec
-description: Writes the full specification for a feature on a fixed template and gates it on human review before any implementation starts. Use when a ready story or request needs a written spec and the project keeps spec documents or the user asks for one. Use when requirements exist but interfaces, data contracts, error handling, or test criteria are undefined.
+name: spine-spec
+description: Writes a complete specification on a fixed template (contracts, numbered requirements, error and security cases, test criteria, observability, rollback) and holds it at Draft until a human approves. Use when a ready story or request needs a written spec. Use when requirements exist but interfaces, data contracts, error handling, or test criteria are undefined.
 ---
 
-# Spec
+# Spine Spec
 
 ## Overview
 
-Define what to build, completely, before any code is written. The spec is the
-contract between the team and the implementation: it fixes the interfaces,
-the data, the behavior, the failure modes, and the test criteria. Nothing is
-built until a human has reviewed and approved it.
-
-The spec is written to a **fixed template** — every section is present, even
-when the answer is "none". An empty section with a reason is information; a
-missing section is a hole.
+Fix what will be built before any code is written: interfaces, data,
+behavior, failure modes, security, and the test criteria that prove each
+one. **Every section is present, every `R-<n>` has a `TC-*`, and only a
+human approves.**
 
 ## When to Use
 
-- A story (`.specs/<slug>/story.md`, a ticket, or one in the conversation) is
-  ready and the project keeps spec documents, or the user wants one.
-- Requirements exist in chat or a doc but interfaces, data contracts, error
-  handling, or test criteria are undefined.
-- A change touches more than one module, or would take more than a day to
-  build.
+- A ready story exists and the project keeps specs, or the user asked for
+  one.
+- Requirements exist but contracts, error handling, or test criteria do not.
+- The change spans modules or takes more than a day.
 
-**When NOT to use:** The change is a single-file fix with unambiguous
-requirements (write the acceptance criteria in the commit message instead).
-The spec already exists and needs updating (while it is `Draft`, edit it;
-once it is `Approved`, a change is a recorded amendment with re-approval, not
-an edit). The project does not use spec documents and nobody asked for one
-(the agreed requirements can live in the conversation and the PR). You are specifying a
-technical design with open product decisions (settle those first, or record
-them as open questions with owners).
+**Not for:** a one-file fix with clear requirements (put the criteria in the
+commit); changing an approved spec (that is a recorded amendment); a project
+that keeps no specs when nobody asked for one.
 
 ## Inputs
 
-| Input | Where | If it is missing |
+| Input | Where | If missing |
 |---|---|---|
-| The outcome, with `AC-*` and `NG-*` | `.specs/<slug>/story.md`, a ticket, or the conversation | Proceed from whatever states the outcome — a story file, a pasted ticket, or the request in the conversation — and restate its acceptance criteria and non-goals as `AC-*` and `NG-*`, marked context-sourced. Stop only if no outcome is stated anywhere: ask for the outcome, the user, and what done looks like. A spec with no stated outcome specifies nothing. |
-| Refinement sketch and tasks (`T-*`) | `.specs/<slug>/sketch.md`, `tasks.md` | Proceed. These are a head start, never a prerequisite. |
-| Quality bar (`C-*`) | `CONSTRAINTS.md` at repo root | Proceed. Set test-criteria expectations from the repository's existing configuration and note that no written bar existed. |
-| Existing contracts the change touches | the codebase, API schemas, migrations | Proceed, and record every unverified contract as an open question with an owner. Guessing a contract is how integration breaks. |
-| A human approver | a person | Stop before marking the spec approved. The approval gate is the point of this skill; self-approval defeats it. |
+| Outcome with `AC-*` and `NG-*` | story file, ticket, conversation | Restate what exists as `AC-*` and `NG-*`, marked context-sourced. Stop only if no outcome is stated anywhere. |
+| Sketch and tasks | `.specs/<slug>/sketch.md`, `tasks.md` | Proceed. They are a head start only. |
+| Quality bar `C-*` | `CONSTRAINTS.md` | Proceed. Use the repository's existing test and lint setup and say so. |
+| Existing contracts | code, API schemas, migrations | Proceed. Every contract you did not verify is an open question with an owner. |
+| Human approver | a person | Stop before marking Approved. |
+
+## Operating contract
+
+These rules apply to every step below. They override habit and convenience.
+
+1. **Think, then act.** Before the first edit or claim, write down: the goal,
+   what you verified, what you are assuming, the smallest plan, and the check
+   that will prove it done.
+2. **Evidence, not belief.** Read the code and run the command before stating
+   a fact. Cite `path:line`, or the command and its output. Label everything
+   else an assumption. Never report a check you did not run.
+3. **Smallest change that works.** Change only what the task needs. Search for
+   existing code to reuse before writing new code. No drive-by refactors,
+   renames, reformatting, new dependencies, or speculative abstractions.
+   Problems outside the task are reported as follow-ups, not fixed.
+4. **Keep contracts substitutable (Liskov).** Whatever you change must still
+   work everywhere the old version was used: accept at least the same inputs,
+   keep the same outputs, errors, and side effects, and leave callers
+   unchanged. If a contract must break, stop and say so. That is a decision
+   for a human, not a detail.
+5. **One source of truth (DRY).** Each rule, fact, and piece of logic lives in
+   one place. Reference it; do not copy it. Do not merge code that only looks
+   alike: extract on the third real duplicate of the same knowledge.
+6. **Secure by default.** No secrets in code, logs, commits, or output. Treat
+   external input as untrusted. Grant least privilege. Add or upgrade a
+   dependency only when needed, pinned, from a known source. Flag any change
+   to auth, permissions, personal data, crypto, or CI/CD for human review.
+7. **Ask, do not guess.** If a missing detail would change the result, stop
+   and ask one question with a recommended answer. Never approve your own work
+   at a human gate. Never run a destructive or irreversible action without
+   explicit approval.
+8. **Specs are optional.** If the project keeps spec files (`.specs/<slug>/`,
+   or its own spec tool), read and write them there. If not, work in the
+   conversation with the same IDs marked *context-sourced*, and carry them
+   into commits and the PR. Never create `.specs/` unasked. Requirements are
+   *agreed* only when a spec says `Status: Approved` with an approver, or the
+   user confirmed a restated list.
+9. **Finish by reporting.** Show the full result (output, evidence, open
+   items, follow-ups) and stop. Do not start the next stage. If the project
+   keeps spec files and this work has none, offer once to write a `Draft`
+   spec.
 
 ## Process
 
-1. **Read the inputs.** Read the story, ACs, and non-goals
-   (`.specs/<slug>/story.md`, or the conversation), the refinement sketch if
-   one exists, `CONSTRAINTS.md` if it exists, and the relevant existing code.
-   If the project keeps specs in its own tool's format, write in that format.
-   If no outcome is stated anywhere, stop and ask for it.
-2. **Surface assumptions.** Before writing, list every assumption you are
-   making (platform, auth model, data store, scale, compatibility) and ask
-   the user to correct them. Do not silently fill gaps — the spec's whole
-   value is forcing clarity before code.
-3. **Write the spec** to `.specs/<slug>/spec.md` using the fixed template
-   below, with `Status: Draft`. Every section is present. Assign requirement
-   IDs to every behavior the spec commits to:
-   - If a refinement sketch exists, **keep its `R-<n>` IDs** for the
-     requirements carried over, mark any it drops `R-<n> (dropped: reason)`,
-     and continue the numbering for new ones — tasks already mapped to the
-     sketch's IDs must still resolve.
-   - Otherwise number from `R-1`.
-   - Each requirement names the acceptance criteria it serves
-     (`from AC-<n>`), or says it is derived (error handling, contracts).
-     Every `AC-*` is served by at least one `R-*`.
-4. **Derive test criteria from requirements.** For each `R-<n>`, write the
-   test criteria that prove it: `TC-U<n>` (unit), `TC-I<n>` (integration),
-   `TC-E<n>` (e2e). Every `TC-*` cites the `R-*` it proves. Every `R-*` has
-   at least one `TC-*`. This section is the input to implementation — tests are
-   written from it, not from finished code.
-5. **Check the constraints.** If `CONSTRAINTS.md` exists, confirm the spec's
-   test criteria and error handling satisfy its rules. Note any conflict as
-   an open question — do not silently weaken the bar.
-6. **Review gate.** Present the spec to the user section by section. Collect
-   corrections, update the file, and repeat until the user explicitly
-   approves. Only then change `Status: Draft` to `Status: Approved`, with the
-   approver and date. **Do not proceed to planning or implementation until
-   approval is explicit.**
-7. **Present the result, then stop.** The spec file is this skill's output:
-   present it in full with its status. A declined or pending approval leaves
-   it `Draft`, and a `Draft` spec is not something to build against. If
-   nobody is there to approve it (an automated run), end with it `Draft`.
-   Do not plan, do not build. Once approved, the next step is deciding the
-   build order against this spec.
+1. **Read** the story, the sketch, `CONSTRAINTS.md`, and the code the change
+   touches. Read the existing contracts in full: callers depend on them.
+2. **List your assumptions** (platform, auth model, data store, scale,
+   compatibility) and ask the user to correct them.
+3. **Write the spec** on the template in Output, `Status: Draft`. Number each
+   behavior `R-<n>` and name the `AC-<n>` it serves, or mark it `derived`.
+   Keep any `R-<n>` IDs from a sketch; mark dropped ones
+   `R-<n> (dropped: reason)`; continue the numbering for new ones.
+4. **Specify the change as a delta.** Extend existing interfaces and data
+   compatibly: add optional fields, keep existing responses and errors. Any
+   breaking change is called out with every consumer it affects.
+5. **Cover the bad paths.** For each interface: invalid input, timeout,
+   duplicate, no permission, empty data, partial failure. Each gets an
+   `R-<n>`.
+6. **Derive test criteria.** Each `R-<n>` gets at least one `TC-U<n>` (unit),
+   `TC-I<n>` (integration), or `TC-E<n>` (end to end). Each `TC-*` states
+   setup, action, and expected result, and cites the `R-<n>` it proves.
+7. **Check against `CONSTRAINTS.md`.** A conflict is an open question. Never
+   lower the bar silently.
+8. **Review gate.** Present the spec section by section. Apply corrections.
+   Set `Status: Approved` with approver and date only on an explicit yes.
+9. **Report.** A Draft spec is not something to build on.
 
-## Writing rules
+## Rules
 
-- **Requirements are numbered and atomic.** One `R-<n>` = one behavior a
-  reader can verify. "The system handles errors" is not a requirement;
-  "R-4: when the payment provider times out, the order is marked
-  `payment_pending` and a retry is scheduled" is.
-- **Contracts are concrete.** Interface and data contracts show real shapes:
-  request/response fields with types, state machines with named states and
-  transitions, storage with columns and indexes. "An API endpoint" is not a
-  contract.
-- **Error and edge cases are a first-class section.** For every interface:
-  what happens on invalid input, timeout, duplicate, no permission, empty
-  data, and partial failure. Each gets an `R-<n>`.
-- **Non-scope comes from the story.** Copy every `NG-*` from the story into
-  the non-scope section. Add any the spec process revealed.
-- **Observability is specific.** Name the logs (event, level, fields),
-  metrics (name, type, labels), and alerts (condition, severity). "Add
-  logging" is not observability.
-- **Rollback is a plan, not a hope.** Name the mechanism (flag, migration
-  down, deploy revert), the trigger (which alert or metric), and the data
-  consequences (what happens to data written by the new version).
-- **Change is controlled once approved.** While `Draft`, the spec is edited
-  freely. Once `Approved`, a change that alters behavior or a contract is a
-  recorded amendment — what changed, why, what it invalidates, re-approved by
-  a human — made before the code changes, and committed with the code.
-- **IDs are addresses.** Never renumber or reuse an `R-*` or `TC-*`; a
-  dropped one is marked `(dropped: reason)`, not deleted.
+- One `R-<n>` is one behavior a reader can verify. "Handles errors" is not a
+  requirement.
+- Contracts show real shapes: fields with types, named states and
+  transitions, columns and indexes.
+- An empty section says "none" and why. It is never omitted.
+- Observability names events, metrics, and alerts. "Add logging" is not
+  enough.
+- Rollback names a mechanism, a trigger, and what happens to data the new
+  version wrote.
+- IDs are addresses. Never renumber or reuse them.
+- "Go ahead" said before the spec existed is not approval.
 
-## Fixed template
+## Output
+
+Save to `.specs/<slug>/spec.md`, or in the project's own spec format.
 
 ```markdown
-# Spec: <feature name>
+# Spec: <feature>
 
 > **Status:** Draft | Approved
-> **Approved by:** <name>
-> **Date:** <YYYY-MM-DD>
-> **Story:** S-<n> — <title> (`.specs/<slug>/story.md`)
-> **Slug:** <slug>
+> **Approved by:** <name> | **Date:** <YYYY-MM-DD>
+> **Story:** S-<n>: <title> | **Slug:** <slug>
 
 ## 1. Context
-
-<What exists today, what problem this solves, who is affected, and the
-constraints from CONSTRAINTS.md that apply. Link prior art.>
+<What exists today, the problem, who is affected, the C-<n> rules that apply.>
 
 ## 2. Scope
-
-<What this spec covers, in 3-7 bullets. Each bullet maps to at least one R-<n>.>
+<Three to seven bullets. Each maps to at least one R-<n>.>
 
 ## 3. Non-scope
-
 - **NG-1:** <from the story, verbatim>
-- **NG-2:** <...>
-- <any non-goal the spec process revealed, with a one-line reason>
 
 ## 4. Interface contracts
-
-<Every public interface this feature adds or changes. For each: name,
-request/response or signature with field types, error responses, and an
-example.>
-
-### <Interface 1>
+### <Interface>
+- **Change:** new | compatible extension | breaking (consumers: <list>)
 - **Request:** <fields with types>
 - **Response:** <fields with types>
-- **Errors:** <code/shape per failure mode>
-- **Example:** <one concrete request/response pair>
+- **Errors:** <code and shape per failure>
+- **Authorization:** <who may call it>
+- **Example:** <one concrete request and response>
 
 ## 5. Data contracts
-
-<Every data structure added or changed: storage location, fields with types,
-constraints, indexes, state machines (states + transitions), and migration
-direction (up and down).>
+<Stores, fields with types, constraints, indexes, states and transitions,
+migration up and down, data classification.>
 
 ## 6. Behaviour
-
-<Numbered requirements. Each R-<n> is one atomic, verifiable behavior.>
-
-- **R-1** (from AC-1): <behavior>
-- **R-2** (from AC-1, AC-2): <behavior>
-- **R-3** (from AC-3): <behavior>
+- **R-1** (from AC-1): <one verifiable behavior>
 
 ## 7. Error and edge cases
+- **R-4** (derived): <failure mode and required behavior>
 
-<For every interface and data path: invalid input, timeout, duplicate, no
-permission, empty data, partial failure. Each gets an R-<n>.>
+## 8. Security and privacy
+- **Trust boundaries:** <where untrusted input enters and how it is validated>
+- **Access:** <authentication, authorization, least privilege>
+- **Data:** <sensitive fields, storage, retention, what must never be logged>
+- **Abuse cases:** <misuse and the R-<n> that prevents each>
 
-- **R-4** (from AC-2): <failure mode and required behavior>
-- **R-5** (derived): <...>
-
-## 8. Test criteria
-
-<Derived from requirements. Every TC cites the R it proves. Every R has at
-least one TC. The implementation writes tests from this section — not from
-finished code.>
-
+## 9. Test criteria
 ### Unit (TC-U)
-- **TC-U1** (proves R-1): <what is set up, what is called, what is asserted>
-- **TC-U2** (proves R-4): <...>
-
+- **TC-U1** (proves R-1): <setup, action, expected result>
 ### Integration (TC-I)
-- **TC-I1** (proves R-2): <components involved, what is asserted>
-
-### E2E (TC-E)
+- **TC-I1** (proves R-2): <components, expected result>
+### End to end (TC-E)
 - **TC-E1** (proves R-1, R-3): <user flow, what is observed>
 
-## 9. Observability
-
-- **Logs:** <event name, level, fields, when emitted>
-- **Metrics:** <name, type (counter/gauge/histogram), labels, what it measures>
+## 10. Observability
+- **Logs:** <event, level, fields>
+- **Metrics:** <name, type, labels>
 - **Alerts:** <condition, severity, who is paged>
 
-## 10. Rollback plan
-
+## 11. Rollback plan
 - **Mechanism:** <flag / migration down / deploy revert>
-- **Trigger:** <which alert or metric starts the rollback>
-- **Data consequences:** <what happens to data written by the new version>
+- **Trigger:** <alert or metric>
+- **Data consequences:** <what happens to data the new version wrote>
 - **Steps:** <numbered, executable>
 
-## 11. Open questions
-
-- <question, owner, recommended default>
+## 12. Open questions
+- <question> | owner: <name> | recommended: <default>
 ```
-
-## Common Rationalizations
-
-| Rationalization | Reality |
-|---|---|
-| "This is simple, I don't need a spec" | Simple changes don't need long specs, but they still need the error and test sections. A two-requirement spec takes five minutes and catches the one edge case you would have shipped. |
-| "I'll write the tests after the code, I know what to test" | Tests written after the code assert what the code does, bugs included. The test criteria section is the only place where "what should happen" is fixed before "what does happen" exists. |
-| "The error section is overkill for an internal endpoint" | Internal endpoints fail too — the caller just can't see why. "Timeout returns 504 and the operation is idempotent" is one line and saves a postmortem. |
-| "Observability can be added when we ship" | Observability added after shipping is added after the first incident, when you are tired and the context is gone. Naming the three metrics now costs a paragraph. |
-| "Rollback is just 'revert the deploy'" | "Revert the deploy" is not a plan when the new version wrote new data. The data-consequences line is the part that separates a plan from a hope. |
-| "The user said go, so the spec is approved" | Approval is explicit. "Go" was said before the spec existed. Present the spec, get the yes, then build. |
-| "I'll skip the non-scope section, it's in the story" | The spec is read by people who did not read the story. Copying the non-goals costs nothing and stops the spec from being read as a blank check. |
-
-## Red Flags
-
-- A section of the template is missing rather than present with "none".
-- An `R-<n>` with no `TC-*` proving it.
-- A `TC-*` that does not cite an `R-*`.
-- Interface contracts with no error responses.
-- "Add logging" or "add metrics" without names, levels, or conditions.
-- A rollback plan with no data-consequences line.
-- Status: Approved with no approver or date.
-- Implementation starting before the review gate passed.
 
 ## Verification
 
-Before returning, confirm:
-
-- [ ] `.specs/<slug>/spec.md` exists and contains all 11 template sections.
-- [ ] Every section is present; empty sections say "none" with a reason.
-- [ ] Every behavior has an `R-<n>`; every `R-<n>` has at least one `TC-*`.
-- [ ] Every `R-<n>` names the `AC-*` it serves (or says derived), and every `AC-*` is served by at least one `R-*`.
-- [ ] Requirements carried over from a refinement sketch kept their IDs; none were renumbered.
-- [ ] Every `TC-*` cites the `R-*` it proves and is split into unit / integration / e2e.
-- [ ] Interface and data contracts show concrete shapes, not descriptions.
-- [ ] Error and edge cases cover invalid input, timeout, duplicate, no permission, empty data, and partial failure for each interface.
-- [ ] Observability names specific logs, metrics, and alerts.
-- [ ] The rollback plan has a mechanism, a trigger, data consequences, and steps.
-- [ ] Non-scope includes every `NG-*` from the story.
-- [ ] The user explicitly approved the spec; Status, approver, and date are filled in.
-- [ ] No implementation has started.
+- [ ] All twelve sections are present; empty ones say "none" with a reason.
+- [ ] Every `AC-*` is served by an `R-*`; every `R-*` has a `TC-*`; every
+      `TC-*` cites its `R-*`.
+- [ ] Contracts show concrete shapes, and breaking changes list consumers.
+- [ ] Each interface covers the six bad paths in step 5.
+- [ ] Security names trust boundaries, access, data, and abuse cases.
+- [ ] Observability and rollback are specific.
+- [ ] The status is Approved only with a named human approver and a date.
+- [ ] No implementation was started.

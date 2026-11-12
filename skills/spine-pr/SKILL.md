@@ -1,218 +1,165 @@
 ---
-name: pr-prepare
-description: Turns a branch diff and its spec into a pull request description with a traceability table mapping requirements to tasks, commits, tests, and evidence. Use when a change is ready to open or update a pull request. Use when a PR description needs to show what was built and how it was proven.
+name: spine-pr
+description: Writes a pull request description from the branch diff, built around a traceability table that maps each requirement to its commits, tests, and evidence, with security impact, risk, rollback, and open items. Use when a tested change is ready to open or update a pull request. Use when a PR description does not show what was built and how it was proven.
 ---
 
-# PR Prepare
+# Spine PR
 
 ## Overview
 
-Turn a finished, tested, reviewed change into a pull request description a
-reviewer can trust without re-deriving it. The center of the description is
-the **traceability table**: every requirement the PR delivers, mapped to the
-task that planned it, the commit(s) that built it, the test criteria that
-prove it, and the evidence that was observed. A reviewer should be able to
-read the table and know exactly what is claimed and what proves it.
+Write a PR description a reviewer can trust without re-deriving it. **The
+traceability table is the description: every requirement mapped to commit,
+test, and evidence that covers the latest commit.** This skill opens or
+updates the PR and never merges it.
 
 ## When to Use
 
-- A change is built, tested, and reviewed and is ready to open (or update) a
-  PR.
-- A PR description exists but has no traceability — a reviewer cannot tell
-  what is claimed or what proves it.
-- A PR was updated after review and its description no longer matches the
-  diff.
+- A change is built and tested and is ready for a PR.
+- A PR description is missing traceability, or no longer matches the diff.
 
-**When NOT to use:** The change has no current test evidence (get it
-verified first — a PR description with no evidence is a claim, not a proof).
-The change has not been reviewed (the PR carries review verdicts, it does not
-replace them). You are preparing a technical proposal with no code (that is a
-design document, not a PR).
+**Not for:** a change with no current test evidence (get it verified first);
+a proposal with no code.
 
 ## Inputs
 
-| Input | Where | If it is missing |
+| Input | Where | If missing |
 |---|---|---|
-| The branch diff | git, relative to the base branch | Stop. There is no PR to describe. |
-| Requirements (`R-*`, `TC-*`, rollback plan) | `.specs/<slug>/spec.md`, or the list agreed in the conversation | Proceed from the requirements agreed in the conversation when there is no spec file, and say so in the PR. If none were ever stated, map commits to the change's stated intent and say the PR has nothing to trace to. |
-| Current test evidence | `.specs/<slug>/evidence/`, a test report in the conversation, or CI results for the head commit | Stop if absent everywhere, or if it does not cover the latest commit. Evidence is the one input this skill cannot substitute — a traceability table with an empty evidence column is a claim wearing a table's clothes. |
-| Review and conformance verdicts | review reports, wherever they live | Proceed, and record "not reviewed" as an open item rather than omitting the section. |
-| Task list (`T-*`) and slices (`SL-*`) | `.specs/<slug>/tasks.md`, `plan.md` | Proceed. Trace `R-* → commit → TC-* → evidence` and leave the task column out. |
+| Branch diff | git, against the base branch | Stop. Nothing to describe. |
+| Current test evidence | evidence file, report in the conversation, CI for the head commit | Stop if absent, or older than the latest commit. |
+| Requirements `R-*`, `TC-*`, rollback plan | spec, or the conversation | Proceed from the stated intent and say the PR has nothing to trace to. |
+| Review and conformance verdicts | wherever they live | Proceed. Record "not reviewed" under Open items. |
+| Tasks `T-*`, slices `SL-*` | `tasks.md`, `plan.md` | Proceed without the task column. |
 
-**Where output goes.** Spec documents are optional. Write
-`.specs/<slug>/pr.md` only when the project already keeps spec documents (a
-`.specs/` directory, or its own spec tool's format — then use that format) or
-the user asks for files. Otherwise return the description in the conversation:
-the IDs it assigns are still used, marked context-sourced, and carried into
-the PR body, which is always updated.
+## Operating contract
 
-**Agreed expectations.** Requirements count as agreed when a spec file says
-`Status: Approved` with an approver, or — in context-driven work, with no spec
-file — when the user has explicitly confirmed a restated list of the
-requirements or acceptance criteria in the conversation. A spec file that is
-still `Draft` is not agreed, and neither is a list the user never confirmed.
+These rules apply to every step below. They override habit and convenience.
+
+1. **Think, then act.** Before the first edit or claim, write down: the goal,
+   what you verified, what you are assuming, the smallest plan, and the check
+   that will prove it done.
+2. **Evidence, not belief.** Read the code and run the command before stating
+   a fact. Cite `path:line`, or the command and its output. Label everything
+   else an assumption. Never report a check you did not run.
+3. **Smallest change that works.** Change only what the task needs. Search for
+   existing code to reuse before writing new code. No drive-by refactors,
+   renames, reformatting, new dependencies, or speculative abstractions.
+   Problems outside the task are reported as follow-ups, not fixed.
+4. **Keep contracts substitutable (Liskov).** Whatever you change must still
+   work everywhere the old version was used: accept at least the same inputs,
+   keep the same outputs, errors, and side effects, and leave callers
+   unchanged. If a contract must break, stop and say so. That is a decision
+   for a human, not a detail.
+5. **One source of truth (DRY).** Each rule, fact, and piece of logic lives in
+   one place. Reference it; do not copy it. Do not merge code that only looks
+   alike: extract on the third real duplicate of the same knowledge.
+6. **Secure by default.** No secrets in code, logs, commits, or output. Treat
+   external input as untrusted. Grant least privilege. Add or upgrade a
+   dependency only when needed, pinned, from a known source. Flag any change
+   to auth, permissions, personal data, crypto, or CI/CD for human review.
+7. **Ask, do not guess.** If a missing detail would change the result, stop
+   and ask one question with a recommended answer. Never approve your own work
+   at a human gate. Never run a destructive or irreversible action without
+   explicit approval.
+8. **Specs are optional.** If the project keeps spec files (`.specs/<slug>/`,
+   or its own spec tool), read and write them there. If not, work in the
+   conversation with the same IDs marked *context-sourced*, and carry them
+   into commits and the PR. Never create `.specs/` unasked. Requirements are
+   *agreed* only when a spec says `Status: Approved` with an approver, or the
+   user confirmed a restated list.
+9. **Finish by reporting.** Show the full result (output, evidence, open
+   items, follow-ups) and stop. Do not start the next stage. If the project
+   keeps spec files and this work has none, offer once to write a `Draft`
+   spec.
 
 ## Process
 
-1. **Read the inputs.** Read the branch diff (every commit and changed file
-   relative to the base branch), the requirements (spec file or the
-   conversation), the task list if it exists, the test evidence (a report
-   file, a report in the conversation, or CI results for the head commit),
-   and any review and conformance verdicts that exist. If the evidence is
-   missing or does not cover the latest commit, stop and get the change
-   re-verified — the PR must carry current evidence.
-2. **Collect the traceability data.** For every requirement `R-*` the PR
-   delivers, gather:
-   - the task `T-*` that planned it (from `tasks.md`),
-   - the commit(s) that implemented it (from the branch log — slice commits
-     carry `SL-<n>` and `R-<n>` in their messages),
-   - the test criteria `TC-*` that prove it (from the spec),
-   - the evidence (from the test report: command, result).
-   If a requirement has no commit, it is not delivered by this PR — say so
-   (it is deferred, not silently dropped). If a commit has no requirement,
-   investigate: it is either plumbing (note it) or scope creep (flag it).
-3. **Check the gates.** Confirm, from the actual records (not memory):
-   - the test report is current (newer than the latest commit) and its
-     verdict is Proven or the gaps are named,
-   - the review verdict is present and its Blockers are resolved,
-   - the spec-conformance verdict, if one was produced, is present and any
-     non-conformances are resolved or accepted,
-   - the `CONSTRAINTS.md` CI gates are expected to pass (lint, type check,
-     coverage per the bar).
-   A gate that is not green is a line in the PR's "Open items", not a
-   hidden assumption.
-4. **Write the PR description** using the template below and apply it to
-   the actual PR (update the PR body); save a copy as described in Where
-   output goes. The
-   description is written for a reviewer who has not seen the work: no
-   insider shorthand, every ID resolvable.
-5. **Summarize the risk and the rollback.** Carry the spec's rollback plan
-   into the PR: the mechanism, the trigger, and the data consequences. A
-   reviewer deciding whether to merge needs to know what "undo" looks like.
-6. **Present the result, then offer a spec only where specs are in use.** Show
-   the full result — the PR description, the traceability table, the open
-   items — in one place, and wait for the user's reaction. If nobody is there
-   to respond (an automated or chained run), end here with the result reported
-   and create nothing optional. Offer a spec file only if the project already
-   keeps spec documents (`.specs/` or its own spec tool) or the user asked for
-   one, and this work has none — and offer it at most once per session: a
-   declined offer is not repeated, and the work stays context-driven. If the
-   user agrees, write `.specs/<slug>/spec.md` from what this pass established
-   — the scope, the requirements (`R-<n>`) the PR delivers, the test criteria
-   (`TC-*`) that prove them, and the rollback plan carried in the description
-   — with `Status: Draft` and the standard spec sections (context, scope,
-   non-scope, interface and data contracts, behaviour, error and edge cases,
-   test criteria, observability, rollback plan, open questions). Only a human
-   approves it, later. Anything still open goes into its open questions, not
-   invented. Do not merge — opening the PR is the hand-off; merging is a
-   separate, explicit decision.
+1. **Read** every commit and changed file against the base branch, the
+   requirements, the test evidence, and any review verdicts. Confirm the
+   evidence covers the head commit. If it does not, stop.
+2. **Collect the trace.** For each `R-*`: the commit that built it (slice
+   commits carry `SL-<n>` and `R-<n>`), the `TC-*` that prove it, and the
+   evidence. A requirement with no commit is Deferred, with a reason and a
+   pointer. A commit with no requirement is plumbing (note it) or scope
+   creep (flag it).
+3. **Check the gates from the records, not from memory:** test verdict,
+   review verdict and its Blockers, conformance verdict, CI gates. Anything
+   not green goes under Open items with an owner.
+4. **State the security impact.** Say whether the diff touches auth,
+   permissions, input handling, secrets, personal data, dependencies, or
+   CI/CD, and what was checked. Say "none" only after reading the diff for
+   each.
+5. **Scan the diff** for secrets, credentials, debug output, and unrelated
+   files before it goes public. If you find any, stop and report.
+6. **State risk and rollback:** the mechanism, the trigger, and what happens
+   to data the new version wrote.
+7. **Write the description** using Output, for a reviewer who has not seen
+   the work. Open or update the PR with it.
+8. **Report.** Merging is a human decision.
 
-## Writing rules
+## Rules
 
-- **The table is the description.** The traceability table is the primary
-  content. Prose (summary, risk, rollback) frames it; the table is what a
-  reviewer checks.
-- **Every row is resolvable.** Each cell names something a reviewer can
-  click or grep: a task ID, a commit SHA (short form is fine), a `TC-*` ID,
-  a link to the evidence. A row full of adjectives is a row that proves
-  nothing.
-- **Deferred work is named.** Requirements the spec has but the PR does not
-  deliver get a "Deferred" section with a reason and a pointer (next PR,
-  separate story). Silent omission is how scope disappears.
-- **The summary is three sentences.** What the PR does, why, and what a
-  reviewer should look at first. If the summary needs a paragraph, the table
-  is not doing its job.
-- **Open items are honest.** Failing gates, accepted risks, and unresolved
-  review notes go in "Open items" with an owner. A PR that hides its open
-  items gets them found in review, where they cost more.
-- **The description matches the diff.** If the PR changed after the
-  description was written, the description is stale — regenerate it. A stale
-  traceability table is worse than none, because it is wrong with
-  confidence.
+- Every cell is something a reviewer can open or search for: an ID, a short
+  SHA, a link, a command. Never an adjective.
+- The summary is three sentences: what, why, and where to look first.
+- Deferred work is named with a reason and a pointer. Never dropped
+  silently.
+- Open items are listed with owners. Never hidden in prose.
+- If the diff changed after the description was written, regenerate it.
+- Evidence older than the latest commit is not evidence, however small the
+  last change.
+- Never merge, and never mark the PR approved.
 
-## Template
+## Output
+
+Apply to the PR body. Save a copy to `.specs/<slug>/pr.md` when the project
+keeps spec files (contract rule 8).
 
 ```markdown
-# PR: <title>
+# <title>
 
-> **Branch:** <branch> → <base>
-> **Requirements:** `.specs/<slug>/spec.md` | agreed in conversation (<date>)
-> **Date:** <YYYY-MM-DD>
+> **Branch:** <branch> -> <base> at `<head sha>`
+> **Requirements:** `<spec path>` | agreed in conversation <date> | stated intent only
 
 ## Summary
-
-<Three sentences: what this PR does, why, and what a reviewer should look at
-first.>
+<Three sentences: what this does, why, and what to look at first.>
 
 ## Traceability
-
-| Req | Task | Commit(s) | Test criteria | Evidence |
+| Req | Task | Commit | Test criteria | Evidence |
 |---|---|---|---|---|
-| R-1 | T-1 | <sha> | TC-U1, TC-I1 | <test report link — pass> |
-| R-2 | T-2 | <sha>, <sha> | TC-U2 | <test report link — pass> |
-| R-3 | T-3 | — | — | **Deferred:** <reason, pointer> |
+| R-1 | T-1 | `<sha>` | TC-U1, TC-I1 | <link or command>: pass |
+| R-3 | T-3 | none | none | **Deferred:** <reason, pointer> |
+
+Plumbing commits: `<sha>`: <what>, or "none"
 
 ## Test evidence
-
-- **Test report:** <link to `.specs/<slug>/evidence/test-<date>.md`, CI run, or
-  the report summary inline>
-- **Verdict:** Proven | Partially proven — <gaps>
-- **Full suite:** <pass/fail, command, count>
+- **Report:** <link, CI run, or inline summary> for `<head sha>`
+- **Verdict:** Proven | Partially proven: <gaps>
+- **Full suite:** <result, command, count>
 
 ## Review
+- **Review:** Approve | Approve with notes | Request changes | not reviewed
+- **Conformance:** Conformant | With gaps | Non-conformant | not run
+- **Accepted findings:** <ID and reason, or "none">
 
-- **Review verdict:** Approve | Approve with notes | Request changes — <link / date>
-- **Conformance verdict:** Conformant | Conformant with gaps | Non-conformant — <link / date>
-- **Resolved findings:** <count, or "none">
-- **Accepted findings:** <ID + reason, or "none">
+## Security impact
+<Areas touched and what was checked, or "none: diff read for auth, input,
+secrets, data, dependencies, CI/CD".>
 
 ## Risk and rollback
-
-- **Risk:** <what could go wrong, from the spec's risk section>
-- **Rollback:** <mechanism, trigger, data consequences — from the spec>
+- **Risk:** <what could go wrong>
+- **Rollback:** <mechanism, trigger, data consequences>
 
 ## Open items
-
-- <failing gate / accepted risk / unresolved note, with owner — or "none">
-
-## Deferred
-
-- <requirement not delivered by this PR, reason, pointer — or "none">
+- <failing gate, accepted risk, or unresolved note> | owner: <name>, or "none"
 ```
-
-## Common Rationalizations
-
-| Rationalization | Reality |
-|---|---|
-| "The table is overkill, a summary is enough" | A summary is a claim; the table is the mapping from claim to proof. The reviewer's job is to check the mapping — without the table, they re-derive it from the diff, which is the hour you just took back from them. |
-| "I'll fill in the evidence column later, after merge" | Evidence after merge is a post-hoc story. The PR is the record of what was proven when it was proven. A missing evidence cell is an open item, not a TODO. |
-| "The test report is from before the last fix, but the fix was tiny" | The report is older than the latest commit, so it does not cover the latest commit. "Tiny" is the word that ships regressions. Re-run the tests, write a fresh report, then write the PR. |
-| "I'll leave the deferred requirement out, it's obvious" | "Obvious" to you is invisible to the reviewer and the next person who reads the spec. The Deferred section is where scope goes when it is not shipped — named, with a pointer, not deleted. |
-| "The review had notes, but they're minor, I'll skip the Review section" | The Review section is the record that the notes were seen and dispositioned. Skipping it means the reviewer's time produced no record — and the next reviewer re-asks the same questions. |
-| "I'll merge right after opening, no need for a clean description" | The description is read after merge too — by the person debugging this change in six months. The traceability table is the onboarding doc for the future incident. |
-
-## Red Flags
-
-- A traceability table with a requirement row but no commit and no Deferred
-  marker.
-- An evidence cell that is an adjective ("passing", "green") instead of a
-  link or command.
-- A test report older than the latest commit on the branch.
-- A missing Review section when a review was performed.
-- Deferred requirements absent from the description entirely.
-- A rollback section that says "revert the deploy" with no data
-  consequences.
-- Open items hidden in prose instead of the Open items section.
 
 ## Verification
 
-Before returning, confirm:
-
-- [ ] The test report is current (newer than the latest commit) and its verdict is recorded.
-- [ ] The traceability table has a row for every agreed `R-*` (spec file or conversation): delivered (with task, commit, `TC-*`, evidence) or explicitly Deferred.
-- [ ] Every commit on the branch maps to a requirement or is noted as plumbing.
-- [ ] The Review section records the review and conformance verdicts and the disposition of findings.
-- [ ] The Risk and rollback section carries the spec's mechanism, trigger, and data consequences.
-- [ ] Open items are listed with owners, or the section says "none".
-- [ ] The description was applied to the PR body (and saved to `.specs/<slug>/pr.md` when spec documents are kept).
-- [ ] The PR was opened or updated, but not merged.
+- [ ] The evidence covers the head commit and its verdict is recorded.
+- [ ] Every agreed `R-*` has a row: delivered with commit, `TC-*`, and
+      evidence, or Deferred with a reason.
+- [ ] Every commit maps to a requirement or is listed as plumbing.
+- [ ] Security impact is stated from reading the diff.
+- [ ] No secret, debug output, or unrelated file is in the diff.
+- [ ] Review status, risk, rollback, and open items are filled in.
+- [ ] The PR body was updated. The PR was not merged.

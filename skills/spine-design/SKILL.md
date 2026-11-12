@@ -1,233 +1,177 @@
 ---
-name: design
-description: Settles a technical approach before specification by comparing real options against stated criteria and recording the decision, its trade-offs, and what would reverse it. Use when a change needs an architectural decision, a technology choice, or a system design. Use when a spec cannot be written because how to build it is still open. Use when a proposal needs review before implementation.
+name: spine-design
+description: Settles a technical approach by comparing at least two real options, including the do-nothing or reuse option, against criteria written first, then records the decision, what it gives up, and what would reverse it. Use when a change needs an architectural or technology decision. Use when a spec cannot be written because the approach is still open.
 ---
 
-# Design
+# Spine Design
 
 ## Overview
 
-Decide *how* to build something, before anyone specifies exactly *what* gets
-built. This skill produces a design record: the problem, the forces acting on
-it, the options that were genuinely considered, the chosen approach, and the
-consequences — including the ones you would rather not write down.
-
-The defining rule: **at least two real options, compared against criteria
-stated before the comparison.** A design document that presents one approach
-with reasons it is good is not a decision, it is an advertisement. Criteria
-invented after the winner is known will always select that winner.
+Decide *how* to build something before specifying *what* gets built.
+**Compare at least two real options against criteria written before the
+comparison.** One option with reasons it is good is not a decision.
 
 ## When to Use
 
-- A change needs a technology, pattern, or structural choice made.
-- A spec cannot be written because the approach is still open.
-- Multiple viable implementations exist and the trade-off is not obvious.
-- A decision will be expensive to reverse: data model, public contract,
-  dependency, deployment topology.
+- A technology, pattern, or structural choice is open.
+- The choice is expensive to reverse: data model, public contract,
+  dependency, deployment topology, trust boundary.
 - A proposal needs review before anyone implements it.
 
-**When NOT to use:** The approach is obvious and reversible (just build it —
-a design record for a decision nobody would question is ceremony). The
-decision is a product question, not a technical one (what to build and for
-whom belongs in a story and a spec). The system is already built and you want
-to document it (that is documentation of an existing system, not a decision).
-The choice is already made and you want a justification written (that is not
-a design; record it as a decision with its actual reasoning, however thin).
+**Not for:** an obvious, reversible approach (build it); a product question
+(that is a story); documenting a system that already exists; justifying a
+choice already made (record it as decided, with its real reasons).
 
 ## Inputs
 
-| Input | Where | If it is missing |
+| Input | Where | If missing |
 |---|---|---|
-| The problem and its outcome | `.specs/<slug>/story.md`, a request, or a conversation | Stop. Designing without a stated outcome produces architecture looking for a purpose. |
-| Constraints that bind the choice | `CONSTRAINTS.md`, infrastructure, team skills, deadlines, budget | Proceed, and record every constraint you assumed. An unstated constraint is the usual reason a design is rejected late. |
-| The existing system | the codebase, its architecture, its data model | Proceed, but a design drawn against a guessed system is a guess. Verify the integration points you depend on before deciding. |
-| Non-functional requirements (load, latency, availability, compliance) | the story, the product owner, existing SLOs | Proceed with explicit assumptions and stated numbers. "Should scale" is not a requirement; "2,000 writes/second at p99 < 200ms" is. |
-| A reviewer | a person | Proceed to a proposed decision, but mark it proposed. A design nobody reviewed is a preference. |
+| Problem and outcome | story, request, conversation | Stop. A design needs a stated outcome. |
+| Constraints | `CONSTRAINTS.md`, infrastructure, team, deadline, budget | Proceed. Record each constraint you assumed. |
+| Existing system | the codebase | Proceed. Verify every integration point you depend on before deciding. |
+| Non-functional needs | story, owner, SLOs | Proceed with stated numbers marked assumed. "Should scale" is not a requirement. |
+| Reviewer | a person | Proceed. The status stays Proposed. |
 
-**Where output goes.** Spec documents are optional. Write
-`.specs/<slug>/design.md` (or `docs/decisions/` for a repository-wide
-decision, if that directory exists) only when the project already keeps spec
-documents (a `.specs/` directory, or its own spec tool's format — then use
-that format) or the user asks for files. Otherwise return the design record in
-the conversation: the IDs it assigns are still used, marked context-sourced,
-and carried into the PR body.
+## Operating contract
+
+These rules apply to every step below. They override habit and convenience.
+
+1. **Think, then act.** Before the first edit or claim, write down: the goal,
+   what you verified, what you are assuming, the smallest plan, and the check
+   that will prove it done.
+2. **Evidence, not belief.** Read the code and run the command before stating
+   a fact. Cite `path:line`, or the command and its output. Label everything
+   else an assumption. Never report a check you did not run.
+3. **Smallest change that works.** Change only what the task needs. Search for
+   existing code to reuse before writing new code. No drive-by refactors,
+   renames, reformatting, new dependencies, or speculative abstractions.
+   Problems outside the task are reported as follow-ups, not fixed.
+4. **Keep contracts substitutable (Liskov).** Whatever you change must still
+   work everywhere the old version was used: accept at least the same inputs,
+   keep the same outputs, errors, and side effects, and leave callers
+   unchanged. If a contract must break, stop and say so. That is a decision
+   for a human, not a detail.
+5. **One source of truth (DRY).** Each rule, fact, and piece of logic lives in
+   one place. Reference it; do not copy it. Do not merge code that only looks
+   alike: extract on the third real duplicate of the same knowledge.
+6. **Secure by default.** No secrets in code, logs, commits, or output. Treat
+   external input as untrusted. Grant least privilege. Add or upgrade a
+   dependency only when needed, pinned, from a known source. Flag any change
+   to auth, permissions, personal data, crypto, or CI/CD for human review.
+7. **Ask, do not guess.** If a missing detail would change the result, stop
+   and ask one question with a recommended answer. Never approve your own work
+   at a human gate. Never run a destructive or irreversible action without
+   explicit approval.
+8. **Specs are optional.** If the project keeps spec files (`.specs/<slug>/`,
+   or its own spec tool), read and write them there. If not, work in the
+   conversation with the same IDs marked *context-sourced*, and carry them
+   into commits and the PR. Never create `.specs/` unasked. Requirements are
+   *agreed* only when a spec says `Status: Approved` with an approver, or the
+   user confirmed a restated list.
+9. **Finish by reporting.** Show the full result (output, evidence, open
+   items, follow-ups) and stop. Do not start the next stage. If the project
+   keeps spec files and this work has none, offer once to write a `Draft`
+   spec.
 
 ## Process
 
-1. **State the problem, not the solution.** One paragraph: what has to become
-   true, for whom, and why the current design cannot deliver it. If the
-   problem statement names a technology, you have skipped to the answer —
-   rewrite it.
-2. **State the forces.** What makes this hard and what bounds the answer:
-   load and growth, latency budget, consistency needs, failure modes,
-   security and compliance, team familiarity, operational cost, deadline,
-   existing commitments. Quantify anything quantifiable; a force nobody can
-   measure cannot discriminate between options.
-3. **Write the decision criteria — before the options.** Three to six, each
-   with how it will be judged. Weight them if they are not equal. This
-   ordering is not a formality: criteria written after the options are
-   reverse-engineered from the preferred answer, every time.
-4. **Identify real options.** At least two that a competent engineer would
-   actually defend, and include the cheap one — "do nothing", "keep the
-   current design", or "the boring thing that already works here" — because
-   it is often correct and is almost never written down.
-   - A straw man is not an option. If you cannot state an option's strongest
-     argument as its proponent would, you have not understood it well enough
-     to reject it.
-5. **Evaluate each option against each criterion.** Say what is true, with
-   evidence where evidence exists: a benchmark, a similar system, a
-   documented limit, a prototype. Mark judgements that rest on assumption
-   rather than measurement — and if a critical one rests on assumption,
-   consider spiking it before deciding.
-6. **Choose, and say what you are giving up.** Name the option and the
-   criteria that decided it. Then state the cost honestly: what the
-   discarded options were better at, and what this choice makes harder,
-   slower, or more expensive. **A design with no stated downside has not been
-   thought through.**
-7. **State the consequences.** What becomes true once this is built: new
-   operational burden, new dependency and its maintenance, new failure modes,
-   what the team now has to learn, what this forecloses later.
-8. **Define the reversal condition.** What would have to be observed for this
-   decision to be wrong, how expensive reversing it would be, and — for a
-   costly reversal — what would reduce the commitment now. A decision with no
-   falsifier cannot be revisited honestly, only defended.
-9. **Get it reviewed, then hand off to specification.** The design settles
-   the approach; the spec then fixes the behavior, contracts, and test
-   criteria within it. Do not write the spec here, and do not implement —
-   a design proven only by building it is expensive to disprove.
-10. **Present the result, then offer a spec only where specs are in use.**
-    Show the full result — the design record, the decision, what it gives up,
-    the open questions — in one place, and wait for the user's reaction. If
-    nobody is there to respond (an automated or chained run), end here with
-    the result reported and create nothing optional. Offer a spec file only if
-    the project already keeps spec documents (`.specs/` or its own spec tool)
-    or the user asked for one, and this work has none — and offer it at most
-    once per session: a declined offer is not repeated, and the work stays
-    context-driven. If the user agrees, write `.specs/<slug>/spec.md` from
-    what this pass established — the scope, the requirements (`R-<n>`) the
-    decision commits to, the test criteria (`TC-*`) that would prove them, and
-    the decision with its rationale — with `Status: Draft` and the standard
-    spec sections (context, scope, non-scope, interface and data contracts,
-    behaviour, error and edge cases, test criteria, observability, rollback
-    plan, open questions). Only a human approves it, later. Anything still
-    open goes into its open questions, not invented. Do not write the spec
-    here, and do not implement.
+1. **State the problem** in one paragraph: what must become true, for whom,
+   and why the current design cannot do it. Name no technology.
+2. **State the forces** with numbers where possible: load, latency,
+   consistency, failure modes, security and compliance, team skill,
+   operating cost, deadline.
+3. **Write three to six decision criteria, before any option.** Say how each
+   is judged and how much it weighs. Always include fit with the existing
+   architecture and size of change. Include security and operability when
+   the decision touches data, trust boundaries, or production.
+4. **List at least two real options.** One must be the cheap one: do nothing,
+   keep the current design, or reuse what already exists here. State each
+   option's strongest argument as its supporter would.
+5. **Evaluate every option against every criterion.** Give evidence: a
+   benchmark, a documented limit, a similar system, a prototype. Mark every
+   judgement that rests on assumption. If a critical one does, spike it
+   before deciding.
+6. **Choose.** Name the option and the criteria that decided it. When options
+   tie, pick the one that changes less and reuses more. State what you give
+   up.
+7. **State the consequences:** new operating burden, new dependencies, new
+   failure modes, new attack surface, what this rules out later.
+8. **Define the reversal:** what observation would prove this wrong, what
+   reversing costs, and what would lower that cost now.
+9. **Report** for review. Do not write the spec and do not implement.
 
-## Templates
+## Rules
 
-Design record, saved to `.specs/<slug>/design.md` or
-`docs/decisions/AD-<n>-<slug>.md` for a repository-wide decision, or returned
-in the conversation — see Where output goes:
+- Criteria come first. Criteria written after the options only justify the
+  favourite.
+- A straw man is not an option. If you cannot argue for it, you have not
+  understood it.
+- "What we give up" is never "none".
+- Non-functional requirements are numbers, never adjectives.
+- A prototype answers one named question. It is not the decision.
+- The status stays Proposed until someone other than the author accepts it.
+
+## Output
+
+Save to `.specs/<slug>/design.md` (or `docs/decisions/AD-<n>-<slug>.md` for a
+repository-wide decision), or return it in the conversation (contract rule 8).
 
 ```markdown
-# AD-<n>: <decision, stated as the choice made>
+# AD-<n>: <the choice made>
 
 > **Date:** <YYYY-MM-DD>
-> **Status:** <Proposed | Accepted | Superseded by AD-<n>>
+> **Status:** Proposed | Accepted | Superseded by AD-<n>
 > **Deciders:** <names>
-> **Scope:** <this feature | this service | repository-wide>
+> **Scope:** this feature | this service | repository-wide
 
 ## Problem
-
-<What must become true, for whom, and why the current design cannot deliver
-it. No technology named here.>
+<What must become true, for whom, and why today's design cannot. No technology.>
 
 ## Forces
-
-- **<Force>:** <quantified where possible — load, latency, budget, deadline>
-- **Constraints:** <C-<n> from CONSTRAINTS.md, infrastructure, team, compliance>
-- **Assumed:** <anything taken on faith, explicitly flagged>
+- **<Force>:** <number where possible>
+- **Assumed:** <anything taken on faith>
 
 ## Decision criteria
-
 | # | Criterion | How it is judged | Weight |
 |---|---|---|---|
-| 1 | <e.g. write throughput at peak> | <benchmark / documented limit> | High |
-| 2 | <e.g. operational burden> | <who runs it, what breaks at 3am> | Medium |
 
 ## Options
-
-### Option A — <name>
-<What it is, in two or three sentences. Its strongest argument, stated as a
-proponent would.>
-
-### Option B — <name>
-<Same.>
-
-### Option C — <do nothing / keep current design>
-<Always present. Often correct.>
+### A: <name>
+<What it is. Its strongest argument.>
+### B: <do nothing / keep current / reuse existing>
+<Always present.>
 
 ## Evaluation
-
-| Criterion | Option A | Option B | Option C |
-|---|---|---|---|
-| <1> | <finding + evidence> | <finding> | <finding> |
-| <2> | <finding> | <finding *assumed, not measured*> | <finding> |
+| Criterion | A | B |
+|---|---|---|
+| <1> | <finding + evidence> | <finding (assumed)> |
 
 ## Decision
-
-**<Chosen option>**, because <the criteria that decided it>.
-
-**What we give up:** <what the discarded options were better at, and what
-this choice makes harder, slower, or costlier. Not "none".>
+**<Option>**, because <deciding criteria>.
+**What we give up:** <specific costs>
 
 ## Consequences
-
-- **Operationally:** <what has to be run, watched, paged on>
-- **For the team:** <what has to be learned or maintained>
-- **New failure modes:** <what can now break that could not before>
-- **Forecloses:** <what this makes harder to do later>
+- **Operations:** <what must be run and watched>
+- **Team:** <what must be learned or maintained>
+- **Failure modes and attack surface:** <what can now go wrong>
+- **Rules out:** <what becomes harder later>
 
 ## Reversal
-
-- **Wrong if we observe:** <the falsifier — a metric, a limit, a cost>
-- **Cost to reverse:** <low / medium / high, and why>
-- **Reducing the commitment now:** <abstraction, flag, or staged rollout — or
-  "accepted as a one-way door">
+- **Wrong if we observe:** <metric, limit, or cost>
+- **Cost to reverse:** low | medium | high, because <why>
+- **Lowering it now:** <flag, staged rollout, interface> or "accepted as one-way"
 
 ## Open questions
-
 | # | Question | Owner | Blocks the spec? |
 |---|---|---|---|
-| 1 | <question> | <name> | Yes / No |
 ```
-
-## Common Rationalizations
-
-| Rationalization | Reality |
-|---|---|
-| "I already know the right answer, the document is a formality" | Then it costs you ten minutes to write the alternative and say why it loses — and that paragraph is what a reviewer needs to agree with you, and what the next engineer needs to avoid relitigating it in six months. If writing the alternative changes your mind, the document just paid for itself. |
-| "There's only one real option here" | There are always at least two: this, and not doing it. If the second is obviously worse, saying so takes one line. If it is not obviously worse, you needed to write it down. |
-| "I'll fill in the criteria after I compare the options" | Criteria written after the comparison select the option you already preferred. That is not a decision process, it is a justification process wearing its clothes. |
-| "Listing downsides makes the proposal look weak" | It makes it look examined. A reviewer's first job is finding the cost you did not mention; handing it to them buys trust and saves a review cycle. A proposal with no downsides gets read as a proposal with hidden ones. |
-| "We'll benchmark it after we build it" | After you build it, the cost of learning you were wrong is the whole implementation. If a criterion is critical and unmeasured, spike it now — a day of prototype beats a month of migration. |
-| "This is easy to change later if we're wrong" | Sometimes true, and then say so and move fast. But data models, public contracts, and dependencies are load-bearing within weeks. State the reversal cost explicitly instead of assuming it is low. |
-| "The design is obvious from the spec" | The spec says what the system does; the design says why it is built that way rather than the three other ways. The second question is the one that gets asked later, by someone considering a change. |
-| "I'll just prototype it and see" | A prototype is good evidence and a bad decision process — the first thing that works becomes the thing you defend. Prototype to answer a named question, then decide. |
-
-## Red Flags
-
-- One option, presented with reasons it is good.
-- Criteria appearing after the options, or matching the winner suspiciously well.
-- No "do nothing" or "keep the current design" option.
-- A "what we give up" section reading "none" or "minimal".
-- Non-functional requirements stated as adjectives — fast, scalable, robust.
-- An option dismissed in a clause, with no statement of its best argument.
-- No reversal condition, or "we'd just change it" with no cost named.
-- The chosen technology appearing in the problem statement.
-- Deciders listing only the author.
 
 ## Verification
 
-- [ ] The problem is stated without naming a solution or a technology.
-- [ ] Forces are quantified wherever quantifiable, and assumptions are flagged as assumptions.
-- [ ] Decision criteria were written before the options were evaluated, with how each is judged.
-- [ ] At least two real options, including the cheap or do-nothing one.
-- [ ] Each rejected option's strongest argument is stated fairly.
-- [ ] Every evaluation cell distinguishes measured evidence from assumption.
-- [ ] The decision names the criteria that decided it.
-- [ ] "What we give up" is specific and non-empty.
-- [ ] Consequences cover operations, team, new failure modes, and what is foreclosed.
-- [ ] A reversal condition and reversal cost are stated.
-- [ ] Open questions have owners, and each says whether it blocks specification.
-- [ ] Status is Proposed until a reviewer who is not the author accepts it.
+- [ ] The problem names no solution or technology.
+- [ ] Criteria were written before the options, each with how it is judged.
+- [ ] At least two real options, including the cheap one.
+- [ ] Every evaluation cell marks evidence or assumption.
+- [ ] "What we give up" is specific.
+- [ ] Consequences and the reversal condition and cost are stated.
+- [ ] Open questions have owners. The status is Proposed until accepted.

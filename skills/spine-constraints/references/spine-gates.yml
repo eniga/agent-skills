@@ -1,0 +1,59 @@
+# Spine gates: the rules that must hold even when an agent skips its prompt.
+#
+# Copy to .github/workflows/spine-gates.yml, then make all three jobs required
+# status checks on the default branch. Needs .githooks/commit-msg (copied from
+# commit-msg.sh next to this file).
+#
+# Actions and images are pinned to exact commits and digests. Update the pin
+# and the version comment together.
+name: spine-gates
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  # Every behavior-changing commit cites SL-<n>, R-<n>, or D-<n>.
+  commit-ids:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Check commit messages
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: sh .githooks/commit-msg --range "origin/$BASE_REF..HEAD"
+
+  # No secret in the tree or anywhere in the history being merged.
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Scan for secrets (gitleaks v8.30.1)
+        run: |
+          docker run --rm -v "$PWD:/repo" \
+            ghcr.io/gitleaks/gitleaks@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f \
+            git /repo --redact --no-banner
+
+  # No known-vulnerable dependency in any lockfile or manifest.
+  dependencies:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - name: Audit dependencies (osv-scanner v2.7.1)
+        run: |
+          docker run --rm -v "$PWD:/repo" \
+            ghcr.io/google/osv-scanner@sha256:a70ffffc2bfd33482953e5d6b64c6fcdb30239717a07b0f0d3ab2859ce3e4cde \
+            scan source --recursive /repo

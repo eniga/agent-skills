@@ -1,202 +1,160 @@
 ---
-name: test
-description: Proves a change works by running the focused tests for the new change first, then the full suite to catch regressions, and reporting each test criterion as pass, fail, or unverified with evidence. Use when a build is complete and needs proof. Use when a change needs verification before review or merge. Not for writing tests while implementing, or for finding the cause of a failure.
+name: spine-test
+description: Proves a change works by running the focused tests first, then the full suite and the quality and security gates, and reporting every test criterion as pass, fail, or unverified with the command and output. Use when a build is complete and needs proof. Use when a change needs verification before review or merge. Not for writing tests while implementing or finding the cause of a failure.
 ---
 
-# Test
+# Spine Test
 
 ## Overview
 
-Prove that it works. Testing is evidence production: every claim that the
-change works must be backed by a command that was run and an output that was
-seen. "Seems right" and "the code looks correct" are not evidence.
-
-The order matters: **run the focused tests for the new change first, then the
-full suite.** Focused-first finds the change's own bugs fast; the full suite
-then proves the change broke nothing else. Running only the full suite hides
-which failures are new; running only the focused suite proves nothing about
-regressions.
+Produce evidence that the change works. **Focused tests first, then the full
+suite. Every criterion ends as pass, fail, or unverified, with a command and
+its output.** This skill reports; it does not fix.
 
 ## When to Use
 
-- A build (or any code change) is complete and needs proof before review.
-- A change is about to be reviewed or turned into a pull request and has no
-  test evidence yet.
-- You need to know whether a change broke anything, with per-criterion
-  results.
+- A build or code change is complete and needs proof.
+- A change is about to be reviewed or merged without test evidence.
 
-**When NOT to use:** You are writing the tests as part of implementing a
-slice (those are written from the spec's `TC-*` before the code, as part of
-the build, not here). The change is a documentation-only edit (no tests to
-run; say so). You are chasing a specific failure to its cause (diagnose it
-separately — reproduce and localize first; this skill reports results, it
-does not find or fix causes).
+**Not for:** writing tests during implementation; finding the cause of a
+failure; a documentation-only change (say there is nothing to run).
 
 ## Inputs
 
-| Input | Where | If it is missing |
+| Input | Where | If missing |
 |---|---|---|
-| Test criteria (`TC-*`, each mapped to an `R-*`) | `.specs/<slug>/spec.md`, or the criteria agreed in the conversation | Proceed. Derive the criteria from the change's acceptance criteria, or from the observable behaviors the diff introduces, and label them `TC-U/I/E<n>` yourself. Say in the report that the criteria were derived, not specified. |
-| The change under test | git diff, branch, or commit range | Stop. Ask which change is being verified. A whole-suite run with no named change is a CI job, not a verification pass. |
-| Quality bar (coverage and gate rules `C-*`) | `CONSTRAINTS.md` at repo root | Proceed. Report the numbers without a pass/fail judgement against a threshold, and say no bar was set. |
-| Slice records (`SL-*`) | `.specs/<slug>/plan.md` | Proceed. Slices help scope the focused run; without them, scope it from the diff. |
+| The change | diff, branch, commit range | Stop. Ask which change is being verified. |
+| Test criteria `TC-*` | `.specs/<slug>/spec.md`, or the conversation | Derive them from the acceptance criteria or from the behaviors the diff adds. Label them yourself and report them as derived. |
+| Quality bar `C-*` | `CONSTRAINTS.md` | Proceed. Report numbers without judging them against a threshold. |
+| Slice records `SL-*` | `.specs/<slug>/plan.md` | Proceed. Scope the focused run from the diff. |
 
-This skill needs the criteria and the change, not the tools that produced
-them.
+## Operating contract
 
-**Where output goes.** Spec documents are optional. Write
-`.specs/<slug>/evidence/test-<date>.md` only when the project already keeps
-spec documents (a `.specs/` directory, or its own spec tool's format — then
-use that format) or the user asks for files. Otherwise return the report in
-the conversation: the IDs it assigns are still used, marked context-sourced,
-and carried into the PR body.
+These rules apply to every step below. They override habit and convenience.
 
-**Agreed expectations.** Requirements count as agreed when a spec file says
-`Status: Approved` with an approver, or — in context-driven work, with no spec
-file — when the user has explicitly confirmed a restated list of the
-requirements or acceptance criteria in the conversation. A spec file that is
-still `Draft` is not agreed, and neither is a list the user never confirmed.
+1. **Think, then act.** Before the first edit or claim, write down: the goal,
+   what you verified, what you are assuming, the smallest plan, and the check
+   that will prove it done.
+2. **Evidence, not belief.** Read the code and run the command before stating
+   a fact. Cite `path:line`, or the command and its output. Label everything
+   else an assumption. Never report a check you did not run.
+3. **Smallest change that works.** Change only what the task needs. Search for
+   existing code to reuse before writing new code. No drive-by refactors,
+   renames, reformatting, new dependencies, or speculative abstractions.
+   Problems outside the task are reported as follow-ups, not fixed.
+4. **Keep contracts substitutable (Liskov).** Whatever you change must still
+   work everywhere the old version was used: accept at least the same inputs,
+   keep the same outputs, errors, and side effects, and leave callers
+   unchanged. If a contract must break, stop and say so. That is a decision
+   for a human, not a detail.
+5. **One source of truth (DRY).** Each rule, fact, and piece of logic lives in
+   one place. Reference it; do not copy it. Do not merge code that only looks
+   alike: extract on the third real duplicate of the same knowledge.
+6. **Secure by default.** No secrets in code, logs, commits, or output. Treat
+   external input as untrusted. Grant least privilege. Add or upgrade a
+   dependency only when needed, pinned, from a known source. Flag any change
+   to auth, permissions, personal data, crypto, or CI/CD for human review.
+7. **Ask, do not guess.** If a missing detail would change the result, stop
+   and ask one question with a recommended answer. Never approve your own work
+   at a human gate. Never run a destructive or irreversible action without
+   explicit approval.
+8. **Specs are optional.** If the project keeps spec files (`.specs/<slug>/`,
+   or its own spec tool), read and write them there. If not, work in the
+   conversation with the same IDs marked *context-sourced*, and carry them
+   into commits and the PR. Never create `.specs/` unasked. Requirements are
+   *agreed* only when a spec says `Status: Approved` with an approver, or the
+   user confirmed a restated list.
+9. **Finish by reporting.** Show the full result (output, evidence, open
+   items, follow-ups) and stop. Do not start the next stage. If the project
+   keeps spec files and this work has none, offer once to write a `Draft`
+   spec.
 
 ## Process
 
-1. **Read the inputs.** Read the change (diff or branch), the spec's test
-   criteria (`.specs/<slug>/spec.md`, section 8) if one exists, and the
-   repository's test setup (how tests are run, what the suites are). If
-   there is no spec, the acceptance criteria come from the story or the task
-   — use whatever fixed expectation exists, and say which.
-2. **Map the change to criteria.** List every `TC-*` (or acceptance
-   criterion) the change is supposed to satisfy, and every area of existing
-   behavior the change touches. This list is the report's skeleton — every
-   row must end with a result.
-3. **Run the focused tests first.** Run the narrowest tests that exercise the
-   changed behavior — the tests for the changed modules, the `TC-*` the
-   change implements. Record the command and the result.
-   - If a focused test fails, **stop here.** Do not run the full suite yet —
-     report the failure, what it suggests, and stop. A full-suite run on top
-     of a known failure just adds noise.
-4. **Run the full suite.** With the focused tests green, run the entire test
-   suite (unit + integration; e2e if the change touches user-facing flows and
-   the suite includes them). Record the command and the result.
-   - A full-suite failure that the focused run did not show is a
-     **regression** caused by the change. Report it as such, with the failing
-     test and the likely interaction.
-5. **Cover what tests cannot.** For criteria that no automated test
-   exercises (a browser flow, a permission state, a timing, a manual
-   checkpoint from the plan), either perform the check and record the
-   evidence, or mark the criterion **unverified** and say exactly what would
-   verify it. Never mark a criterion pass because the code "looks like it
-   does that".
-6. **Write the report** using the template below, saved or returned as
-   described in Where output goes. Every criterion row has a result and evidence.
-7. **Present the result, then offer a spec only where specs are in use.** Show
-   the full result — the report, the verdict, the per-criterion evidence,
-   leading with failures and unverified criteria rather than burying them
-   below the passes — in one place, and wait for the user's reaction. If
-   nobody is there to respond (an automated or chained run), end here with the
-   result reported and create nothing optional. Offer a spec file only if the
-   project already keeps spec documents (`.specs/` or its own spec tool) or
-   the user asked for one, and this work has none — and offer it at most once
-   per session: a declined offer is not repeated, and the work stays
-   context-driven. If the user agrees, write `.specs/<slug>/spec.md` from what
-   this pass established — the requirements (`R-<n>`) the change delivers, the
-   test criteria (`TC-*`) that were checked and how they were derived, and the
-   failures still open — with `Status: Draft` and the standard spec sections
-   (context, scope, non-scope, interface and data contracts, behaviour, error
-   and edge cases, test criteria, observability, rollback plan, open
-   questions). Only a human approves it, later. Anything still open goes into
-   its open questions, not invented. Do not fix failures; report them.
-   Diagnosing and fixing a failure is separate work with its own evidence, and
-   doing it here would invalidate the report you just wrote.
+1. **Read** the change, the test criteria, and how this repository runs its
+   tests and gates.
+2. **List every criterion** the change must satisfy and every existing
+   behavior it touches. This list is the report's skeleton.
+3. **Run the focused tests:** the narrowest tests for the changed behavior.
+   Record the command and the result. If one fails, stop, report it, and do
+   not run the full suite.
+4. **Run the full suite** (unit and integration; end to end when the change
+   touches a user-facing flow). A failure the focused run did not show is a
+   regression: name the test and the likely interaction. To call a failure
+   pre-existing, show it failing on the base branch.
+5. **Run the gates that apply:** lint, type check, coverage, secret scan,
+   dependency audit, code scanning. Record each command and its result.
+6. **Cover what tests cannot.** For a criterion no automated test exercises,
+   perform the check and record the evidence, or mark it Unverified and say
+   what would verify it.
+7. **Write the report** using Output, failures and unverified items first.
+8. **Report.**
 
-## Writing rules
+## Rules
 
-- **Evidence is a command and an output.** "Ran `npm test -- payment`, 42
-  passed" is evidence. "Tests pass" is a claim. Include the command, the
-  count, and the failure detail for anything that failed.
-- **Results are three-valued.** Pass, fail, or unverified. There is no
-  "probably passes". A criterion you did not check is unverified, full stop.
-- **Failures lead.** The report opens with what is broken and what is
-  unknown, then what works. A report that leads with 40 passes and hides 1
-  failure has failed at its job.
-- **Regressions are named as regressions.** A pre-existing test that now
-  fails because of the change is reported as "regression: <test>, likely
-  caused by <change>", not just as a failure.
-- **The report is append-only history.** Each test run gets its own file or
-  section with a date. Do not edit a previous run's results — a new run is a
-  new record.
+- Evidence is a command and its output. "Tests pass" is a claim.
+- Three results only: Pass, Fail, Unverified. Reading the code is not a
+  Pass.
+- Fix nothing here. A fix changes what was tested and voids the report.
+- Never edit an earlier run's results. A new run is a new record.
+- A skipped suite or gate is recorded with its reason.
+- A small diff gets the same full suite.
+- Never paste secrets or personal data into the report. Redact them.
 
-## Template
+## Output
+
+Save to `.specs/<slug>/evidence/test-<YYYY-MM-DD>.md`, or return it in the
+conversation (contract rule 8).
 
 ```markdown
-# Test Report: <change / feature>
+# Test report: <change>
 
 > **Date:** <YYYY-MM-DD>
-> **Change:** <branch / PR / commit range>
-> **Criteria from:** `.specs/<slug>/spec.md` | agreed in conversation | derived
->   from <source>
+> **Change:** <branch / PR / range> at `<head sha>`
+> **Criteria from:** spec | agreed in conversation | derived from <source>
 
 ## Summary
+- **Focused:** pass | fail: <n> tests, `<command>`
+- **Full suite:** pass | fail | not run (<reason>): <n> tests, `<command>`
+- **Gates:** <each gate: pass | fail | not run>
+- **Verdict:** Proven | Partially proven | Not proven
 
-- **Focused:** <pass/fail> — <n> tests, <command>
-- **Full suite:** <pass/fail> — <n> tests, <command>
-- **Verdict:** Proven | Not proven | Partially proven
-
-## Failures and unverified (lead with these)
-
+## Failures and unverified
 | # | Criterion | Result | Evidence | What would close it |
 |---|---|---|---|---|
-| 1 | TC-I2 (R-4) | Fail | `<command>` — <failure detail> | <fix needed> |
-| 2 | TC-E1 (R-1) | Unverified | no e2e test exists | <manual flow to run> |
+| 1 | TC-I2 (R-4) | Fail | `<command>`: <failure detail> | <what is needed> |
+| 2 | TC-E1 (R-1) | Unverified | no automated test | <manual flow> |
 
 ## Per-criterion results
-
 | Criterion | Result | Evidence |
 |---|---|---|
-| TC-U1 (R-1) | Pass | `<command>` — 12 passed |
-| TC-U2 (R-4) | Pass | `<command>` — 12 passed |
-| TC-I1 (R-2) | Pass | `<command>` — 5 passed |
-| TC-E1 (R-1) | Unverified | <see above> |
+| TC-U1 (R-1) | Pass | `<command>`: 12 passed |
+
+## Gates
+| Gate | Command | Result |
+|---|---|---|
+| C-3 secret scan | `<command>` | pass |
 
 ## Regressions
-
-- <pre-existing test now failing, likely cause — or "none">
+- <existing test now failing and the likely cause, or "none">
 
 ## Notes
-
-<Anything a reviewer needs: flaky tests observed, suites skipped and why,
-environment details.>
+<Flaky tests seen, suites skipped and why, environment.>
 ```
 
-## Common Rationalizations
-
-| Rationalization | Reality |
-|---|---|
-| "The full suite is slow, I'll just run the focused tests" | The focused suite proves the change works; the full suite proves it broke nothing. Skipping the full suite means the regression is found in production, where it is more expensive. If the full suite is too slow, that is a `CONSTRAINTS.md` conversation, not a silent skip. |
-| "The tests passed last time, the change is small" | "Small" is exactly when the untested interaction hides. The suite does not get a discount for small diffs. |
-| "I'll mark it pass, the code clearly does that" | Reading code is not running it. The report is evidence, and the only evidence that a behavior happens is a test or a check that observed it happen. |
-| "The failure is pre-existing, so it doesn't count" | A pre-existing failure that your change made visible is still on your report. Say it is pre-existing (with evidence: it fails on the base branch too) — but do not delete it from the record. |
-| "I'll fix the failure while I'm here" | Testing reports; it does not fix. A fix changes the change, which invalidates the report you are writing. Report, then diagnose and fix as separate work, then re-test and write a new report. |
-| "One more test run after the fix can share this report" | Each run is a record. Editing the old results to match the new run destroys the history that says what was true when. New run, new file. |
-
-## Red Flags
-
-- A report with no commands — only adjectives ("green", "looks good").
-- A criterion marked Pass with no evidence.
-- Failures listed after the passes, or described as "minor".
-- A full-suite skip with no recorded reason.
-- A regression reported as an ordinary failure with no likely cause.
-- Previous run results edited instead of a new run recorded.
-- "Probably passes" or "should be fine" anywhere in the report.
+Verdict: **Proven** when every criterion passes and the full suite and
+blocking gates are green. **Partially proven** when nothing fails but
+something is unverified or not run. **Not proven** when anything fails.
 
 ## Verification
 
-Before returning, confirm:
-
-- [ ] Focused tests ran first; their command and result are recorded.
-- [ ] If focused tests failed, the full suite was not run and the report stops at the failure.
-- [ ] The full suite ran (or the skip is recorded with a reason); its command and result are recorded.
-- [ ] Every criterion in the change's scope has a row: Pass, Fail, or Unverified.
-- [ ] Every Pass has command-and-output evidence; every Unverified says what would close it.
-- [ ] Regressions are named as regressions with a likely cause.
-- [ ] The report leads with failures and unverified criteria.
-- [ ] The report was saved or returned per Where output goes, and no fixes were made.
+- [ ] Focused tests ran first, with command and result recorded.
+- [ ] The full suite ran, or the report stops at the focused failure, or the
+      skip has a reason.
+- [ ] Every criterion has a row: Pass, Fail, or Unverified.
+- [ ] Every Pass has a command and output. Every Unverified says what would
+      close it.
+- [ ] Gates that apply were run and recorded.
+- [ ] Regressions are named with a likely cause.
+- [ ] The report leads with failures, names the head commit, and nothing was
+      fixed.
