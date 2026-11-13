@@ -89,11 +89,16 @@ These rules apply to every step below. They override habit and convenience.
    CI/CD, and what was checked. Say "none" only after reading the diff for
    each.
 5. **Scan the diff** for secrets, credentials, debug output, and unrelated
-   files before it goes public. If you find any, stop and report.
+   files before it goes public. If you find any, do not push, open, or
+   update the PR. Still write the description, with a **Stopped before
+   publishing** line above the title naming each finding (`path:line`) and
+   what must happen first, such as removing and rotating a secret. Add each
+   finding to Open items.
 6. **State risk and rollback:** the mechanism, the trigger, and what happens
    to data the new version wrote.
 7. **Write the description** using Output, for a reviewer who has not seen
-   the work. Open or update the PR with it.
+   the work. Open or update the PR with it, unless step 5 stopped
+   publishing.
 8. **Report.** Merging is a human decision.
 
 ## Rules
@@ -160,6 +165,7 @@ secrets, data, dependencies, CI/CD".>
       evidence, or Deferred with a reason.
 - [ ] Every commit maps to a requirement or is listed as plumbing.
 - [ ] Security impact is stated from reading the diff.
-- [ ] No secret, debug output, or unrelated file is in the diff.
+- [ ] No secret, debug output, or unrelated file is in the diff, or the
+      PR was not published and each finding heads the description.
 - [ ] Review status, risk, rollback, and open items are filled in.
 - [ ] The PR body was updated. The PR was not merged.
