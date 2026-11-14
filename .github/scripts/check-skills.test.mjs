@@ -11,8 +11,10 @@ import { promisify } from "node:util";
 const run = promisify(execFile);
 const SCRIPT = join(import.meta.dirname, "check-skills.mjs");
 
-// A minimal skill that passes every check.
-function validSkill(name) {
+// A minimal skill that passes every check, each section at its smallest
+// budget (docs/skill-anatomy.md).
+const STEPS = ["1. Read.", "2. Plan.", "3. Do.", "4. Check.", "5. Write.", "6. Report."];
+function validSkill(name, { process = STEPS } = {}) {
   return [
     "---",
     `name: ${name}`,
@@ -22,6 +24,8 @@ function validSkill(name) {
     "## Overview",
     "",
     "Body.",
+    "It does one thing.",
+    "**It never does two.**",
     "",
     "## When to Use",
     "",
@@ -29,7 +33,11 @@ function validSkill(name) {
     "",
     "## Inputs",
     "",
-    "None.",
+    "| Input | Where | If missing |",
+    "|---|---|---|",
+    "| A | here | stop |",
+    "| B | there | proceed |",
+    "| C | anywhere | ask |",
     "",
     "## Operating contract",
     "",
@@ -37,11 +45,15 @@ function validSkill(name) {
     "",
     "## Process",
     "",
-    "1. Do it.",
+    ...process,
     "",
     "## Rules",
     "",
     "- one",
+    "- two",
+    "- three",
+    "- four",
+    "- five",
     "",
     "## Output",
     "",
@@ -49,6 +61,11 @@ function validSkill(name) {
     "",
     "## Verification",
     "",
+    "- [ ] a",
+    "- [ ] b",
+    "- [ ] c",
+    "- [ ] d",
+    "- [ ] e",
     "- [ ] done",
   ].join("\n");
 }
@@ -61,15 +78,20 @@ function padTo(text, total) {
 
 // Build a temp repo with the given skills (name -> SKILL.md text; null =
 // directory without SKILL.md) and run the checker against it from there.
-// `contract` writes docs/operating-contract.md; `args` are passed to the
-// checker; `files` returns each SKILL.md as it is after the run.
-async function runChecker(skills, { contract, args = [] } = {}) {
+// `contract` writes docs/operating-contract.md; `refs` maps a skill name to
+// the files in its references/; `args` are passed to the checker; `files`
+// returns each SKILL.md as it is after the run.
+async function runChecker(skills, { contract, refs = {}, args = [] } = {}) {
   const root = await mkdtemp(join(tmpdir(), "check-skills-"));
   try {
     for (const [name, text] of Object.entries(skills)) {
       const dir = join(root, "skills", name);
       await mkdir(dir, { recursive: true });
       if (text !== null) await writeFile(join(dir, "SKILL.md"), text);
+      for (const file of refs[name] ?? []) {
+        await mkdir(join(dir, "references"), { recursive: true });
+        await writeFile(join(dir, "references", file), "x");
+      }
     }
     if (contract !== undefined) {
       await mkdir(join(root, "docs"));
@@ -190,11 +212,66 @@ test("a reference to the skill's own name passes", async () => {
   assert.equal(status, 0);
 });
 
-test("an unbackticked mention of a sibling skill passes", async () => {
-  const { status } = await runChecker({
-    "spine-alpha": validSkill("spine-alpha").replace("Body.", "See spine-tool for details."),
+test("an unbackticked mention of a sibling skill fails", async () => {
+  const { status, stderr } = await runChecker({
+    "spine-alpha": validSkill("spine-alpha").replace("Body.", "Run spine-tool first."),
     "spine-tool": validSkill("spine-tool"),
   });
+  assert.equal(status, 1);
+  assert.match(stderr, /references another skill \(`spine-tool`\)/);
+});
+
+test("a longer name that contains a sibling's name passes", async () => {
+  const { status } = await runChecker({
+    "spine-alpha": validSkill("spine-alpha").replace("Body.", "See spine-tool-kit and spine-tools."),
+    "spine-tool": validSkill("spine-tool"),
+  });
+  assert.equal(status, 0);
+});
+
+test("a named references file that does not exist fails", async () => {
+  const { status, stderr } = await runChecker({
+    "spine-foo": validSkill("spine-foo").replace("Body.", "Load `references/guide.md`."),
+  });
+  assert.equal(status, 1);
+  assert.match(stderr, /names references\/guide\.md, which does not exist/);
+});
+
+test("a shipped references file that is never named fails", async () => {
+  const { status, stderr } = await runChecker(
+    { "spine-foo": validSkill("spine-foo") },
+    { refs: { "spine-foo": ["orphan.md"] } },
+  );
+  assert.equal(status, 1);
+  assert.match(stderr, /ships references\/orphan\.md but never names it/);
+});
+
+test("a named and shipped references file passes", async () => {
+  const { status } = await runChecker(
+    { "spine-foo": validSkill("spine-foo").replace("Body.", "Load `references/guide.md`.") },
+    { refs: { "spine-foo": ["guide.md"] } },
+  );
+  assert.equal(status, 0);
+});
+
+test("a section over its budget fails", async () => {
+  const text = validSkill("spine-foo").replace("- [ ] done", Array(6).fill("- [ ] more").join("\n"));
+  const { status, stderr } = await runChecker({ "spine-foo": text });
+  assert.equal(status, 1);
+  assert.match(stderr, /Verification boxes is 11 \(budget 6 to 10\)/);
+});
+
+test("too few process steps fails", async () => {
+  const { status, stderr } = await runChecker({
+    "spine-foo": validSkill("spine-foo", { process: STEPS.slice(0, 5) }),
+  });
+  assert.equal(status, 1);
+  assert.match(stderr, /Process steps is 5 \(budget 6 to 12\)/);
+});
+
+test("a multi-mode skill is budgeted per mode", async () => {
+  const modes = ["### Mode: a", "", ...STEPS, ...STEPS.slice(0, 6).map((s, i) => `${i + 7}.${s.slice(2)}`), "", "### Mode: b", "", "1. Read.", "2. Report."];
+  const { status } = await runChecker({ "spine-foo": validSkill("spine-foo", { process: modes }) });
   assert.equal(status, 0);
 });
 
@@ -257,6 +334,24 @@ test("--fix restamps a drifted Operating contract and nothing else", async () =>
   );
   assert.equal(status, 0);
   assert.equal(files["spine-foo"], validSkill("spine-foo").replace("Be careful.", "Be very careful."));
+});
+
+test("an unquoted description containing ': ' fails", async () => {
+  const { status, stderr } = await runChecker({
+    "spine-foo": validSkill("spine-foo").replace("Does the thing.", "Does it: fast."),
+  });
+  assert.equal(status, 1);
+  assert.match(stderr, /description contains ": " or " #"/);
+});
+
+test("a quoted description containing ': ' passes", async () => {
+  const { status } = await runChecker({
+    "spine-foo": validSkill("spine-foo").replace(
+      /description: (.*)\n/,
+      'description: "Does it: fast. Use when the thing is needed."\n',
+    ),
+  });
+  assert.equal(status, 0);
 });
 
 test("a name without the pack prefix fails", async () => {

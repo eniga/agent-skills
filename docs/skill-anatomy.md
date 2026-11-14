@@ -38,12 +38,15 @@ skill. Write it for routing.
 ## Sections
 
 All eight are required, in this order, with these exact headings **(CI)**.
-Headings inside code fences are template content and do not count.
+Headings inside code fences are template content and do not count. Every
+budget below is checked **(CI)**, counting non-blank lines outside code
+fences. A skill with several modes puts each mode's steps under its own
+`### Mode: <name>` heading, and the step budget (at most 12) applies to each.
 
 | Section | Contains | Budget |
 |---|---|---|
 | `## Overview` | What the skill does and its one defining rule in bold. | 3 to 6 lines |
-| `## When to Use` | Triggers as bullets, then `**Not for:**` exclusions. | under 10 lines |
+| `## When to Use` | Triggers as bullets, then `**Not for:**` exclusions. | 1 to 9 lines |
 | `## Inputs` | Table: input, where, **if missing**. The third column says to stop (and what to ask) or how to proceed without it. | 3 to 6 rows |
 | `## Operating contract` | The shared rules. Never edited by hand (see below). | fixed |
 | `## Process` | Numbered steps. Each step is one action the agent can do and check. | 6 to 12 steps |
@@ -53,6 +56,8 @@ Headings inside code fences are template content and do not count.
 
 `SKILL.md` is 200 lines at most **(CI)**. Move a template longer than about
 80 lines into `references/` and load it only at the step that needs it.
+Name every such file with its path, `references/<file>`: each named file
+must exist, and each shipped file must be named **(CI)**.
 
 Every skill honours the same contract so any one can be used alone or in
 place of a missing neighbour: it declares its inputs and what to do without
@@ -91,7 +96,7 @@ skill's own sections; add only what is specific to that skill.
 
 ## No cross-skill references
 
-A skill never names another skill **(CI: backticked sibling names fail)**.
+A skill never names another skill, with or without backticks **(CI)**.
 The CLI resolves no dependencies, so a reference to a skill that was not
 installed points at nothing. Refer to the artifact or the activity and let
 `## Inputs` handle absence:

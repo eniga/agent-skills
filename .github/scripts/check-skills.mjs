@@ -58,6 +58,13 @@ for (const dir of dirs) {
   else if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(name)) fail(`name "${name}" is not lowercase-hyphenated`);
   else if (!name.startsWith(PREFIX)) fail(`name "${name}" does not start with "${PREFIX}"`);
 
+  // An unquoted YAML value may not contain ": " or " #". The skills CLI
+  // silently skips a skill whose frontmatter does not parse.
+  const unquoted = (v) => v && !/^(["']).*\1$/.test(v);
+  for (const [key, value] of [["name", name], ["description", description]]) {
+    if (unquoted(value) && /: | #/.test(value)) fail(`${key} contains ": " or " #"; quote it or reword it, or YAML will not parse`);
+  }
+
   if (!description) fail("frontmatter has no `description`");
   else if (description.length > MAX_DESCRIPTION)
     fail(`description is ${description.length} chars (max ${MAX_DESCRIPTION})`);
@@ -67,12 +74,21 @@ for (const dir of dirs) {
   // Self-containment: a skill must never name another skill. Each one is
   // installable on its own, and the CLI does not resolve dependencies, so a
   // reference to a skill the user did not install points at nothing.
+  // Bare names count too, so "run spine-build next" fails like `spine-build`.
   for (const other of dirs) {
     if (other === dir) continue;
-    if (text.includes(`\`${other}\``)) {
+    if (new RegExp(`(?<![\\w-])${other}(?![\\w-])`).test(text)) {
       fail(`references another skill (\`${other}\`) — skills must be self-contained`);
     }
   }
+
+  // Every references/ file the skill names exists, and every file shipped in
+  // references/ is named, so a rename cannot silently break a step.
+  const refDir = join("skills", dir, "references");
+  const named = new Set([...text.matchAll(/references\/([\w.-]+\.\w+)/g)].map((m) => m[1]));
+  const shipped = existsSync(refDir) ? readdirSync(refDir) : [];
+  for (const file of named) if (!shipped.includes(file)) fail(`names references/${file}, which does not exist`);
+  for (const file of shipped) if (!named.has(file)) fail(`ships references/${file} but never names it`);
 
   let lines = text.split("\n");
 
@@ -110,6 +126,41 @@ for (const dir of dirs) {
   for (const section of REQUIRED_SECTIONS) {
     if (!headings.has(section)) fail(`missing section "${section}"`);
   }
+
+  // Section budgets from docs/skill-anatomy.md. Fenced lines are template
+  // content and are not counted.
+  let inFence = false;
+  const prose = lines.map((line) => {
+    if (line.startsWith("```")) {
+      inFence = !inFence;
+      return "";
+    }
+    return inFence ? "" : line;
+  });
+  const body = (heading) => {
+    const at = starts.find((i) => lines[i].trim() === heading);
+    if (at === undefined) return [];
+    return prose.slice(at + 1, starts.find((i) => i > at) ?? lines.length);
+  };
+  const within = (label, n, min, max) => {
+    if (n < min || n > max) fail(`${label} is ${n} (budget ${min} to ${max})`);
+  };
+  within("Overview length in lines", body("## Overview").filter((l) => l.trim()).length, 3, 6);
+  within("When to Use length in lines", body("## When to Use").filter((l) => l.trim()).length, 1, 9);
+  within("Inputs rows", body("## Inputs").filter((l) => l.startsWith("|")).length - 2, 3, 6);
+  within("Rules bullets", body("## Rules").filter((l) => l.startsWith("- ")).length, 5, 8);
+  within("Verification boxes", body("## Verification").filter((l) => l.startsWith("- [ ]")).length, 6, 10);
+  // A multi-mode skill has one "### Mode" group per mode; the step budget
+  // applies to each group.
+  const groups = [0];
+  for (const line of body("## Process")) {
+    if (line.startsWith("### ")) groups.push(0);
+    else if (/^\d+\.\s/.test(line)) groups[groups.length - 1]++;
+  }
+  const modes = groups.length > 1 ? groups.slice(1) : groups;
+  if (groups.length > 1 && groups[0] > 0) fail("Process has numbered steps before its first ### group");
+  if (groups.length === 1) within("Process steps", groups[0], 6, 12);
+  else modes.forEach((n, i) => within(`Process steps in group ${i + 1}`, n, 1, 12));
 }
 
 if (errors.length) {

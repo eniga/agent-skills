@@ -12,14 +12,18 @@ jobs:
   skills:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      # Pinned to commit SHAs, as the gates this pack ships are.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 22
 
-      # Frontmatter, required sections, the 200-line budget, self-containment,
-      # and the Operating contract matching docs/operating-contract.md.
+      # Frontmatter, required sections, the line and section budgets,
+      # self-containment, references/ integrity, and the Operating contract
+      # matching docs/operating-contract.md.
       - name: Check skills
         run: node .github/scripts/check-skills.mjs
 
@@ -34,7 +38,7 @@ jobs:
         run: |
           mkdir -p /tmp/install-check
           cd /tmp/install-check
-          npx -y skills@latest add "$GITHUB_WORKSPACE" \
+          npx -y skills@1.8.1 add "$GITHUB_WORKSPACE" \
             --skill '*' --agent claude-code -y --copy --json > result.json
           node -e '
             const fs = require("fs");
@@ -60,7 +64,7 @@ jobs:
   secrets:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0
           persist-credentials: false
