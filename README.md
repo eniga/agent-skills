@@ -51,6 +51,44 @@ In Claude Code and Codex each skill is also a slash command
 (`/spine-build`). Elsewhere, ask for it by name: "use the spine-build
 skill".
 
+### Install from a local clone
+
+Use a clone to try changes before they are published, or to install a fork.
+Clone it once, then run the install from the project that will use the
+skills. A project install lands in that project's directory, not the
+clone's.
+
+```bash
+git clone https://github.com/eniga/agent-skills.git
+cd path/to/your-project
+
+npx skills add ../agent-skills --list                          # check the skills are found
+npx skills add ../agent-skills --skill '*' -a claude-code --copy
+npx skills add ../agent-skills --skill spine-build --copy      # one skill
+npx skills add ../agent-skills --skill '*' -g --copy           # global (all projects)
+```
+
+Pass the path to your clone in place of `eniga/agent-skills`. Every other
+flag works as above. `--copy` copies the files, so the install does not
+depend on the clone staying where it is. After you pull or edit the clone,
+run the same `add` command again to refresh the copy.
+
+Without the CLI, copy the skill directories yourself. Each one is
+self-contained, so copying a single skill works too:
+
+```bash
+mkdir -p .claude/skills .agents/skills
+cp -R ../agent-skills/skills/spine-* .claude/skills/    # Claude Code
+cp -R ../agent-skills/skills/spine-* .agents/skills/    # Copilot, Cursor, Codex, and others
+```
+
+For a global install, copy into `~/.claude/skills/` or `~/.agents/skills/`
+instead.
+
+Keep one copy of each skill. If the same skills are installed both globally
+and in the project, the agent may load either one, so a local edit can
+appear to have no effect. Remove the copy you are not testing first.
+
 ### Upgrading from the unprefixed names
 
 The skills were renamed. Remove the old ones before installing:
