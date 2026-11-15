@@ -1,6 +1,6 @@
 ---
 name: spine-diagnose
-description: Finds and proves the cause of a defect with a reproduction and a failing regression test, before any fix. Use when something is broken, failing, flaky, or behaving unexpectedly and the cause is unknown.
+description: Finds and proves the cause of a defect with a reproduction and a failing regression test, before any fix. Use when something is broken, wrong, failing, flaky, or behaving unexpectedly and the cause is not yet proven, including user reports and requests to look into or investigate a problem. Use before editing code to fix a bug.
 ---
 
 # Spine Diagnose

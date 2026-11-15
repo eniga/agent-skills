@@ -139,6 +139,8 @@ conversation (contract rule 8).
 Verdict: **Proven** when every criterion passes and the full suite and
 blocking gates are green. **Partially proven** when nothing fails but
 something is unverified or not run. **Not proven** when anything fails.
+A gate the repository does not configure is recorded as "none configured";
+it is not a gap. Non-goals are not criteria.
 
 ## Verification
 

@@ -111,7 +111,9 @@ These rules apply to every step below and override habit.
 ## Rules
 
 - Every rule is checkable. "Write clean code" is not a rule.
-- Every rule has a command, or is marked `manual` with a named checker.
+- Every rule has a command, or is marked `manual` with a named checker. A
+  check with neither, such as a tool not yet chosen, is not a rule: list it
+  under Not adopted, with no `C-<n>`.
 - Every threshold has a one-line reason.
 - Every rule is `block` or `warn`. Do not set everything to block on day one.
 - No performance budget without a measured baseline. Record the measuring

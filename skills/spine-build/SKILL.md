@@ -1,6 +1,6 @@
 ---
 name: spine-build
-description: Implements agreed requirements one slice at a time, with tests first, the smallest diff, and one verified commit per slice. Use when a feature, fix, or slice is ready to implement. Not for diagnosing an unexplained failure.
+description: Implements agreed requirements one slice at a time, with tests first, the smallest diff, and one verified commit per slice. Use when asked to implement, add, build, or change behavior and the expected behavior is stated, even for a small change. Use when resuming a build, or fixing a defect whose cause is proven. Not for diagnosing an unexplained failure.
 ---
 
 # Spine Build
@@ -17,6 +17,8 @@ smallest one that satisfies the slice without breaking any caller.
 - Requirements are agreed and a slice order exists, or the change is one
   slice.
 - You are resuming a build at the next slice.
+- A defect has a proven cause and a failing regression test, and needs its
+  fix.
 
 **Not for:** work with no written expectations anywhere; a failing test whose
 cause is unknown (find the cause first); a one-line fix with an obvious test
@@ -28,6 +30,7 @@ cause is unknown (find the cause first); a one-line fix with an obvious test
 |---|---|---|
 | Agreed requirements `R-*`, `TC-*`, contracts | `.specs/<slug>/spec.md`, or the conversation | Restate the request as numbered `R-*` and `TC-*`, marked context-sourced, and get them confirmed before writing any test. Stop if no expectations exist anywhere. |
 | Slice order `SL-*` and checkpoints | `.specs/<slug>/plan.md`, or the conversation | One slice: treat the change as `SL-1`. More: stop and get the order decided. |
+| Defect record `D-*` | `.specs/<slug>/defects/D-<n>.md`, or the conversation | Proceed without it. If given, the fix is one slice, its regression test is the `TC-*`, and its expected behavior is the `R-*`. No cause proven: stop. |
 | Quality bar `C-*` | `CONSTRAINTS.md` | Proceed with the repository's lint, type, test, and scan setup. |
 
 ## Operating contract
@@ -83,7 +86,8 @@ These rules apply to every step below and override habit.
 4. **Write the tests first.** Translate each `TC-*` in the slice directly:
    its setup, action, and expected result. Run them and watch them fail for
    the right reason. If a `TC-*` is too vague to test without guessing,
-   stop and ask.
+   stop and ask. For a defect, the regression test already exists and
+   fails: remove its expected-failure mark and confirm it now fails plainly.
 5. **Implement** the least code that makes those tests pass. Follow the
    agreed contracts exactly and the conventions of the surrounding code.
    Validate untrusted input at the boundary. If the diff grows past the
@@ -122,7 +126,7 @@ These rules apply to every step below and override habit.
 Commit message:
 
 ```
-<type>(<slug>): <slice name> (SL-<n>, R-<n>[, R-<m>])
+<type>(<slug>): <slice name> (SL-<n>, R-<n>[, R-<m>] | D-<n>)
 
 <What this slice makes work, in one or two lines.>
 
@@ -154,7 +158,7 @@ Per slice:
 - [ ] Every hunk traces to the slice's `R-*` or required plumbing, and none
       adds a secret or debug output.
 - [ ] The checkpoint passed: new tests, regression, gates, manual check.
-- [ ] One commit, carrying `SL-<n>` and `R-<n>`.
+- [ ] One commit, carrying `SL-<n>` and `R-<n>`, or `D-<n>` for a defect fix.
 
 Whole build:
 

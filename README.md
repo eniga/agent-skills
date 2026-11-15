@@ -103,7 +103,7 @@ whether it is what was agreed. They answer different questions.
 
 | When | Use | Then |
 |---|---|---|
-| Something fails, is flaky, or a bug is reported | [`spine-diagnose`](skills/spine-diagnose) | A defect record `D-*` with a proven cause and a failing regression test. Fix it as its own change, then re-run `spine-test` |
+| Something fails, is flaky, or a bug is reported | [`spine-diagnose`](skills/spine-diagnose) | A defect record `D-*` with a proven cause and a failing regression test. Fix it with `spine-build` as its own slice, then re-run `spine-test` |
 | Requirements change after they were agreed | [`spine-amend`](skills/spine-amend) | An amendment `AM-*`, re-approved, naming the slices, tests, and evidence it invalidates |
 | Code works but is hard to read | [`spine-simplify`](skills/spine-simplify) | Behavior pinned by tests, then simplified one concern at a time |
 
@@ -113,7 +113,7 @@ whether it is what was agreed. They answer different questions.
 |---|---|
 | New feature | `spine-story` → `spine-triage` → (`spine-refine`, `spine-design`, `spine-spec`) → `spine-plan` → `spine-build` → `spine-test` → `spine-review` + `spine-conform` → `spine-pr` → `spine-release` |
 | Small feature, no spec files | `spine-story` → `spine-build` → `spine-test` → `spine-review` → `spine-pr` |
-| Bug fix | `spine-diagnose` → fix → `spine-test` → `spine-review` → `spine-pr` |
+| Bug fix | `spine-diagnose` → `spine-build` (the `D-*` is the slice) → `spine-test` → `spine-review` → `spine-pr` |
 | Requirement change mid-build | `spine-amend` → rebuild what it names → `spine-test` |
 | Cleanup | `spine-simplify` → `spine-test` → `spine-review` |
 | Unfamiliar codebase | `spine-context` first, then any path above |

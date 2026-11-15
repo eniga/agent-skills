@@ -1,6 +1,6 @@
 ---
 name: spine-simplify
-description: Makes named code easier to read without changing its behavior, pinned by tests. Use when code works but is hard to read or change, or a review flagged complexity, duplication, dead code, or naming.
+description: Makes named code easier to read without changing its behavior, pinned by tests. Use when asked to clean up, refactor, tidy, or simplify working code, when code is hard to read or change, or when a review flagged complexity, duplication, dead code, or naming.
 ---
 
 # Spine Simplify

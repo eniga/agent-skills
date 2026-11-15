@@ -89,7 +89,7 @@ Readiness check:
 | 4 | Failure path | At least one `AC-<n>` covers invalid input, timeout, or empty state. |
 | 5 | Misuse path | If it touches auth, permissions, money, or personal data, an `AC-<n>` covers the denied case. |
 | 6 | Non-goals | At least one `NG-<n>` a reader would otherwise assume is in scope. |
-| 7 | No solution | No stack, endpoints, or data models outside Context. |
+| 7 | No solution | No stack, endpoints, data models, or file paths outside Context. |
 
 ## Rules
 
@@ -99,7 +99,8 @@ Readiness check:
   after the code only describe the code.
 - A non-goal must be something a reader would plausibly assume is included.
 - Implementation ideas and file citations go under Context, never in the
-  story, criteria, or non-goals.
+  story, criteria, or non-goals. When a non-goal rests on a code fact, cite
+  it in Context (contract rule 2) and keep the non-goal in user terms.
 - Two shippable outcomes are two stories. Say so and write the first.
 
 ## Output

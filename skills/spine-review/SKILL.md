@@ -1,6 +1,6 @@
 ---
 name: spine-review
-description: Reviews a code change for correctness, security, broken contracts, and unnecessary change, and returns findings by severity with a verdict. Use when any change is about to merge, or a diff, branch, or PR needs a second opinion. Not for designs before code exists.
+description: Reviews a code change for correctness, security, broken contracts, and unnecessary change, and returns findings by severity with a verdict. Use when a change, branch, diff, or PR is about to merge, or someone asks whether it is safe, ready, or good to merge, even for a quick look. Not for designs before code exists.
 ---
 
 # Spine Review
@@ -78,7 +78,7 @@ These rules apply to every step below and override habit.
    | Area | Look for |
    |---|---|
    | Correctness | Does what the requirement says, including failure paths and edge values. |
-   | Security | Unvalidated input, injection, missing or wrong authorization, secrets in code or logs, unsafe deserialization, weak crypto, sensitive data exposed. |
+   | Security | Unvalidated input, injection, missing or wrong authorization, secrets in code or logs, unsafe deserialization, weak crypto, sensitive data exposed. Untrusted data written into another format without encoding: HTML, SQL, shell, CSV opened in a spreadsheet. |
    | Supply chain | New or upgraded dependencies: needed, pinned, maintained, licence. CI, build, or infrastructure changes: permissions and secrets. |
    | Contracts | Callers of every changed function, type, endpoint, or schema still work. Flag narrower inputs, changed outputs, new errors, new side effects. |
    | Regressions and data | Existing behavior broken; migrations reversible; schema changes coordinated. |

@@ -109,6 +109,9 @@ These rules apply to every step below and override habit.
   green.
 - An empty invalidation list on partly built work is a red flag. Recheck.
 - The amendment is recorded before the code changes.
+- Write the record on the Output template, with an `AM-<n>` ID, even when
+  downstream work could not be found. What you could not verify goes under
+  Not checked; it never replaces the record.
 
 ## Output
 

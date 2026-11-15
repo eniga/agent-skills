@@ -105,6 +105,8 @@ These rules apply to every step below and override habit.
 - If the diff changed after the description was written, regenerate it.
 - Evidence older than the latest commit is not evidence, however small the
   last change.
+- Copy the test verdict; never soften it. Any failing test makes it Not
+  proven. If your own run disagrees with the evidence, report both.
 - Never merge, and never mark the PR approved.
 
 ## Output
