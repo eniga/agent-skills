@@ -129,7 +129,7 @@ decide when to move on.
 | Build | [`spine-plan`](skills/spine-plan) *(if multi-slice)* | Agreed requirements | `SL-*` slices, each with files, checkpoint, rollback position | Every slice delivers a requirement |
 | Build | [`spine-build`](skills/spine-build) | Plan and requirements | One commit per slice, tests written first, smallest diff | Checkpoints and the full suite are green |
 | Prove | [`spine-test`](skills/spine-test) | The branch | Every `TC-*` as pass / fail / unverified, with command output | The verdict is Proven, or gaps are accepted |
-| Prove | [`spine-review`](skills/spine-review) | The branch or PR | Findings by severity and a verdict | No open Blockers. Best in a fresh session |
+| Prove | [`spine-review`](skills/spine-review) | The branch or PR | Findings by severity and a verdict | No open Blockers. Runs in a fresh subagent when the agent can start one |
 | Prove | [`spine-conform`](skills/spine-conform) | Diff and requirements | One matrix row per requirement | Nothing is non-conformant |
 | Ship | [`spine-pr`](skills/spine-pr) | Branch and evidence | A PR body with a requirement → commit → test → evidence table | The PR is open. Merging is yours |
 | Ship | [`spine-release`](skills/spine-release) | The merged change | Signals checked, rollback rehearsed and timed, go/no-go | The watch window was observed |
@@ -142,6 +142,7 @@ whether it is what was agreed. They answer different questions.
 | When | Use | Then |
 |---|---|---|
 | Something fails, is flaky, or a bug is reported | [`spine-diagnose`](skills/spine-diagnose) | A defect record `D-*` with a proven cause and a failing regression test. Fix it with `spine-build` as its own slice, then re-run `spine-test` |
+| A review returns findings | [`spine-build`](skills/spine-build) | Each finding answered: fix, contest with a citation, escalate, or decline a nit. Fixes are slices. Then `spine-review` again: settled findings stay settled, fixed ones are rechecked |
 | Requirements change after they were agreed | [`spine-amend`](skills/spine-amend) | An amendment `AM-*`, re-approved, naming the slices, tests, and evidence it invalidates |
 | Code works but is hard to read | [`spine-simplify`](skills/spine-simplify) | Behavior pinned by tests, then simplified one concern at a time |
 
@@ -252,7 +253,9 @@ smaller model:
   context window cannot.
 - Keep slices small: one requirement per `SL-*`.
 - Run `spine-review` with a **different or stronger model** in a fresh
-  session. The model that wrote the code is its weakest reviewer.
+  session. The model that wrote the code is its weakest reviewer. When the
+  agent can start subagents, `spine-review`, `spine-conform`, and
+  `spine-triage` hand the reading to one that never saw the conversation.
 - Keep the human gates. Approval, merge, and release are never the agent's
   call.
 

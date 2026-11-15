@@ -27,6 +27,7 @@ strict requirement-by-requirement conformance matrix (a narrower pass).
 | Requirements `R-*`, `AC-*`, `NG-*` | spec, story, conversation | Proceed against the change's stated intent and say so. Findings cite `-` for the ID. |
 | Test evidence | `.specs/<slug>/evidence/`, CI, the PR | Proceed. "No test evidence" is a finding. |
 | Quality bar `C-*` | `CONSTRAINTS.md` | Proceed against the repository's lint, type, and test setup. |
+| Earlier review of this change, and the answers to it | review report, PR comments, the conversation | Proceed as round 1. |
 
 ## Operating contract
 
@@ -65,14 +66,24 @@ These rules apply to every step below and override habit.
 ## Process
 
 1. **Set the frame.** Name the exact change. Read its description, the
-   linked requirements, and the repository rules. Record whether you are a
-   fresh reader or the session that wrote the code. A same-session review is
-   weaker and the report says so. In a same-session review, base every
-   Blocker on a command you run or a line you reread now, never on memory.
-2. **Take the broad view first.** One outcome? Matches the stated intent?
-   Reasonable size? A change that is several changes, or does not do what it
-   claims, is reported before any line detail.
-3. **Check the behavior,** reading every changed line with enough
+   linked requirements, the repository rules, and any earlier review of it.
+2. **Get a fresh reader.** If this session wrote or discussed the code and
+   can start a subagent, run steps 3 to 9 in one. Give it these
+   instructions, the change, the requirements, the test evidence, any
+   earlier review, and `CONSTRAINTS.md`. Never give it the conversation.
+   Retry once if it fails; then review yourself and record the fresh review
+   as not run. A same-session review is weaker and the report says so: base
+   every Blocker on a command you run or a line you reread now.
+3. **Carry earlier findings forward.** Give each one a status. **Settled:**
+   contested with evidence, or a Major accepted with a reason; do not reopen
+   it when raised again at the same place. **Fixed:** recheck it; if it is
+   back, reopen it, because the fix failed. A new finding that undoing an
+   earlier fix would resolve is **churn**: report both and ask which way.
+4. **Take the broad view first.** Before reading the description, restate in
+   two sentences what the diff does, then compare it with the stated intent.
+   One outcome? Reasonable size? A change that is several changes, or does
+   not do what it claims, is reported before any line detail.
+5. **Check the behavior,** reading every changed line with enough
    surrounding code to judge it:
 
    | Area | Look for |
@@ -84,19 +95,22 @@ These rules apply to every step below and override habit.
    | Regressions and data | Existing behavior broken; migrations reversible; schema changes coordinated. |
    | Operations | Races, idempotency, timeouts, retries, behavior under partial failure, logging and metrics for the new path. |
 
-4. **Check the size of the change.** Flag hunks that serve no requirement:
+6. **Check the size of the change.** Flag hunks that serve no requirement:
    drive-by refactors, renames, reformatting, unrequested helpers,
    abstractions, options, or dependencies. Flag new code that duplicates
    something the repository already has, naming the existing code. Flag
    anything built from an `NG-<n>`.
-5. **Check the proof.** Do tests cover the changed behavior and its failure
+7. **Check the proof.** Do tests cover the changed behavior and its failure
    paths? Do they assert observable behavior? Was any assertion weakened,
    skipped, or mocked around? Does the test evidence cover the latest
    commit? Name every `TC-*` still Fail or Unverified.
-6. **Check `CONSTRAINTS.md`** rule by rule, citing `C-<n>`.
-7. **Label every finding and decide the verdict** using the tables in
+8. **Check `CONSTRAINTS.md`** rule by rule, citing `C-<n>`.
+9. **Label every finding and decide the verdict** using the tables in
    Output.
-8. **Report,** leading with the verdict and the blocking findings.
+10. **Report,** leading with the verdict and the blocking findings. Pass a
+    fresh reader's findings on unchanged: add to them, never drop or
+    downgrade one. At round 5 with a Blocker or Major still open, ask
+    whether to accept, keep going, or return the change to design.
 
 ## Rules
 
@@ -109,6 +123,8 @@ These rules apply to every step below and override habit.
 - Findings on new code only. Suggest a simpler shape; do not demand a
   rewrite for taste.
 - A finding without an ID or a location is a note.
+- A settled finding stays settled. A fixed one is checked again, never
+  assumed.
 
 ## Output
 
@@ -129,11 +145,20 @@ Blockers; each Major accepted with a recorded reason or scheduled.
 > **Date:** <YYYY-MM-DD>
 > **Change:** <branch / PR / range> at `<head sha>`
 > **Requirements:** <spec path | agreed in conversation | stated intent only>
-> **Reviewer:** fresh context | same session as the author
+> **Reviewer:** fresh context | same session as the author (fresh review: not run, <reason>)
+> **Round:** 1 | <n>, after <earlier review>
 
 ## Verdict
 **Approve | Approve with notes | Request changes**
 <One or two sentences: what the change delivers and its state.>
+
+## What the diff does
+<Two sentences, from the code. Matches the stated intent: yes | no, how.>
+
+## Earlier findings
+| # | Was | Now | Evidence |
+|---|---|---|---|
+| <n> | <severity: finding> | fixed | still open | settled | reopened | churn | `<file:line>` or reason |
 
 ## Findings
 | # | Severity | ID | Location | Finding | Evidence | Suggested fix |
@@ -160,9 +185,11 @@ Blockers; each Major accepted with a recorded reason or scheduled.
 
 ## Verification
 
-- [ ] The change and the reviewer's independence are named.
-- [ ] The broad view came first.
-- [ ] All six areas in step 3 were checked for the changed flows.
+- [ ] The change and the reviewer's independence are named. A fresh
+      reader's findings were passed on unchanged.
+- [ ] The broad view came first, with a restatement of what the diff does.
+- [ ] On a later round, every earlier finding has a status.
+- [ ] All six areas in step 5 were checked for the changed flows.
 - [ ] Callers of every changed contract were checked.
 - [ ] Unnecessary and duplicate change was looked for.
 - [ ] The proof check covers tests, weakened assertions, and evidence age.

@@ -66,9 +66,12 @@ These rules apply to every step below and override habit.
 ## Process
 
 1. **Read** the agreed requirements in full, then the complete diff: every
-   changed file, not a sample. Record whether you are a fresh reader or the
-   session that wrote the code. If the same session, cite lines you reread
-   now for every Implemented row, never memory.
+   changed file, not a sample.
+   If this session wrote or discussed the code and can start a subagent, run
+   steps 2 to 8 in one. Give it these instructions, the diff, and the
+   requirements, never the conversation, and report its matrix unchanged.
+   Retry once if it fails; then do the pass yourself, record the fresh pass
+   as not run, and cite lines you reread now for every Implemented row.
 2. **Fix the scope.** From the plan, PR description, or `SL-<n>` in commit
    messages, decide which requirements this diff is meant to deliver.
 3. **Build the matrix.** Give every `R-*` exactly one state:
@@ -129,7 +132,7 @@ Return in the conversation, or save alongside the project's review records
 > **Diff:** <PR / branch> at `<head sha>`
 > **Measured against:** approved spec `<path>` | agreed in conversation <date> | <other>
 > **Scope:** <SL-* in this diff, or "all requirements">
-> **Reviewer:** fresh context | same session as the author
+> **Reviewer:** fresh context | same session as the author (fresh pass: not run, <reason>)
 
 ## Verdict
 **Conformant | Conformant with gaps | Non-conformant**
@@ -164,7 +167,8 @@ Return in the conversation, or save alongside the project's review records
 
 ## Verification
 
-- [ ] The requirements are agreed and the complete diff was read.
+- [ ] The requirements are agreed and the complete diff was read, by a
+      fresh reader where one could be started.
 - [ ] The matrix has exactly one row per `R-*`, each in one state.
 - [ ] Every Implemented row points at a file and lines.
 - [ ] Interface and data contracts were both compared.

@@ -1,6 +1,6 @@
 ---
 name: spine-build
-description: Implements agreed requirements one slice at a time, with tests first, the smallest diff, and one verified commit per slice. Use when asked to implement, add, build, or change behavior and the expected behavior is stated, even for a small change. Use when resuming a build, or fixing a defect whose cause is proven. Not for diagnosing an unexplained failure.
+description: Implements agreed requirements one slice at a time, with tests first, the smallest diff, and one verified commit per slice. Use when asked to implement, add, build, or change behavior and the expected behavior is stated, even for a small change. Use when resuming a build, fixing a defect whose cause is proven, or answering and fixing review findings. Not for diagnosing an unexplained failure.
 ---
 
 # Spine Build
@@ -19,6 +19,7 @@ smallest one that satisfies the slice without breaking any caller.
 - You are resuming a build at the next slice.
 - A defect has a proven cause and a failing regression test, and needs its
   fix.
+- A review returned findings to answer and fix.
 
 **Not for:** work with no written expectations anywhere; a failing test whose
 cause is unknown (find the cause first); a one-line fix with an obvious test
@@ -31,6 +32,7 @@ cause is unknown (find the cause first); a one-line fix with an obvious test
 | Agreed requirements `R-*`, `TC-*`, contracts | `.specs/<slug>/spec.md`, or the conversation | Restate the request as numbered `R-*` and `TC-*`, marked context-sourced, and get them confirmed before writing any test. Stop if no expectations exist anywhere. |
 | Slice order `SL-*` and checkpoints | `.specs/<slug>/plan.md`, or the conversation | One slice: treat the change as `SL-1`. More: stop and get the order decided. |
 | Defect record `D-*` | `.specs/<slug>/defects/D-<n>.md`, or the conversation | Proceed without it. If given, the fix is one slice, its regression test is the `TC-*`, and its expected behavior is the `R-*`. No cause proven: stop. |
+| Review findings | review report, PR comments, or the conversation | Proceed without them. If given, answer every one (step 2) before editing. |
 | Quality bar `C-*` | `CONSTRAINTS.md` | Proceed with the repository's lint, type, test, and scan setup. |
 
 ## Operating contract
@@ -72,9 +74,19 @@ These rules apply to every step below and override habit.
 1. **Read** the requirements, contracts, slice order, and `CONSTRAINTS.md`.
    Confirm the requirements are agreed. When resuming, find the last
    `SL-<n>` in `git log` and start at the next one.
-2. **Pick the next slice.** Its dependencies must be committed with green
+2. **Answer review findings,** if any, before editing. Give each one answer:
+   - **Fix:** the finding is right. The fix is a slice, tested first like
+     any other, and its commit names the finding.
+   - **Contest:** the finding is wrong, and you cite a `file:line`, test, or
+     recorded decision the reviewer could have read. A finding that asks
+     for the opposite of an agreed `R-*` is contested by citing it; only an
+     amendment could change it.
+   - **Escalate:** the finding is wrong, but the proof is outside anything
+     the reviewer could read, such as a verbal decision. Ask the user.
+   - **Decline:** Minor or Nit only, recorded with a reason.
+3. **Pick the next slice.** Its dependencies must be committed with green
    checkpoints. If one is missing, stop and name it.
-3. **Find the smallest change, before editing anything.**
+4. **Find the smallest change, before editing anything.**
    - Read the code path the slice touches, from entry to effect.
    - Search for an existing function, type, or pattern that already does
      part of the job. Reuse it.
@@ -83,26 +95,26 @@ These rules apply to every step below and override habit.
    - If two approaches work, take the one that changes fewer lines and no
      existing contract.
    - Write this as a change plan of a few lines.
-4. **Write the tests first.** Translate each `TC-*` in the slice directly:
+5. **Write the tests first.** Translate each `TC-*` in the slice directly:
    its setup, action, and expected result. Run them and watch them fail for
    the right reason. If a `TC-*` is too vague to test without guessing,
    stop and ask. For a defect, the regression test already exists and
    fails: remove its expected-failure mark and confirm it now fails plainly.
-5. **Implement** the least code that makes those tests pass. Follow the
+6. **Implement** the least code that makes those tests pass. Follow the
    agreed contracts exactly and the conventions of the surrounding code.
    Validate untrusted input at the boundary. If the diff grows past the
    change plan, stop and re-plan or ask.
-6. **Run the checkpoint:**
+7. **Run the checkpoint:**
    - the slice's new tests;
    - the earlier slices' tests and the regression command;
    - format, lint, type, and security gates that apply;
    - the manual check, if the checkpoint names one.
-7. **Review your own diff.** Every hunk traces to an `R-*` of this slice or
+8. **Review your own diff.** Every hunk traces to an `R-*` of this slice or
    to plumbing it needs. Revert anything else. Remove debug output. Confirm
    no secret, credential, or personal data is in the code or the tests.
-8. **Commit the slice alone.** When a plan file is kept, append the slice
+9. **Commit the slice alone.** When a plan file is kept, append the slice
    record first so it ships in the same commit.
-9. **Repeat** from step 2 until every slice is done, then report. A green
+10. **Repeat** from step 3 until every slice is done, then report. A green
    checkpoint proves a slice. Full verification is separate work.
 
 ## Rules
@@ -120,6 +132,9 @@ These rules apply to every step below and override habit.
 - A new dependency, helper, abstraction, or config option needs a
   requirement that asks for it.
 - "This is obviously needed too" is a question for the user, not a commit.
+- You wrote the code under review: wanting to contest is not evidence. A
+  contest without a citation is a fix or an escalation. Never change a
+  finding's severity, and never contest "this is hard to follow".
 
 ## Output
 
@@ -132,6 +147,16 @@ Commit message:
 
 Tests: <TC-* covered>
 Checkpoint: <command> -> <result>
+Review: <finding #s this fixes>   (only when fixing review findings)
+```
+
+Answers to review findings, in the conversation or the PR, before any fix:
+
+```markdown
+| # | Severity | Finding | Answer | Evidence or fix |
+|---|---|---|---|---|
+| 1 | Blocker | <as reported> | Fix | SL-<n> |
+| 2 | Major | <as reported> | Contest | `<file:line>`: <why the finding is wrong> |
 ```
 
 Slice record, appended to `.specs/<slug>/plan.md` when a plan file is kept.
@@ -164,4 +189,5 @@ Whole build:
 
 - [ ] Every slice is committed and the full suite passes.
 - [ ] Amendments are recorded and re-approved. Follow-ups are listed.
+      Every review finding has one answer, and every contest a citation.
 - [ ] The feature is handed off for verification, not declared done.

@@ -64,7 +64,13 @@ These rules apply to every step below and override habit.
 ## Process
 
 1. **Read the story** in full.
-2. **Run the checklist.** Record pass, fail, or n/a for every row, with a
+2. **Restate it.** Before the checklist, write in two or three sentences
+   who it is for, what changes for them, and how anyone will know it works,
+   using only the story. If you helped write the story and can start a
+   subagent, have one write this from the story text alone. If the
+   restatement cannot be written, or differs from the story's title or
+   stated intent, that is the first gap.
+3. **Run the checklist.** Record pass, fail, or n/a for every row, with a
    one-line reason.
 
    | # | Check | Passes when |
@@ -80,16 +86,16 @@ These rules apply to every step below and override habit.
    | 9 | Questions bounded | Each open question has an owner or a default. |
    | 10 | Size plausible | Fits one iteration, or is explicitly split. |
 
-3. **Rank the gaps** by what they block: criteria first, then scope and
-   non-goals, then context, then size.
-4. **Decide the verdict:**
+4. **Rank the gaps** by what they block: a failed restatement first, then
+   criteria, then scope and non-goals, then context, then size.
+5. **Decide the verdict:**
    - **Ready:** every applicable check passes.
    - **Not ready:** a check fails and the team can fix it.
    - **Blocked:** a gap needs someone outside the team. Name the person and
      what is needed.
-5. **Write the verdict** using Output. In a story file, keep one `## Triage`
+6. **Write the verdict** using Output. In a story file, keep one `## Triage`
    section: replace its body and move the old verdict line to History.
-6. **Report.**
+7. **Report.**
 
 ## Rules
 
@@ -111,6 +117,11 @@ conversation (contract rule 8).
 > **Verdict:** Ready | Not ready | Blocked
 > **Date:** <YYYY-MM-DD>
 > **Story:** S-<n>: <title>
+> **Restated by:** fresh reader | this session
+
+### Restatement
+<Who it is for, what changes for them, how anyone will know. Matches the
+title and intent: yes | no, how.>
 
 ### Gaps (ranked)
 | Rank | Gap | Blocks | Fix (who does what) |
@@ -131,6 +142,7 @@ conversation (contract rule 8).
 ## Verification
 
 - [ ] The verdict is exactly one of Ready, Not ready, Blocked.
+- [ ] A restatement came before the checklist; a failed one is gap 1.
 - [ ] All ten checks have a result and a reason.
 - [ ] Every gap has a rank, what it blocks, and a fix with an owner.
 - [ ] A Blocked verdict names the outside person and the need.

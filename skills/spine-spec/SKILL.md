@@ -90,7 +90,11 @@ These rules apply to every step below and override habit.
    including security and observability. Add a `TC-*` for any without one.
 7. **Check against `CONSTRAINTS.md`.** A conflict is an open question. Never
    lower the bar silently.
-8. **Review gate.** Present the spec section by section. Apply corrections.
+8. **Review gate.** If you can start a subagent, give it the spec alone and
+   ask it to restate what the change does and how the existing system
+   works, per the spec, and to list every project term it cannot follow.
+   Show that with the spec. A wrong restatement or an undefined term is a
+   correction. Present the spec section by section and apply corrections.
    Set `Status: Approved` with approver and date only on an explicit yes.
 9. **Report.** A Draft spec is not something to build on.
 
