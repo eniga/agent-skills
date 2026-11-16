@@ -83,17 +83,17 @@ These rules apply to every step below and override habit.
    two sentences what the diff does, then compare it with the stated intent.
    One outcome? Reasonable size? A change that is several changes, or does
    not do what it claims, is reported before any line detail.
-5. **Check the behavior,** reading every changed line with enough
-   surrounding code to judge it:
+5. **Check the behavior,** reading every changed line, the callers of what
+   it changes, and the code it calls. A change can break untouched code:
 
    | Area | Look for |
    |---|---|
-   | Correctness | Does what the requirement says, including failure paths and edge values. |
+   | Correctness | Does what the requirement says, including failure paths and edge values (empty, zero, last item, rounding, time zones). A fix made in one caller while the shared code stays broken. |
    | Security | Unvalidated input, injection, missing or wrong authorization, secrets in code or logs, unsafe deserialization, weak crypto, sensitive data exposed. Untrusted data written into another format without encoding: HTML, SQL, shell, CSV opened in a spreadsheet. |
    | Supply chain | New or upgraded dependencies: needed, pinned, maintained, licence. CI, build, or infrastructure changes: permissions and secrets. |
    | Contracts | Callers of every changed function, type, endpoint, or schema still work. Flag narrower inputs, changed outputs, new errors, new side effects. |
    | Regressions and data | Existing behavior broken; migrations reversible; schema changes coordinated. |
-   | Operations | Races, idempotency, timeouts, retries, behavior under partial failure, logging and metrics for the new path. |
+   | Scale and operations | Judged against the load the project expects (README, deploy config; state your assumption if neither says): check-then-write races, the same work done by every process, lists or memory that only grow, a query per item, quadratic work on large input, per-process state that must be shared. Idempotency, timeouts, retries, partial failure, logging and metrics for the new path. |
 
 6. **Check the size of the change.** Flag hunks that serve no requirement:
    drive-by refactors, renames, reformatting, unrequested helpers,
@@ -107,22 +107,22 @@ These rules apply to every step below and override habit.
 8. **Check `CONSTRAINTS.md`** rule by rule, citing `C-<n>`.
 9. **Label every finding and decide the verdict** using the tables in
    Output.
-10. **Report,** leading with the verdict and the blocking findings. Pass a
-    fresh reader's findings on unchanged: add to them, never drop or
-    downgrade one. At round 5 with a Blocker or Major still open, ask
-    whether to accept, keep going, or return the change to design.
+10. **Report,** verdict and blocking findings first. Pass a fresh reader's
+    findings on unchanged: add, never drop or downgrade. At round 5 with a
+    Blocker or Major open, ask: accept, keep going, or back to design?
 
 ## Rules
 
-- Review the change, not the repository. Untouched code is out of scope.
-- A Blocker cites a line, a scenario, or a rule. Never "this seems wrong".
+- Review the change, not the repository. Untouched code is out of scope
+  unless the change breaks it.
+- A Blocker or Major names a concrete case, "this input gives this wrong
+  result", or a rule, confirmed by rereading the lines. No case, no finding.
 - Do not inflate nits to Blockers or soften Blockers to notes.
 - "The tests pass" is not the proof check. Check what they assert.
 - Suggest the fix; do not apply it. A review that edits is no longer
   independent.
-- Findings on new code only. Suggest a simpler shape; do not demand a
-  rewrite for taste.
-- A finding without an ID or a location is a note.
+- Findings on new code, or code it breaks. A finding without a location is
+  a note. Suggest a simpler shape; do not demand a rewrite for taste.
 - A settled finding stays settled. A fixed one is checked again, never
   assumed.
 
@@ -147,6 +147,7 @@ Blockers; each Major accepted with a recorded reason or scheduled.
 > **Requirements:** <spec path | agreed in conversation | stated intent only>
 > **Reviewer:** fresh context | same session as the author (fresh review: not run, <reason>)
 > **Round:** 1 | <n>, after <earlier review>
+> **Load assumed:** <load>, from `<path>` | assumed
 
 ## Verdict
 **Approve | Approve with notes | Request changes**
@@ -161,10 +162,10 @@ Blockers; each Major accepted with a recorded reason or scheduled.
 | <n> | <severity: finding> | fixed | still open | settled | reopened | churn | `<file:line>` or reason |
 
 ## Findings
-| # | Severity | ID | Location | Finding | Evidence | Suggested fix |
-|---|---|---|---|---|---|---|
-| 1 | Blocker | R-4 | `<file:line>` | <what is wrong> | <scenario / rule> | <concrete fix> |
-| 2 | Major | NG-2 | `<file:line>` | <builds a non-goal> | <reference> | <remove / defer> |
+| # | Severity | ID | Location | Finding | Evidence | Suggested fix | If skipped |
+|---|---|---|---|---|---|---|---|
+| 1 | Blocker | R-4 | `<file:line>` | <what is wrong> | <input → wrong result / rule> | <smallest fix> | <what users or operators see> |
+| 2 | Major | NG-2 | `<file:line>` | <builds a non-goal> | <reference> | <remove / defer> | <cost of keeping it> |
 
 ## Unnecessary change
 - `<file:line>`: <hunk that serves no requirement, or duplicates `<path>`> or "none"
@@ -190,8 +191,9 @@ Blockers; each Major accepted with a recorded reason or scheduled.
 - [ ] The broad view came first, with a restatement of what the diff does.
 - [ ] On a later round, every earlier finding has a status.
 - [ ] All six areas in step 5 were checked for the changed flows.
-- [ ] Callers of every changed contract were checked.
+- [ ] Callers and callees of changed contracts were checked; load is named.
 - [ ] Unnecessary and duplicate change was looked for.
 - [ ] The proof check covers tests, weakened assertions, and evidence age.
-- [ ] Every finding has severity, ID, location, and evidence.
+- [ ] Every finding has severity, ID, location, and evidence; each Blocker
+      and Major a concrete case and what happens if skipped.
 - [ ] The verdict follows the rules and leads the report. No code was edited.

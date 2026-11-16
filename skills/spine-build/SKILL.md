@@ -88,8 +88,12 @@ These rules apply to every step below and override habit.
    checkpoints. If one is missing, stop and name it.
 4. **Find the smallest change, before editing anything.**
    - Read the code path the slice touches, from entry to effect.
-   - Search for an existing function, type, or pattern that already does
-     part of the job. Reuse it.
+   - Take the first that works: code this repository already has (a
+     function, component, or pattern, used the way nearby code uses it);
+     the standard library or platform (a house component beats a native
+     one); an installed dependency; only then new code. Never add a
+     dependency for a few lines.
+   - A bug fix goes in the shared code once, not in one caller.
    - List the files you expect to change, and every caller of anything
      whose signature or behavior will change.
    - If two approaches work, take the one that changes fewer lines and no
@@ -132,6 +136,8 @@ These rules apply to every step below and override habit.
 - A new dependency, helper, abstraction, or config option needs a
   requirement that asks for it.
 - "This is obviously needed too" is a question for the user, not a commit.
+  Checking untrusted input where it enters the code is not scope creep: a
+  value a person types or another system sends is validated even unasked.
 - You wrote the code under review: wanting to contest is not evidence. A
   contest without a citation is a fix or an escalation. Never change a
   finding's severity, and never contest "this is hard to follow".
