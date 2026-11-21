@@ -76,8 +76,9 @@ These rules apply to every step below and override habit.
    failures in m runs.
 3. **Capture it as a failing test** at the lowest level that shows it. Watch
    it fail with a message that describes the real gap. Unless the fix
-   follows on the same branch, mark it expected-failure (`xfail`,
-   `test.fails`, `@Disabled` with a reason) citing `D-<n>`.
+   follows on the same branch, mark it expected-failure citing `D-<n>`, so it
+   still runs: `xfail`, `test.fails`, or `node:test`'s `{ todo }` or
+   `{ expectFailure }`. Never skip or disable it: a skipped test proves nothing.
 4. **Localize it.** Use the cheapest of:
    - bisect the input: which argument or record triggers it;
    - bisect the path: the first point where a value is already wrong;

@@ -259,6 +259,59 @@ smaller model:
 - Keep the human gates. Approval, merge, and release are never the agent's
   call.
 
+## Benchmark
+
+Measured with [agent-skills-evalset](https://github.com/eniga/agent-skills-evalset):
+37 cases, each a real task in a fresh git repository, graded by code rather
+than by a model. The checks run hidden acceptance tests, inspect the git
+state and the files changed, and read the report for required fields. 28
+cases exercise one skill each. 9 routing cases give a plain request and check
+that the agent picks the right skill from the descriptions alone.
+
+Claude Code, 2026-11-21, with the skills as they are in this repository.
+With the skills, each case ran twice. Without them, each ran once on
+2026-11-20 (routing cases do not apply).
+
+| Model | Without the skills | With the skills |
+|---|---|---|
+| Claude Sonnet 5.5 | 1 of 28 cases, 53% of checks | 74 of 74 runs, 100% of checks |
+| Claude Haiku 5.5 | 2 of 28 cases, 51% of checks | 72 of 74 runs, 99% of checks |
+
+**Read the "without" column with care.** Without the skills, both models
+usually reach a sound conclusion: they found the bug, flagged the broken
+caller, approved the correct change. Most of their failed checks are things
+the skills require and an unprompted agent has no reason to produce: a
+verdict field, traceability IDs, a defect or amendment record, a findings
+table. The differences in behavior, confirmed by reading the outputs, are
+these. Without the skills, both models:
+
+- wrote code from a requirement with no numbers in it instead of asking;
+- fixed a bug directly, with no failing regression test first, or named the
+  cause with no test to prove it;
+- added "add to cart" without validating the quantity a customer types;
+- edited files they were not asked to touch while writing a quality bar
+  (`package.json`, `CLAUDE.md`, tests, `README.md`).
+
+**The two failures with the skills** are both routing, on Haiku. For "add
+shipping to orders" and for "nobody can read `src/report.js`, clean it up",
+one run in two did the work without loading `spine-build` or
+`spine-simplify`. The skill was installed but not chosen.
+
+Three runs were first graded as failures and then regraded as passes,
+because the grader was stricter than the requirement: a design that said
+"Status is **Proposed**" in prose instead of a `Status:` field, a review that
+wrote "TC-U1 to U3" instead of "TC-U3", and a summary that wrote
+"No `docs/` set exists". The grader fixes are in the evalset, each passing
+its self-test.
+
+To reproduce, clone the evalset next to this repository, then:
+
+```bash
+node run.mjs --selftest                                  # graders only, no model
+node run.mjs --agent claude --model <id> --repeat 2      # with the skills
+node run.mjs --agent claude --model <id> --baseline      # without
+```
+
 ## Repository
 
 ```
