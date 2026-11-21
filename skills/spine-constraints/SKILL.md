@@ -65,9 +65,11 @@ These rules apply to every step below and override habit.
 
 ## Process
 
-1. **Detect what already exists.** Read `CONSTRAINTS.md`, linter and
+1. **Detect what already exists.** Read `CONSTRAINTS.md` and
+   `docs/CONSTRAINTS.md`, linter and
    formatter config, CI workflows, and repository instructions. If
-   `CONSTRAINTS.md` exists, propose a diff. Never rewrite it.
+   either exists, propose a diff to it and keep its `C-<n>` numbering.
+   Never rewrite it, and never start a second list.
 2. **Reuse before adding.** A rule already enforced by a tool is recorded by
    pointing at that tool's config and command. Do not restate its settings
    or set a second threshold.
@@ -95,7 +97,7 @@ These rules apply to every step below and override habit.
 5. **Write `CONSTRAINTS.md`** using Output.
 6. **Get approval.** The bar is a team decision. The status stays Draft until
    a person approves it.
-7. **Offer to wire the gates that hold without a prompt.** An agent can skip
+7. **Offer to wire the gates; install nothing without a yes.** An agent can skip
    a written rule; it cannot skip a required check. With the user's
    approval, install from this skill's `references/`:
    - `references/commit-msg.sh` as `.githooks/commit-msg` (then

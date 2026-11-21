@@ -84,6 +84,9 @@ These rules apply to every step below and override habit.
    - flag: turn it off and confirm the old behavior;
    - deploy revert: deploy the previous version and confirm it serves;
    - migration: run the down migration and confirm schema and data survive.
+   No non-production environment: rehearse what you can locally, and
+   mark RL-6 Fail with the reason. Only a named person accepting that risk
+   in writing turns it into a condition.
 5. **Work out what rollback does to data.** Can the old version read what
    the new one wrote? Name anything that cannot be undone: emails sent,
    payments captured, webhooks delivered, third-party records.

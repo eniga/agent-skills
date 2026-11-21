@@ -69,8 +69,8 @@ These rules apply to every step below and override habit.
    with the user before going on.
 2. **Choose the slug:** kebab-case, for example `payment-retries`. Confirm it.
    It is chosen once and never renamed.
-3. **Ask the blocking questions,** at most five, each with a recommended
-   answer: who the user is, what done looks like, what happens on failure,
+3. **Ask the blocking questions,** one at a time, most blocking first, each
+   with a recommended answer: who the user is, what done looks like, what happens on failure,
    who must **not** be able to do this, and what sensitive data it touches.
    Everything non-blocking becomes an open question in the story.
 4. **Write the story** using Output. Use the tracker's key as the ID, or the

@@ -27,7 +27,7 @@ feature (that is new work); verifying a finished change.
 | Input | Where | If missing |
 |---|---|---|
 | Symptom | error, failing test, report, log | Stop. Ask what was seen, what was expected, and where. |
-| A way to run the system | test command, dev server, staging | Stop. A defect you cannot run cannot be reproduced. |
+| A way to run the system | test command, dev server, staging | Proceed from logs, traces, and code alone, and say so. The status can be at most `cause unproven`: without a run there is no proof and no regression test. |
 | Expected behavior `R-*`, `AC-*`, `TC-*` | spec, story, contract, docs | Proceed. Use the documented or reasonable expectation and say which. Record that no criterion covered it. |
 | Recent changes | `git log`, deploy history | Proceed. |
 

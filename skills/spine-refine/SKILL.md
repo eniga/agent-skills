@@ -27,6 +27,7 @@ a spec (plan the build instead); a single task (build it).
 | Ready story with `AC-*` and `NG-*` | `.specs/<slug>/story.md`, a ticket, the conversation | Stop if no outcome or criteria exist anywhere. If the story is thin, size what can be sized and list the rest as unknowns. |
 | Repository context | the codebase | Proceed. Mark every estimate that rests on unverified code as assumed. |
 | Pointing scale | team convention | Proceed with 1, 2, 3, 5, 8 and say so. |
+| Iteration capacity | the team, past iterations | Proceed. Report the total, skip step 7, and say capacity was not given. |
 
 ## Operating contract
 

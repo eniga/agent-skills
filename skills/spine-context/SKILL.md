@@ -110,7 +110,7 @@ work), or return it in the conversation (contract rule 8).
 ```markdown
 # Context map: <repository or area>
 
-> **Date:** <YYYY-MM-DD>
+> **Date:** <YYYY-MM-DD> | **Commit:** `<sha>` (re-verify facts whose files changed since)
 > **Purpose:** <the decision this map supports>
 > **Verified by running:** `<command>`: <result, duration> (or: nothing was run)
 

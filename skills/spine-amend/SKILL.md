@@ -124,7 +124,7 @@ conversation and the PR body (contract rule 8).
 > **Date:** <YYYY-MM-DD>
 > **Type:** Correction | Clarification | Scope change | Contract change
 > **Trigger:** <what forced this, with evidence>
-> **Approved by:** <name, date> | PENDING
+> **Approved by:** <name, date> | **Acknowledged by:** <name, date> (correction, clarification) | PENDING
 
 **Requirements**
 | ID | Change | Before | After |

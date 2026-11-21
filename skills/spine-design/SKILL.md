@@ -82,8 +82,9 @@ These rules apply to every step below and override habit.
    option's strongest argument as its supporter would.
 5. **Evaluate every option against every criterion.** Give evidence: a
    benchmark, a documented limit, a similar system, a prototype. Mark every
-   judgement that rests on assumption. If a critical one does, spike it
-   before deciding.
+   judgement that rests on assumption. If a critical one does, stop: list
+   the spike (question, how to answer it, time box) under Open questions
+   and do not choose until it is answered.
 6. **Choose.** Name the option and the criteria that decided it. When options
    tie, pick the one that changes less and reuses more. State what you give
    up.
@@ -106,8 +107,10 @@ These rules apply to every step below and override habit.
 
 ## Output
 
-Save to `.specs/<slug>/design.md` (or `docs/decisions/AD-<n>-<slug>.md` for a
-repository-wide decision), or return it in the conversation (contract rule 8).
+Save it where the project already keeps designs: `.specs/<slug>/design.md`,
+or `docs/decisions/AD-<n>-<slug>.md` for a repository-wide decision. If
+neither folder exists, return it in the conversation and create no folder
+(contract rule 8).
 
 ```markdown
 # AD-<n>: <the choice made>
